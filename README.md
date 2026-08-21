@@ -72,15 +72,15 @@ Simple
 
 ![Simple table](./assets/examples/text/simple.png)
 
-Compact layout with horizontal lines omitted and a colored light border style
+Compact layout with horizontal lines omitted and a colored rounded border style
 
 ![Compact table](./assets/examples/text/compact.png)
 
-Row spans with a colored rounded border style
+Row spans with a colored heavy border style
 
 ![Table with row spans](./assets/examples/text/rowspan.png)
 
-Column spans with a colored heavy border style
+Column spans with a colored light border style
 
 ![Table with column spans](./assets/examples/text/colspan.png)
 
@@ -96,7 +96,7 @@ Calculated footer with CJK text, value transformations, and a colored light bord
 
 ![Table with transformed values](./assets/examples/text/transformer.png)
 
-Complex values with a colored light border style
+Complex values with a colored double border style
 
 ![Table containing complex values](./assets/examples/text/complex.png)
 
@@ -298,13 +298,13 @@ The figures are the best of five 10,000-iteration runs on an Apple M2 with Go 1.
 
 | Scenario        | `table`       | `mintab`    | `go-pretty`  | `tablewriter`   |
 | --------------- | ------------- | ----------- | ------------ | --------------- |
-| Simple          | **1 · 1,728** | 43 · 2,320  | 139 · 12,624 | 975 · 81,268    |
-| Footer          | **1 · 7,821** | -           | 422 · 41,002 | 2,850 · 198,531 |
-| Compact         | **1 · 2,549** | 62 · 3,891  | 188 · 20,996 | 1,292 · 100,454 |
-| Repeated values | **1 · 4,883** | 110 · 7,792 | 362 · 38,253 | 2,480 · 160,701 |
-| Complex values  | **5 · 6,758** | -           | 375 · 59,609 | 4,751 · 287,064 |
+| Simple          | **1 · 1,702** | 43 · 2,266  | 110 · 11,617 | 975 · 81,063    |
+| Footer          | **1 · 6,896** | -           | 323 · 37,549 | 2,850 · 199,518 |
+| Compact         | **1 · 2,466** | 62 · 3,836  | 143 · 17,924 | 1,292 · 98,700  |
+| Repeated values | **1 · 4,879** | 110 · 7,562 | 258 · 34,980 | 2,480 · 163,596 |
+| Complex values  | **5 · 6,803** | -           | 317 · 64,428 | 4,751 · 287,515 |
 
-`table` was the fastest implementation in every comparable scenario, running 1.3 to 8.8 times as fast as the next-fastest alternative. A dash indicates an unsupported scenario.
+`table` was the fastest implementation in every comparable scenario, running 1.3 to 9.5 times as fast as the next-fastest alternative. A dash indicates an unsupported scenario.
 
 Run the same comparison on your machine with:
 
