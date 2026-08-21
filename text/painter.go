@@ -407,7 +407,7 @@ func (o *painter) layoutCell(value string, limit int, truncate bool) layout {
 
 // wrapLine splits a line into segments within the configured width.
 func (o *painter) wrapLine(line string, limit int) int {
-	scanner := width.Scan(line)
+	scanner := width.NewScanner(line)
 	maxWidth := 0
 	segmentStart := 0
 	segmentWidth := 0
@@ -442,7 +442,7 @@ func (o *painter) truncateLine(line string, lineWidth, limit int) (string, int) 
 	if contentLimit <= 0 {
 		return ellipsis[:limit], limit
 	}
-	scanner := width.Scan(line)
+	scanner := width.NewScanner(line)
 	end := 0
 	keptWidth := 0
 	for start, next, unitWidth, ok := scanner.Next(); ok; start, next, unitWidth, ok = scanner.Next() {
