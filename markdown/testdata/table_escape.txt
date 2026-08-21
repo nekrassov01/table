@@ -1,0 +1,7 @@
+| Key       | Value          |
+| --------- | -------------- |
+| pipe      | a\|b           |
+| backslash | a\\b           |
+| newline   | a<br>b         |
+| combined  | a\|b<br>c\\d   |
+| a\|b      | \*c\* \& \<d\> |

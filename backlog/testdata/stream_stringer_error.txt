@@ -1,0 +1,2 @@
+|~Stringer  |~Error  |
+| x | boom |

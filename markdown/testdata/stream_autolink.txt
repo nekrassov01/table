@@ -1,0 +1,6 @@
+| Kind | Value |
+| --- | --- |
+| www | www.commonmark.org |
+| https | https://example.com/path |
+| email | foo@bar.baz |
+| mailto | mailto:foo@bar.baz |

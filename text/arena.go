@@ -1,0 +1,206 @@
+package text
+
+import (
+	"io"
+	"sync"
+
+	"github.com/nekrassov01/table/internal/scope"
+	"github.com/nekrassov01/table/internal/span"
+	"github.com/nekrassov01/table/internal/value"
+)
+
+// pool shares reusable pipeline storage across tables and streams.
+var pool = sync.Pool{
+	New: func() any {
+		return new(arena)
+	},
+}
+
+// arena owns reusable storage and continuation state for one table render or
+// active stream.
+type arena struct {
+	strings  value.Store   // Text backing shared across pipeline stages.
+	config   configState   // Storage retained by the config.
+	compiler compilerState // Storage retained by the compiler.
+	solver   solverState   // Storage retained by the solver.
+	painter  painterState  // Storage retained by the painter.
+}
+
+// resetRows clears data owned by the previous stream pass while preserving
+// resolved columns, column metrics, and cross-row span state.
+func (o *arena) resetRows() {
+	compiler := &o.compiler
+	painter := &o.painter
+	clear(compiler.cells)
+	clear(compiler.spanValues)
+	clear(compiler.rows)
+	clear(painter.layouts)
+	clear(painter.segments)
+	compiler.cells = compiler.cells[:0]
+	compiler.spanValues = compiler.spanValues[:0]
+	compiler.rows = compiler.rows[:0]
+	painter.layouts = painter.layouts[:0]
+	painter.segments = painter.segments[:0]
+	o.strings.Reset()
+}
+
+// newConfig starts the initial config stage for one rendering pass.
+func (o *arena) newConfig(option *option, footer [][]string, bodyRows, bodyColumns int) config {
+	return config{
+		bodyColumns: bodyColumns,
+		state:       &o.config,
+		output: configResult{
+			option:   option,
+			header:   option.header,
+			footer:   footer,
+			bodyRows: bodyRows,
+		},
+	}
+}
+
+// resumeConfig pairs pass data with the columns retained by an active stream.
+func (o *arena) resumeConfig(option *option, footer [][]string, bodyRows int) config {
+	state := &o.config
+	return config{
+		state: state,
+		output: configResult{
+			option:        option,
+			header:        option.header,
+			footer:        footer,
+			bodyRows:      bodyRows,
+			columns:       state.columns,
+			footerColumns: maxColumns(footer),
+		},
+	}
+}
+
+// newCompiler starts the initial compiler stage for input.
+func (o *arena) newCompiler(input configResult) compiler {
+	return compiler{
+		input:     input,
+		state:     &o.compiler,
+		strings:   &o.strings,
+		bodyStart: -1,
+		output: compilerResult{
+			configResult: input,
+			previousBars: allBars,
+			lastBars:     allBars,
+		},
+	}
+}
+
+// resumeCompiler continues compilation with span and boundary state retained
+// from prior body rows.
+func (o *arena) resumeCompiler(input configResult) compiler {
+	state := &o.compiler
+	mask := state.rowspans.Resolve(ScopeBody)
+	bars := state.lastBars
+	return compiler{
+		input:     input,
+		state:     state,
+		strings:   &o.strings,
+		bodyStart: -1,
+		output: compilerResult{
+			configResult:    input,
+			rowspanMask:     mask,
+			previousBars:    bars,
+			lastBars:        bars,
+			hasPreviousBody: true,
+		},
+	}
+}
+
+// newSolver starts the initial measurement and geometry pass and resolves its
+// terminal width limit.
+func (o *arena) newSolver(input compilerResult, w io.Writer) solver {
+	solver := o.resumeSolver(input)
+	if input.option.autoFit {
+		solver.widthLimit = terminalWidth(w)
+	}
+	return solver
+}
+
+// resumeSolver pairs input with column metrics retained by an active stream.
+func (o *arena) resumeSolver(input compilerResult) solver {
+	state := &o.solver
+	return solver{
+		input: input,
+		state: state,
+		output: solverResult{
+			compilerResult: input,
+			metrics:        state.columnMetrics,
+		},
+	}
+}
+
+// newPainter starts a painter for solved rows.
+func (o *arena) newPainter(input solverResult, w io.Writer) painter {
+	return painter{
+		input:   input,
+		state:   &o.painter,
+		strings: &o.strings,
+		w:       w,
+	}
+}
+
+// release clears retained references and returns o to the pool while preserving
+// reusable backing storage.
+func (o *arena) release() {
+	if o == nil {
+		return
+	}
+	compiler := &o.compiler
+	painter := &o.painter
+	if cap(painter.line) > cap(painter.lineBacking) {
+		painter.lineBacking = painter.line[:0]
+	}
+	clear(o.config.columns)
+	clear(compiler.cells)
+	clear(compiler.spanValues)
+	clear(compiler.rows)
+	clear(painter.layouts)
+	clear(painter.segments)
+	painter.line = nil
+	painter.horizon = nil
+	pool.Put(o)
+}
+
+// configState retains resolved columns across stream passes.
+type configState struct {
+	columns []column // Resolved column settings in logical order.
+}
+
+// compilerState owns reusable compilation storage and cross-row span state.
+type compilerState struct {
+	cells        []cell           // Backing for compiled logical cells.
+	rows         []row            // Backing for compiled logical rows.
+	spanValues   []string         // Scratch for values passed to span detection.
+	rowspans     scope.Masks      // Rowspan masks by table part.
+	colspans     scope.Masks      // Colspan masks by table part.
+	previousBody span.PreviousRow // Previous body row retained across stream renders.
+	previousBand span.PreviousRow // Previous header or footer row within its current band.
+	lastBars     uint64           // Boundaries produced by the latest body row.
+}
+
+// solverState owns reusable column-metric storage retained by streams.
+type solverState struct {
+	columnMetrics    []columnMetric    // Solved metrics in logical column order.
+	spanRequirements []spanRequirement // Minimum-width requirements from column spans.
+}
+
+// painterState owns reusable row layout and output buffers.
+type painterState struct {
+	layouts     []layout  // Arranged cells for the row being painted.
+	segments    []segment // Backing for multiline segments.
+	lineBacking []byte    // Shared backing for line and horizon cache.
+	line        []byte    // Current rendered line.
+	horizon     []byte    // Cached body horizon.
+	rowspans    uint64    // Rowspan mask represented by horizon.
+}
+
+// acquireArena takes an arena from the pool and resets its shared string store.
+func acquireArena() *arena {
+	a := pool.Get().(*arena)
+	a.strings.Reset()
+	return a
+}

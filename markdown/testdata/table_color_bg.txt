@@ -1,0 +1,4 @@
+| Name | Value                                           |
+| ---- | ----------------------------------------------- |
+| foo  | <span style="background-color:red">hello</span> |
+| bar  | <span style="background-color:red">world</span> |

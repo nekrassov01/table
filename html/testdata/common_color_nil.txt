@@ -1,0 +1,22 @@
+<table>
+  <thead>
+    <tr>
+      <th>Key</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>a</td>
+      <td>N/A</td>
+    </tr>
+    <tr>
+      <td>b</td>
+      <td>N/A</td>
+    </tr>
+    <tr>
+      <td>c</td>
+      <td><span style="color:red">ok</span></td>
+    </tr>
+  </tbody>
+</table>

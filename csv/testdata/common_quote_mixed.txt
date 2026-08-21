@@ -1,0 +1,7 @@
+Name,Note
+alice,"has, comma
+and newline"
+bob,"""quoted"""
+carol,plain
+dave," leading"
+erin,"\."

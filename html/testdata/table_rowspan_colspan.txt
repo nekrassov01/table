@@ -1,0 +1,22 @@
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="2" colspan="2">x</td>
+      <td>x</td>
+    </tr>
+    <tr>
+      <td>y</td>
+    </tr>
+    <tr>
+      <td colspan="2">z</td>
+      <td>y</td>
+    </tr>
+  </tbody>
+</table>

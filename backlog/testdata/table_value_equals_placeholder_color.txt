@@ -1,0 +1,4 @@
+|~A                |
+| &color(red){N/A} |
+| N/A              |
+| &color(red){x}   |

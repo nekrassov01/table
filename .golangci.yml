@@ -1,0 +1,28 @@
+version: "2"
+linters:
+  default: fast
+  enable:
+    - errcheck
+    - gosec
+    - revive
+  disable:
+    - cyclop
+    - dupl
+    - depguard
+    - funlen
+    - gocognit
+    - gomodguard
+    - lll
+    - maintidx
+    - mnd
+    - nlreturn
+    - testpackage
+    - wsl
+  exclusions:
+    rules:
+      - linters:
+          - revive
+        text: "package-comments"
+      - linters:
+          - revive
+        text: "stutters"

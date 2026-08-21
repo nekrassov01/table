@@ -1,0 +1,22 @@
+<table>
+  <thead>
+    <tr>
+      <th>N</th>
+      <th>V</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>N/A</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>-5</td>
+    </tr>
+  </tbody>
+</table>

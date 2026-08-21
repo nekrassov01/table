@@ -1,0 +1,20 @@
+<table>
+  <thead>
+    <tr>
+      <th colspan="2">Pair</th>
+      <th>Solo</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td colspan="2">x</td>
+      <td>z</td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="2">Sum</td>
+      <td>Rest</td>
+    </tr>
+  </tfoot>
+</table>

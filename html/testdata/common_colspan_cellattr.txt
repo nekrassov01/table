@@ -1,0 +1,19 @@
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th class="c" style="width:2em">B</th>
+      <th>C</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td colspan="2">x</td>
+      <td>y</td>
+    </tr>
+    <tr>
+      <td>p</td>
+      <td class="c" style="width:2em" colspan="2">q</td>
+    </tr>
+  </tbody>
+</table>

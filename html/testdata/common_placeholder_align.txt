@@ -1,0 +1,18 @@
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th style="text-align:right">B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>x</td>
+      <td style="text-align:right">-</td>
+    </tr>
+    <tr>
+      <td>-</td>
+      <td style="text-align:right">q</td>
+    </tr>
+  </tbody>
+</table>

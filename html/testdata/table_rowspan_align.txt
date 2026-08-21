@@ -1,0 +1,25 @@
+<table>
+  <thead>
+    <tr>
+      <th style="text-align:right">A</th>
+      <th>B</th>
+      <th>C</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align:right" rowspan="2">g</td>
+      <td>x</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>y</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td style="text-align:right">h</td>
+      <td>z</td>
+      <td>3</td>
+    </tr>
+  </tbody>
+</table>

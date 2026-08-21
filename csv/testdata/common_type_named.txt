@@ -1,0 +1,2 @@
+bool	uint	float32	float64	uintptr	complex
+true	7	1.5	2.25	42	(1+2i)

@@ -1,0 +1,8 @@
+<table>
+  <tfoot>
+    <tr>
+      <td>Total</td>
+      <td>300</td>
+    </tr>
+  </tfoot>
+</table>

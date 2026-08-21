@@ -1,0 +1,4 @@
+| <span style="color:red">Name</span> | **Value** |
+| --- | --- |
+| foo | **<span style="color:blue">1</span>** |
+| bar | **<span style="color:blue">2</span>** |

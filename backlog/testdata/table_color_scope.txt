@@ -1,0 +1,4 @@
+|~&color(red){Name}     |~''Value''             |
+| foo                   | &color(blue){1}       |
+| bar                   | &color(blue){2}       |
+|~&color(green){total}  |~&color(green){''3''}  |

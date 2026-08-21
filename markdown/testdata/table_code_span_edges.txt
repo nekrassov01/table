@@ -1,0 +1,12 @@
+| Case                | Value      |
+| ------------------- | ---------- |
+| backslash           | `a\b`      |
+| one backtick        | ``a`b``    |
+| two backticks       | ```a``b``` |
+| leading backtick    | `` `x ``   |
+| trailing backtick   | `` x` ``   |
+| only backtick       | `` ` ``    |
+| pipe                | `a\|b`     |
+| backslash then pipe | `a\\|b`    |
+| padded spaces       | `  x  `    |
+| only spaces         | `   `      |

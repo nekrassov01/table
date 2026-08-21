@@ -1,0 +1,19 @@
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>x</td>
+      <td colspan="2">-</td>
+    </tr>
+    <tr>
+      <td colspan="2">-</td>
+      <td>q</td>
+    </tr>
+  </tbody>
+</table>

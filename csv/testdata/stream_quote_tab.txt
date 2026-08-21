@@ -1,0 +1,3 @@
+Key	Value
+tab-value	"a	b"
+plain	ok

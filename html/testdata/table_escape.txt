@@ -1,0 +1,38 @@
+<table>
+  <thead>
+    <tr>
+      <th>Key</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ampersand</td>
+      <td>a&amp;b</td>
+    </tr>
+    <tr>
+      <td>less-than</td>
+      <td>a&lt;b</td>
+    </tr>
+    <tr>
+      <td>greater-than</td>
+      <td>a&gt;b</td>
+    </tr>
+    <tr>
+      <td>double-quote</td>
+      <td>a&quot;b</td>
+    </tr>
+    <tr>
+      <td>newline</td>
+      <td>a<br>b</td>
+    </tr>
+    <tr>
+      <td>combined</td>
+      <td>a&lt;b&amp;c<br>d&gt;e</td>
+    </tr>
+    <tr>
+      <td>multiple&amp;</td>
+      <td>&lt;one&gt; &amp; &quot;two&quot;</td>
+    </tr>
+  </tbody>
+</table>

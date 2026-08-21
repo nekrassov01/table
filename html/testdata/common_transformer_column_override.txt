@@ -1,0 +1,18 @@
+<table>
+  <thead>
+    <tr>
+      <th>Level</th>
+      <th>Message</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td><strong><span style="color:blue">ok</span></strong></td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><em><span style="color:yellow">warn</span></em></td>
+    </tr>
+  </tbody>
+</table>

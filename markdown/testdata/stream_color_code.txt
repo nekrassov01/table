@@ -1,0 +1,4 @@
+| Type | Value |
+| --- | --- |
+| text | <span style="color:red">`hello`</span> |
+| slice | <span style="color:red">`[list 3 item(s)]`</span> |

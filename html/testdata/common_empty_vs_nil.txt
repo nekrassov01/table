@@ -1,0 +1,26 @@
+<table>
+  <thead>
+    <tr>
+      <th>Kind</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>nil</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>empty</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>space</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>text</td>
+      <td>hello</td>
+    </tr>
+  </tbody>
+</table>

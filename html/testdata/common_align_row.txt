@@ -1,0 +1,21 @@
+<table>
+  <thead>
+    <tr>
+      <th>Left</th>
+      <th style="text-align:right">Right</th>
+      <th style="text-align:center">Center</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>a</td>
+      <td style="text-align:right">100</td>
+      <td style="text-align:center">x</td>
+    </tr>
+    <tr>
+      <td>b</td>
+      <td style="text-align:right">200</td>
+      <td style="text-align:center">y</td>
+    </tr>
+  </tbody>
+</table>

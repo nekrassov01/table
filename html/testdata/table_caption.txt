@@ -1,0 +1,15 @@
+<table>
+  <caption>Test Caption</caption>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>foo</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>

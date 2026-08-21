@@ -1,0 +1,18 @@
+<table>
+  <caption style="caption-side:bottom">cap</caption>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="2">s</td>
+      <td>s</td>
+    </tr>
+    <tr>
+      <td>s</td>
+    </tr>
+  </tbody>
+</table>

@@ -1,0 +1,14 @@
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th class="score" style="color:#333;text-align:right">Score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>alice</td>
+      <td class="score" style="color:#333;text-align:right">100</td>
+    </tr>
+  </tbody>
+</table>

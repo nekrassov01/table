@@ -1,0 +1,4 @@
+| Key   | Value                               |
+| ----- | ----------------------------------- |
+| space | <span style="color:red">a b</span>  |
+| pipe  | <span style="color:red">a\|b</span> |

@@ -1,0 +1,3 @@
+|~Type  |~Value                         |
+| text  | {code}hello{/code}            |
+| slice | {code}[list 3 item(s)]{/code} |

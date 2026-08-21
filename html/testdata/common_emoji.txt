@@ -1,0 +1,16 @@
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>😀</td>
+      <td>👩‍💻</td>
+      <td>é</td>
+    </tr>
+  </tbody>
+</table>

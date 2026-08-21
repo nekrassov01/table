@@ -1,0 +1,18 @@
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>alice</td>
+      <td><strong><span style="color:red">high</span></strong></td>
+    </tr>
+    <tr>
+      <td>bob</td>
+      <td>99</td>
+    </tr>
+  </tbody>
+</table>

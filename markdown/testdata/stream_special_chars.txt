@@ -1,0 +1,16 @@
+| Char | Value |
+| --- | --- |
+| less-than | \< |
+| greater-than | \> |
+| double-quote | " |
+| single-quote | ' |
+| ampersand | \& |
+| space |   |
+| asterisk | \* |
+| backtick | \` |
+| backslash | \\ |
+| left-bracket | \[ |
+| right-bracket | \] |
+| tilde | \~ |
+| underscore | \_ |
+| pipe | \| |

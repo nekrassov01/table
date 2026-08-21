@@ -1,0 +1,12 @@
+<table class="x&quot; onmouseover=&quot;alert(1)">
+  <thead>
+    <tr>
+      <th style="color:red&quot; onclick=&quot;evil()">A</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="color:red&quot; onclick=&quot;evil()">v</td>
+    </tr>
+  </tbody>
+</table>

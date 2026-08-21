@@ -1,0 +1,4 @@
+| Name  | Score                                   |
+| ----- | --------------------------------------- |
+| alice | **<span style="color:red">high</span>** |
+| bob   | 99                                      |

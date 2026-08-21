@@ -1,0 +1,3 @@
+|~Key  |~Value  |
+| space | &color(red){a b} |
+| pipe | &color(red){a\\|b} |

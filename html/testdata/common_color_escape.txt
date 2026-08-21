@@ -1,0 +1,18 @@
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span style="color:red">&lt;b&gt;</span></td>
+      <td>&amp;amp;</td>
+    </tr>
+    <tr>
+      <td><span style="color:red">a|b</span></td>
+      <td>c&quot;d</td>
+    </tr>
+  </tbody>
+</table>

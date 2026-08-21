@@ -1,0 +1,4 @@
+|~        |~     |~Tier  |
+|~Region  |~Env  |~Kind  |
+| jp      | prod | web   |
+|         |      | db    |

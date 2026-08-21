@@ -1,0 +1,21 @@
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>A</th>
+      <th>B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align:right">1</td>
+      <td>x</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td style="text-align:right">2</td>
+      <td>p</td>
+      <td>q</td>
+    </tr>
+  </tbody>
+</table>

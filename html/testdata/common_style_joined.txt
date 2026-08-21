@@ -1,0 +1,20 @@
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th style="color:#333;text-align:left">Score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="padding:4px">alice</td>
+      <td style="padding:4px;color:#333;text-align:left">100</td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td>total</td>
+      <td style="color:#333;text-align:left"></td>
+    </tr>
+  </tfoot>
+</table>

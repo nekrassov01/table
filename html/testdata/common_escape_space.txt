@@ -1,0 +1,30 @@
+<table>
+  <thead>
+    <tr>
+      <th>Key</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>interior</td>
+      <td>a b</td>
+    </tr>
+    <tr>
+      <td>run</td>
+      <td>a  b</td>
+    </tr>
+    <tr>
+      <td>lead</td>
+      <td>  a</td>
+    </tr>
+    <tr>
+      <td>trail</td>
+      <td>a </td>
+    </tr>
+    <tr>
+      <td>json</td>
+      <td>{<br>  &quot;k&quot;: 1<br>}</td>
+    </tr>
+  </tbody>
+</table>

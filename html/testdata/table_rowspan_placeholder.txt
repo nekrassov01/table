@@ -1,0 +1,21 @@
+<table>
+  <thead>
+    <tr>
+      <th>Group</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="2">A</td>
+      <td>N/A</td>
+    </tr>
+    <tr>
+      <td>y</td>
+    </tr>
+    <tr>
+      <td>B</td>
+      <td>N/A</td>
+    </tr>
+  </tbody>
+</table>

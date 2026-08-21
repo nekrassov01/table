@@ -1,0 +1,22 @@
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Values</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ints</td>
+      <td><code>[list 3 item(s)]</code></td>
+    </tr>
+    <tr>
+      <td>strings</td>
+      <td><code>[list 2 item(s)]</code></td>
+    </tr>
+    <tr>
+      <td>empty-elem</td>
+      <td><code>[list 3 item(s)]</code></td>
+    </tr>
+  </tbody>
+</table>

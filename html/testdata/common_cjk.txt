@@ -1,0 +1,22 @@
+<table>
+  <thead>
+    <tr>
+      <th>日本語</th>
+      <th>ASCII</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>あいう</td>
+      <td>abc</td>
+    </tr>
+    <tr>
+      <td>日本</td>
+      <td>longer-text</td>
+    </tr>
+    <tr>
+      <td>テスト</td>
+      <td>x</td>
+    </tr>
+  </tbody>
+</table>

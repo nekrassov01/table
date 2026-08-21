@@ -1,0 +1,21 @@
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>id-1</code></td>
+      <td>alice</td>
+      <td><strong>active</strong></td>
+    </tr>
+    <tr>
+      <td><code>id-2</code></td>
+      <td>bob</td>
+      <td><strong>inactive</strong></td>
+    </tr>
+  </tbody>
+</table>

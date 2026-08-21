@@ -1,0 +1,18 @@
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Content</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>alpha</td>
+      <td><pre><span style="color:red">first<br>second</span></pre></td>
+    </tr>
+    <tr>
+      <td>beta</td>
+      <td><pre><span style="color:red">  &lt;value&gt;</span></pre></td>
+    </tr>
+  </tbody>
+</table>

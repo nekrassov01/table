@@ -1,0 +1,11 @@
+┌───────┬──────────────┐
+│   A   │      B       │
+╞═══════╪══════════════╡
+│ xxxxx │ yyyyyyyyyyyy │
+│       │ yyyyyyyyyyyy │
+│       │ yyyyyyyyyyyy │
+│       │ yyyy         │
+├───────┼──────────────┤
+│ z     │ wwwwwwwwwwww │
+│       │ wwwwwwww     │
+└───────┴──────────────┘

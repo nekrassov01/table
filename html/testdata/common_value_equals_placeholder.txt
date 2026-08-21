@@ -1,0 +1,18 @@
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>N/A</td>
+      <td>N/A</td>
+    </tr>
+    <tr>
+      <td>x</td>
+      <td>N/A</td>
+    </tr>
+  </tbody>
+</table>

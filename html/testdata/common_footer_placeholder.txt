@@ -1,0 +1,24 @@
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>x</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>-</td>
+      <td>q</td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td>t</td>
+      <td>u</td>
+    </tr>
+  </tfoot>
+</table>

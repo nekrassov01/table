@@ -1,0 +1,18 @@
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span style="color:red">N/A</span></td>
+    </tr>
+    <tr>
+      <td>N/A</td>
+    </tr>
+    <tr>
+      <td><span style="color:red">x</span></td>
+    </tr>
+  </tbody>
+</table>

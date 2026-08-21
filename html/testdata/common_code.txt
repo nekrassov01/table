@@ -1,0 +1,18 @@
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>ID</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>alice</td>
+      <td><code>id-001</code></td>
+    </tr>
+    <tr>
+      <td>bob</td>
+      <td><code>id-002</code></td>
+    </tr>
+  </tbody>
+</table>

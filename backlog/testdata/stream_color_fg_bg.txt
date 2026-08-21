@@ -1,0 +1,3 @@
+|~Name  |~Value  |
+| foo | &color(red, blue){hello} |
+| bar | &color(red, blue){world} |

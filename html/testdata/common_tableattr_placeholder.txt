@@ -1,0 +1,18 @@
+<table class="t">
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="b">x</td>
+      <td class="b">-</td>
+    </tr>
+    <tr>
+      <td class="b">-</td>
+      <td class="b">q</td>
+    </tr>
+  </tbody>
+</table>

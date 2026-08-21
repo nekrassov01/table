@@ -1,0 +1,11 @@
+┌─────────┬────────┐
+│    A    │   B    │
+╞═════════╪════════╡
+│ a fairl │ a fair │
+│ y long  │ ly lon │
+│ value   │ g valu │
+│         │ e      │
+│ another │ z      │
+│  long o │        │
+│ ne      │        │
+└─────────┴────────┘

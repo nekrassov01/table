@@ -1,0 +1,5 @@
+| Group | Value |
+| --- | --- |
+| A | <span style="color:blue">x</span> |
+|  | <span style="color:blue">y</span> |
+| B | <span style="color:blue">z</span> |

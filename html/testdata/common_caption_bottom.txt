@@ -1,0 +1,15 @@
+<table>
+  <caption style="caption-side:bottom">summary</caption>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>x</td>
+      <td>y</td>
+    </tr>
+  </tbody>
+</table>

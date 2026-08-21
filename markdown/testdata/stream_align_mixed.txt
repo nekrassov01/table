@@ -1,0 +1,4 @@
+| Right | Center | Left |
+| ---: | :---: | :--- |
+| a | b | c |
+| longer | y | x |

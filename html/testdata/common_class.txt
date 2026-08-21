@@ -1,0 +1,15 @@
+<table class="tbl">
+  <caption class="cap">Title</caption>
+  <thead class="hd">
+    <tr class="hr">
+      <th class="hc">A</th>
+      <th class="hc">B</th>
+    </tr>
+  </thead>
+  <tbody class="bd">
+    <tr class="br">
+      <td class="bc">x</td>
+      <td class="bc">y</td>
+    </tr>
+  </tbody>
+</table>

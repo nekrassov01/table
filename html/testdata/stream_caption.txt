@@ -1,0 +1,13 @@
+<table>
+  <caption>Stream Caption</caption>
+  <thead>
+    <tr>
+      <th>A</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>x</td>
+    </tr>
+  </tbody>
+</table>

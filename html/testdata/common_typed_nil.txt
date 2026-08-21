@@ -1,0 +1,14 @@
+<table>
+  <thead>
+    <tr>
+      <th>Stringer</th>
+      <th>Error</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>&lt;nil&gt;</td>
+      <td>&lt;nil&gt;</td>
+    </tr>
+  </tbody>
+</table>

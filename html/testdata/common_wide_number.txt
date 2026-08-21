@@ -1,0 +1,16 @@
+<table>
+  <thead>
+    <tr>
+      <th>Big</th>
+      <th>Neg</th>
+      <th>Sci</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>9223372036854775807</td>
+      <td>-9223372036854775808</td>
+      <td>1.7976931348623157e+308</td>
+    </tr>
+  </tbody>
+</table>

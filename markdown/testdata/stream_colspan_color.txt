@@ -1,0 +1,4 @@
+| A | <span style="color:red">B</span> | C |
+| --- | --- | --- |
+| x |  | y |
+| p | <span style="color:red">q</span> |  |

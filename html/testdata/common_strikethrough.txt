@@ -1,0 +1,18 @@
+<table>
+  <thead>
+    <tr>
+      <th>Feature</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>login</td>
+      <td><del>deprecated</del></td>
+    </tr>
+    <tr>
+      <td>signup</td>
+      <td><del>active</del></td>
+    </tr>
+  </tbody>
+</table>

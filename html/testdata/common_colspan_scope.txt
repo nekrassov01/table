@@ -1,0 +1,19 @@
+<table>
+  <thead>
+    <tr>
+      <th>Group</th>
+      <th>Group</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td colspan="2">A</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td colspan="2">B</td>
+      <td>2</td>
+    </tr>
+  </tbody>
+</table>

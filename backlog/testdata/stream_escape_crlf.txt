@@ -1,0 +1,4 @@
+|~Key  |~Value  |
+| crlf | a&br;b |
+| cr | a&br;b |
+| lf | a&br;b |

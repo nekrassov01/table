@@ -1,0 +1,4 @@
+| Key |                      Note                      |
+| --- | :--------------------------------------------: |
+| a   | *<span style="color:magenta">important</span>* |
+| b   | *<span style="color:magenta">optional</span>*  |

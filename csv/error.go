@@ -1,0 +1,37 @@
+package csv
+
+import (
+	"fmt"
+
+	"github.com/nekrassov01/table"
+)
+
+// newWriteError wraps table.ErrWriteFailed and the error returned by the
+// output writer.
+func newWriteError(err error) error {
+	return newError(fmt.Errorf("%w: %w", table.ErrWriteFailed, err))
+}
+
+// newClosedError wraps table.ErrClosed for a Render call after Close.
+func newClosedError() error {
+	return newError(table.ErrClosed)
+}
+
+// newDelimiterError wraps table.ErrDelimiter, naming the invalid rune.
+func newDelimiterError(delimiter rune) error {
+	return newError(fmt.Errorf("%w: %q", table.ErrDelimiter, delimiter))
+}
+
+// newColumnCountError wraps table.ErrColumnCount with the received and
+// expected counts.
+func newColumnCountError(got, want int) error {
+	return newError(fmt.Errorf("%w: got %d, want %d", table.ErrColumnCount, got, want))
+}
+
+// newError wraps err with the package name.
+func newError(err error) error {
+	return &table.Error{
+		Pkg: "csv",
+		Err: err,
+	}
+}

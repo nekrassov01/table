@@ -1,0 +1,24 @@
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>alice</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <td>bob</td>
+      <td>200</td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td>Total</td>
+      <td>300</td>
+    </tr>
+  </tfoot>
+</table>

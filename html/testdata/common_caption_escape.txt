@@ -1,0 +1,13 @@
+<table>
+  <caption>A &amp; B &lt;C&gt;</caption>
+  <thead>
+    <tr>
+      <th>A</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>x</td>
+    </tr>
+  </tbody>
+</table>

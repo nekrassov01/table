@@ -1,0 +1,3 @@
+Name	Score
+alice	high
+bob	99

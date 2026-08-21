@@ -1,0 +1,14 @@
+<table>
+  <thead>
+    <tr>
+      <th class="col-a">A</th>
+      <th class="col-b">B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="base col-a">x</td>
+      <td class="base col-b">y</td>
+    </tr>
+  </tbody>
+</table>

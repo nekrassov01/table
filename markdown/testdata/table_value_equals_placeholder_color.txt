@@ -1,0 +1,5 @@
+| A                                  |
+| ---------------------------------- |
+| <span style="color:red">N/A</span> |
+| N/A                                |
+| <span style="color:red">x</span>   |

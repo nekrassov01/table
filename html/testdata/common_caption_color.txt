@@ -1,0 +1,19 @@
+<table>
+  <caption style="caption-side:bottom">cap</caption>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th><span style="color:red">B</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>s</td>
+      <td><span style="color:red">s</span></td>
+    </tr>
+    <tr>
+      <td>s</td>
+      <td><span style="color:red">s</span></td>
+    </tr>
+  </tbody>
+</table>

@@ -1,0 +1,30 @@
+<table>
+  <thead>
+    <tr>
+      <th>Label</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>text</td>
+      <td>hello</td>
+    </tr>
+    <tr>
+      <td>number</td>
+      <td>42</td>
+    </tr>
+    <tr>
+      <td>big-num</td>
+      <td>100000</td>
+    </tr>
+    <tr>
+      <td>empty</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>neg</td>
+      <td>-7</td>
+    </tr>
+  </tbody>
+</table>

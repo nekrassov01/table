@@ -1,0 +1,18 @@
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>foo</td>
+      <td><span style="color:red;background-color:blue">hello</span></td>
+    </tr>
+    <tr>
+      <td>bar</td>
+      <td><span style="color:red;background-color:blue">world</span></td>
+    </tr>
+  </tbody>
+</table>

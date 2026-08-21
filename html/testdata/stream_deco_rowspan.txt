@@ -1,0 +1,22 @@
+<table>
+  <thead>
+    <tr>
+      <th>Group</th>
+      <th>Item</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>A</strong></td>
+      <td>x</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td>y</td>
+    </tr>
+    <tr>
+      <td><strong>B</strong></td>
+      <td>z</td>
+    </tr>
+  </tbody>
+</table>

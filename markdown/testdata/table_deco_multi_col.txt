@@ -1,0 +1,4 @@
+| ID     | Name  | Status       |
+| ------ | ----- | ------------ |
+| `id-1` | alice | **active**   |
+| `id-2` | bob   | **inactive** |

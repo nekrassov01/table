@@ -1,0 +1,2 @@
+Stringer	Error
+from Stringer	from error

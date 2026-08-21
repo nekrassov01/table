@@ -1,0 +1,4 @@
+|~Key  |~Value  |
+| pipe | a\\|b |
+| newline | a&br;b |
+| a\\|b | c\\\d&br;e |

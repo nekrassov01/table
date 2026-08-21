@@ -1,0 +1,25 @@
+<table>
+  <caption style="caption-side:bottom">cap</caption>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>s</td>
+      <td>s</td>
+    </tr>
+    <tr>
+      <td>s</td>
+      <td>s</td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td>t</td>
+      <td>u</td>
+    </tr>
+  </tfoot>
+</table>

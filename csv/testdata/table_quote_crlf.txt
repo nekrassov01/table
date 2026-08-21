@@ -1,0 +1,6 @@
+Key	Value
+crlf	"line1
+line2"
+cr-only	"ab"
+lf-only	"a
+b"

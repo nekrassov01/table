@@ -1,0 +1,5 @@
+| Type | Value |
+| --- | --- |
+| \[\]int | \[list 3 item(s)\] |
+| \[\]string | \[list 2 item(s)\] |
+| \[\]bool | \[list 2 item(s)\] |

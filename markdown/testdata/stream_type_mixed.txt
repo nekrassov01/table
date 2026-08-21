@@ -1,0 +1,6 @@
+| Label | Value |
+| --- | --- |
+| text | hello |
+| number | 42 |
+| nil |   |
+| neg | -7 |

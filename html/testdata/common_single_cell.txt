@@ -1,0 +1,12 @@
+<table>
+  <thead>
+    <tr>
+      <th>only</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>v</td>
+    </tr>
+  </tbody>
+</table>

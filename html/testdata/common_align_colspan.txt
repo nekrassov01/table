@@ -1,0 +1,16 @@
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th style="text-align:right">B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td colspan="2">s</td>
+    </tr>
+    <tr>
+      <td colspan="2">s</td>
+    </tr>
+  </tbody>
+</table>

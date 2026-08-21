@@ -1,0 +1,22 @@
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>[]int</td>
+      <td>[list 3 item(s)]</td>
+    </tr>
+    <tr>
+      <td>[]string</td>
+      <td>[list 2 item(s)]</td>
+    </tr>
+    <tr>
+      <td>[]bool</td>
+      <td>[list 2 item(s)]</td>
+    </tr>
+  </tbody>
+</table>

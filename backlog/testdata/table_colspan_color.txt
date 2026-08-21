@@ -1,0 +1,3 @@
+|~A  |~&color(red){B}  |~C  |
+| x  |                 | y  |
+| p  | &color(red){q}  |    |

@@ -1,0 +1,22 @@
+<table>
+  <thead>
+    <tr>
+      <th>Key</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>amp</td>
+      <td><code>a&amp;b</code></td>
+    </tr>
+    <tr>
+      <td>newline</td>
+      <td><code>line1<br>line2</code></td>
+    </tr>
+    <tr>
+      <td>tag</td>
+      <td><code>&lt;div&gt;</code></td>
+    </tr>
+  </tbody>
+</table>

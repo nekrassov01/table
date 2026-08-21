@@ -1,0 +1,14 @@
+<table>
+  <thead>
+    <tr>
+      <th>Stringer</th>
+      <th>Error</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>x</td>
+      <td>boom</td>
+    </tr>
+  </tbody>
+</table>

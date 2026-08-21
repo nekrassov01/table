@@ -1,0 +1,3 @@
+|~Name  |~Score  |
+| alice | &color(red){''high''} |
+| bob | 99 |

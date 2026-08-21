@@ -1,0 +1,4 @@
+| Type | Values |
+| --- | --- |
+| ints | `[list 3 item(s)]` |
+| mixed | `[list 3 item(s)]` |

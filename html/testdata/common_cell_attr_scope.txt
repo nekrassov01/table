@@ -1,0 +1,24 @@
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Path</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>a</td>
+      <td class="mono" style="white-space:pre-wrap">  /etc/hosts</td>
+    </tr>
+    <tr>
+      <td>b</td>
+      <td class="mono" style="white-space:pre-wrap">  /etc/passwd</td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td></td>
+      <td class="total">2 rows</td>
+    </tr>
+  </tfoot>
+</table>

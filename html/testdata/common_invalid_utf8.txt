@@ -1,0 +1,16 @@
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>a�b</td>
+      <td>�</td>
+      <td>ok</td>
+    </tr>
+  </tbody>
+</table>

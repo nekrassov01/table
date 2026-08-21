@@ -1,0 +1,2 @@
+|~#  |~A  |~&color(red){B}  |
+| 1  | x  | &color(red){y}  |

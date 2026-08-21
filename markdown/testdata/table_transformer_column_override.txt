@@ -1,0 +1,4 @@
+| Level | Message                                  |
+| ----- | ---------------------------------------- |
+| 1     | <span style="color:blue">`ok`</span>     |
+| 2     | *<span style="color:yellow">warn</span>* |

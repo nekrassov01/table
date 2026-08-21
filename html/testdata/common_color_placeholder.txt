@@ -1,0 +1,21 @@
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>x</td>
+      <td>N/A</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>y</td>
+      <td><span style="color:red">b</span></td>
+      <td>2</td>
+    </tr>
+  </tbody>
+</table>

@@ -1,0 +1,18 @@
+<table>
+  <thead>
+    <tr>
+      <th>Key</th>
+      <th>Note</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>a</td>
+      <td><em>important</em></td>
+    </tr>
+    <tr>
+      <td>b</td>
+      <td><em>optional</em></td>
+    </tr>
+  </tbody>
+</table>

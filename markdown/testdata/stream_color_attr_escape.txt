@@ -1,0 +1,3 @@
+| A |
+| --- |
+| <span style="color:red&quot; onmouseover=&quot;alert(1);background-color:blue&amp;x">x</span> |

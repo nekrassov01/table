@@ -1,0 +1,24 @@
+<table>
+  <thead>
+    <tr>
+      <th style="text-align:center">Item</th>
+      <th style="text-align:center">Amount</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>widget</td>
+      <td style="text-align:right">100</td>
+    </tr>
+    <tr>
+      <td>gadget</td>
+      <td style="text-align:right">200</td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td>Total</td>
+      <td style="text-align:right">300</td>
+    </tr>
+  </tfoot>
+</table>

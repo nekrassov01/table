@@ -1,0 +1,34 @@
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+      <th>B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="2">g</td>
+      <td>x</td>
+    </tr>
+    <tr>
+      <td>y</td>
+    </tr>
+    <tr>
+      <td>h</td>
+      <td>z</td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td rowspan="2">t</td>
+      <td>x</td>
+    </tr>
+    <tr>
+      <td>y</td>
+    </tr>
+    <tr>
+      <td>u</td>
+      <td>z</td>
+    </tr>
+  </tfoot>
+</table>

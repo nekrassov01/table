@@ -1,0 +1,22 @@
+<table>
+  <thead>
+    <tr>
+      <th>Key</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>crlf</td>
+      <td>a<br>b</td>
+    </tr>
+    <tr>
+      <td>cr</td>
+      <td>a<br>b</td>
+    </tr>
+    <tr>
+      <td>lf</td>
+      <td>a<br>b</td>
+    </tr>
+  </tbody>
+</table>

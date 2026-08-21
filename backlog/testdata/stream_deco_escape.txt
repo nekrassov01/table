@@ -1,0 +1,4 @@
+|~Key  |~Value  |
+| pipe | {code}a\\|b{/code} |
+| newline | {code}line1&br;line2{/code} |
+| space | {code}a b{/code} |

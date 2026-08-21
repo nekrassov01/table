@@ -1,0 +1,14 @@
+<table>
+  <thead>
+    <tr>
+      <th>f32</th>
+      <th>f64</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>3.14</td>
+      <td>2.71828</td>
+    </tr>
+  </tbody>
+</table>

@@ -1,0 +1,12 @@
+<table>
+  <thead>
+    <tr>
+      <th>A</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span style="color:red&quot; onmouseover=&quot;alert(1);background-color:blue&amp;x">x</span></td>
+    </tr>
+  </tbody>
+</table>

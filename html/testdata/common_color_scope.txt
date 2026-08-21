@@ -1,0 +1,24 @@
+<table>
+  <thead>
+    <tr>
+      <th><span style="color:red">Name</span></th>
+      <th><strong>Value</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>foo</td>
+      <td><span style="color:blue">1</span></td>
+    </tr>
+    <tr>
+      <td>bar</td>
+      <td><span style="color:blue">2</span></td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td><span style="color:green">total</span></td>
+      <td><strong><span style="color:green">3</span></strong></td>
+    </tr>
+  </tfoot>
+</table>
