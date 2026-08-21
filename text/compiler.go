@@ -201,9 +201,9 @@ func (o *compiler) compileCells(r row, source []any, rowIndex int) {
 			}
 			if transformedAttr != nil && !config.option.plain {
 				attr = transformedAttr
-				//nolint:gosec // Attr.size returns a non-negative byte count.
+				// #nosec G115 -- Attr.size returns a non-negative byte count.
 				attrLen := min(uint64(attr.size()), uint64(^uint32(0)))
-				//nolint:gosec // attrLen is clamped to uint32.
+				// #nosec G115 -- attrLen is clamped to uint32.
 				o.output.attrLen = max(o.output.attrLen, uint32(attrLen))
 			}
 		}
