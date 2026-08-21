@@ -110,10 +110,10 @@ go get github.com/nekrassov01/table
 
 ## Examples
 
-The following examples render typed application data with `Table` and `Stream`. The runnable examples accept an output package, an optional mode, and an optional data set. This command renders every text Table example:
+The runnable examples use `target`, `mode`, and `data` to select the output package, `Table` or `Stream`, and a data set. Omitting `target` runs every output package, omitting `mode` runs both APIs, and omitting `data` runs every data set available for each selected package. When selecting one data set, also specify `mode`. This command renders every text `Table` example:
 
 ```sh
-go run ./examples/cmd text table
+make example target=text mode=table
 ```
 
 ### Table

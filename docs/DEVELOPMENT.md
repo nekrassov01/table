@@ -6,10 +6,24 @@ This document is the command reference for maintainers.
 
 - [Development](#development)
   - [Table of contents](#table-of-contents)
+  - [Examples](#examples)
   - [Tests](#tests)
   - [Coverage](#coverage)
   - [Benchmarks](#benchmarks)
   - [Validation](#validation)
+
+## Examples
+
+Use `target`, `mode`, and `data` to select the output package, API, and data set. All three variables are optional; selecting `data` also requires `mode`.
+
+| Purpose                                 | Command                                                   |
+| --------------------------------------- | --------------------------------------------------------- |
+| Run every example                       | `make example`                                            |
+| Run every text example                  | `make example target=text`                                |
+| Run every text `Table` example          | `make example target=text mode=table`                     |
+| Run the text ASCII `Table` example only | `make example target=text mode=table data=ascii`          |
+
+Running `make example` without `target` is equivalent to `target=all`. With `target=all`, selecting `data` runs it only for output packages that provide that data set.
 
 ## Tests
 

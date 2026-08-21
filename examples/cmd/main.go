@@ -17,11 +17,12 @@ import (
 )
 
 var (
-	pkgText     = "text"
-	pkgHTML     = "html"
-	pkgMarkdown = "markdown"
-	pkgBacklog  = "backlog"
-	pkgCSV      = "csv"
+	targetAll      = "all"
+	targetText     = "text"
+	targetHTML     = "html"
+	targetMarkdown = "markdown"
+	targetBacklog  = "backlog"
+	targetCSV      = "csv"
 )
 
 var (
@@ -45,7 +46,7 @@ var (
 func main() {
 	args := os.Args[1:]
 	if len(args) < 1 || len(args) > 3 {
-		fmt.Fprintln(os.Stderr, "usage: go run ./examples/cmd <package> [mode] [data]")
+		fmt.Fprintln(os.Stderr, "usage: go run ./examples/cmd <target> [mode] [data]")
 		os.Exit(1)
 	}
 	if err := newRunner(os.Stdout, args...).run(); err != nil {
@@ -55,10 +56,24 @@ func main() {
 }
 
 type runner struct {
-	w    io.Writer
-	pkg  string
-	mode string
-	data string
+	w      io.Writer
+	target string
+	mode   string
+	data   string
+}
+
+func newRunner(w io.Writer, args ...string) runner {
+	o := runner{
+		w:      w,
+		target: args[0],
+	}
+	if len(args) > 1 {
+		o.mode = args[1]
+	}
+	if len(args) > 2 {
+		o.data = args[2]
+	}
+	return o
 }
 
 func (o runner) run() error {
@@ -69,33 +84,52 @@ func (o runner) run() error {
 		}
 		modes = []string{o.mode}
 	}
-	names, ok := dataNames(o.pkg)
-	if !ok {
-		return fmt.Errorf("examples: unknown package %q", o.pkg)
+	allTargets := o.target == targetAll
+	targets := []string{o.target}
+	if allTargets {
+		targets = []string{
+			targetText,
+			targetHTML,
+			targetMarkdown,
+			targetBacklog,
+			targetCSV,
+		}
+	} else if _, ok := dataNames(o.target); !ok {
+		return fmt.Errorf("examples: unknown target %q", o.target)
 	}
-	if o.data != "" {
-		if _, ok := exampleData(o.data); !ok {
-			return fmt.Errorf("examples: unknown data %q", o.data)
+	data := o.data
+	if data != "" {
+		if _, ok := exampleData(data); !ok {
+			return fmt.Errorf("examples: unknown data %q", data)
 		}
-		if !slices.Contains(names, o.data) {
-			return newError(o.data, o.pkg)
-		}
-		names = []string{o.data}
 	}
 	first := true
-	for _, mode := range modes {
-		for _, name := range names {
-			if !first {
-				if _, err := io.WriteString(o.w, "\n"); err != nil {
+	for _, target := range targets {
+		names, _ := dataNames(target)
+		if data != "" {
+			if !slices.Contains(names, data) {
+				if allTargets {
+					continue
+				}
+				return newError(data, target)
+			}
+			names = []string{data}
+		}
+		for _, mode := range modes {
+			for _, name := range names {
+				if !first {
+					if _, err := io.WriteString(o.w, "\n"); err != nil {
+						return err
+					}
+				}
+				o.target = target
+				o.mode = mode
+				o.data = name
+				if err := o.runExample(); err != nil {
 					return err
 				}
+				first = false
 			}
-			o.mode = mode
-			o.data = name
-			if err := o.runExample(); err != nil {
-				return err
-			}
-			first = false
 		}
 	}
 	return nil
@@ -106,19 +140,19 @@ func (o runner) runExample() error {
 	if !ok {
 		return fmt.Errorf("examples: unknown data %q", o.data)
 	}
-	switch o.pkg {
-	case pkgText:
+	switch o.target {
+	case targetText:
 		return o.runText(data.Body)
-	case pkgHTML:
+	case targetHTML:
 		return o.runHTML(data.Body)
-	case pkgMarkdown:
+	case targetMarkdown:
 		return o.runMarkdown(data.Body)
-	case pkgBacklog:
+	case targetBacklog:
 		return o.runBacklog(data.Body)
-	case pkgCSV:
+	case targetCSV:
 		return o.runCSV(data.Body)
 	default:
-		return fmt.Errorf("examples: unknown package %q", o.pkg)
+		return fmt.Errorf("examples: unknown target %q", o.target)
 	}
 }
 
@@ -144,15 +178,15 @@ func (o runner) runText(rows [][]any) error {
 	case dataStackedHeader:
 		opts = examples.TextOptionStackedHeader
 	default:
-		return newError(o.data, o.pkg)
+		return newError(o.data, o.target)
 	}
-	p := newRenderer(rows)
+	example := newExample(rows)
 	if o.mode == modeTable {
-		p.tabular = text.NewTable(o.w, opts...)
+		example.tabular = text.NewTable(o.w, opts...)
 	} else {
-		p.streamer = text.NewStream(o.w, opts...)
+		example.streamer = text.NewStream(o.w, opts...)
 	}
-	return p.render()
+	return example.run()
 }
 
 func (o runner) runHTML(rows [][]any) error {
@@ -173,15 +207,15 @@ func (o runner) runHTML(rows [][]any) error {
 	case dataStackedHeader:
 		opts = examples.HTMLOptionStackedHeader
 	default:
-		return newError(o.data, o.pkg)
+		return newError(o.data, o.target)
 	}
-	p := newRenderer(rows)
+	example := newExample(rows)
 	if o.mode == modeTable {
-		p.tabular = html.NewTable(o.w, opts...)
+		example.tabular = html.NewTable(o.w, opts...)
 	} else {
-		p.streamer = html.NewStream(o.w, opts...)
+		example.streamer = html.NewStream(o.w, opts...)
 	}
-	return p.render()
+	return example.run()
 }
 
 func (o runner) runMarkdown(rows [][]any) error {
@@ -198,15 +232,15 @@ func (o runner) runMarkdown(rows [][]any) error {
 	case dataComplex:
 		opts = examples.MarkdownOptionComplex
 	default:
-		return newError(o.data, o.pkg)
+		return newError(o.data, o.target)
 	}
-	p := newRenderer(rows)
+	example := newExample(rows)
 	if o.mode == modeTable {
-		p.tabular = markdown.NewTable(o.w, opts...)
+		example.tabular = markdown.NewTable(o.w, opts...)
 	} else {
-		p.streamer = markdown.NewStream(o.w, opts...)
+		example.streamer = markdown.NewStream(o.w, opts...)
 	}
-	return p.render()
+	return example.run()
 }
 
 func (o runner) runBacklog(rows [][]any) error {
@@ -227,15 +261,15 @@ func (o runner) runBacklog(rows [][]any) error {
 	case dataStackedHeader:
 		opts = examples.BacklogOptionStackedHeader
 	default:
-		return newError(o.data, o.pkg)
+		return newError(o.data, o.target)
 	}
-	p := newRenderer(rows)
+	example := newExample(rows)
 	if o.mode == modeTable {
-		p.tabular = backlog.NewTable(o.w, opts...)
+		example.tabular = backlog.NewTable(o.w, opts...)
 	} else {
-		p.streamer = backlog.NewStream(o.w, opts...)
+		example.streamer = backlog.NewStream(o.w, opts...)
 	}
-	return p.render()
+	return example.run()
 }
 
 func (o runner) runCSV(rows [][]any) error {
@@ -252,38 +286,28 @@ func (o runner) runCSV(rows [][]any) error {
 	case dataCommaIncluded:
 		opts = examples.CSVOptionCommaIncluded
 	default:
-		return newError(o.data, o.pkg)
+		return newError(o.data, o.target)
 	}
-	p := newRenderer(rows)
+	example := newExample(rows)
 	if o.mode == modeTable {
-		p.tabular = csv.NewTable(o.w, opts...)
+		example.tabular = csv.NewTable(o.w, opts...)
 	} else {
-		p.streamer = csv.NewStream(o.w, opts...)
+		example.streamer = csv.NewStream(o.w, opts...)
 	}
-	return p.render()
+	return example.run()
 }
 
-func newRunner(w io.Writer, args ...string) runner {
-	o := runner{
-		w:   w,
-		pkg: args[0],
-	}
-	if len(args) > 1 {
-		o.mode = args[1]
-	}
-	if len(args) > 2 {
-		o.data = args[2]
-	}
-	return o
-}
-
-type renderer struct {
+type example struct {
 	rows     [][]any
 	tabular  table.Tabular
 	streamer table.Streamer
 }
 
-func (o renderer) render() error {
+func newExample(rows [][]any) example {
+	return example{rows: rows}
+}
+
+func (o example) run() error {
 	if o.tabular != nil {
 		return o.tabular.Render(o.rows)
 	}
@@ -295,13 +319,9 @@ func (o renderer) render() error {
 	return o.streamer.Close()
 }
 
-func newRenderer(rows [][]any) renderer {
-	return renderer{rows: rows}
-}
-
-func dataNames(pkg string) ([]string, bool) {
-	switch pkg {
-	case pkgText:
+func dataNames(target string) ([]string, bool) {
+	switch target {
+	case targetText:
 		return []string{
 			dataASCII,
 			dataSimple,
@@ -313,7 +333,7 @@ func dataNames(pkg string) ([]string, bool) {
 			dataComplex,
 			dataStackedHeader,
 		}, true
-	case pkgHTML:
+	case targetHTML:
 		return []string{
 			dataSimple,
 			dataRowspan,
@@ -323,7 +343,7 @@ func dataNames(pkg string) ([]string, bool) {
 			dataComplex,
 			dataStackedHeader,
 		}, true
-	case pkgMarkdown:
+	case targetMarkdown:
 		return []string{
 			dataSimple,
 			dataRowspan,
@@ -331,7 +351,7 @@ func dataNames(pkg string) ([]string, bool) {
 			dataTransformer,
 			dataComplex,
 		}, true
-	case pkgBacklog:
+	case targetBacklog:
 		return []string{
 			dataSimple,
 			dataRowspan,
@@ -341,7 +361,7 @@ func dataNames(pkg string) ([]string, bool) {
 			dataComplex,
 			dataStackedHeader,
 		}, true
-	case pkgCSV:
+	case targetCSV:
 		return []string{
 			dataSimple,
 			dataFooter,
@@ -377,6 +397,6 @@ func exampleData(name string) (examples.Data, bool) {
 	}
 }
 
-func newError(name string, pkg string) error {
-	return fmt.Errorf("examples: data %q is not available for package %q", name, pkg)
+func newError(name string, target string) error {
+	return fmt.Errorf("examples: data %q is not available for target %q", name, target)
 }
