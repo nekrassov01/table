@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/logo.png" alt="table logo" width="320">
+  <img src="./assets/logo.png" alt="table logo" width="120">
 </p>
 <h1 align="center">TABLE</h1>
 
