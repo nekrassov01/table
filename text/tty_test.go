@@ -10,8 +10,8 @@ import (
 
 func Test_resolveTerminalWidth(t *testing.T) {
 	type args struct {
-		w       io.Writer
-		getSize func(int) (int, int, error)
+		w        io.Writer
+		termSize func(int) (int, int, error)
 	}
 	type want struct {
 		val int
@@ -43,7 +43,7 @@ func Test_resolveTerminalWidth(t *testing.T) {
 					file, _ := testutil.NewFile(t)
 					return file
 				}(),
-				getSize: func(int) (int, int, error) {
+				termSize: func(int) (int, int, error) {
 					return 80, 24, nil
 				},
 			},
@@ -58,7 +58,7 @@ func Test_resolveTerminalWidth(t *testing.T) {
 					file, _ := testutil.NewFile(t)
 					return file
 				}(),
-				getSize: func(int) (int, int, error) {
+				termSize: func(int) (int, int, error) {
 					return 0, 0, testutil.NewError()
 				},
 			},
@@ -66,12 +66,12 @@ func Test_resolveTerminalWidth(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			original := getSize
-			if test.args.getSize != nil {
-				getSize = test.args.getSize
+			original := termSize
+			if test.args.termSize != nil {
+				termSize = test.args.termSize
 			}
 			t.Cleanup(func() {
-				getSize = original
+				termSize = original
 			})
 			got := resolveTerminalWidth(test.args.w)
 			testutil.AssertValue(t, got, test.want.val, "resolveTerminalWidth")
