@@ -1,8 +1,8 @@
 // The comparison benchmarks render the examples datasets with the options
 // below chosen for parity, not with raw defaults. Content (header,
 // rows, footer) is passed wherever the library can express it; mintab
-// has no footer and rejects nested values, so the Footer scenario
-// omits its footer and the Complex scenario skips it. Every library
+// has no footer and rejects nested values, so the Footer and Complex
+// scenarios skip it. Every library
 // draws an outer border and a header separator without per-row
 // separators, header auto-casing is turned off in go-pretty and
 // tablewriter so all four render the input verbatim, and merging and
@@ -102,24 +102,6 @@ func BenchmarkComparisonTableFooter(b *testing.B) {
 		if err := t.Render(examples.FooterData.Body); err != nil {
 			b.Fatal(err)
 		}
-	}
-}
-
-func BenchmarkComparisonMintabFooter(b *testing.B) {
-	w := &bytes.Buffer{}
-	data := mintab.Input{
-		Header: examples.FooterData.Header[0],
-		Data:   examples.FooterData.Body,
-	}
-	for b.Loop() {
-		w.Reset()
-		t := mintab.New(w,
-			mintab.WithFormat(mintab.CompressedTextFormat),
-		)
-		if err := t.Load(data); err != nil {
-			b.Fatal(err)
-		}
-		t.Render()
 	}
 }
 
