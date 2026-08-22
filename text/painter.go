@@ -407,12 +407,12 @@ func (o *painter) layoutCell(value string, limit int, truncate bool) layout {
 
 // wrapLine splits a line into segments within the configured width.
 func (o *painter) wrapLine(line string, limit int) int {
-	scanner := width.Scan(line)
+	scanner := width.NewScanner(line)
 	maxWidth := 0
 	segmentStart := 0
 	segmentWidth := 0
-	for start, end, unitWidth, ok := scanner.Next(); ok; start, end, unitWidth, ok = scanner.Next() {
-		if segmentWidth+unitWidth > limit && segmentWidth > 0 {
+	for start, end, displayWidth, ok := scanner.Next(); ok; start, end, displayWidth, ok = scanner.Next() {
+		if segmentWidth+displayWidth > limit && segmentWidth > 0 {
 			o.state.segments = append(o.state.segments, segment{
 				value: line[segmentStart:start],
 				width: segmentWidth,
@@ -421,7 +421,7 @@ func (o *painter) wrapLine(line string, limit int) int {
 			segmentStart = start
 			segmentWidth = 0
 		}
-		segmentWidth += unitWidth
+		segmentWidth += displayWidth
 		if end == len(line) {
 			o.state.segments = append(o.state.segments, segment{
 				value: line[segmentStart:end],
@@ -442,15 +442,15 @@ func (o *painter) truncateLine(line string, lineWidth, limit int) (string, int) 
 	if contentLimit <= 0 {
 		return ellipsis[:limit], limit
 	}
-	scanner := width.Scan(line)
+	scanner := width.NewScanner(line)
 	end := 0
 	keptWidth := 0
-	for start, next, unitWidth, ok := scanner.Next(); ok; start, next, unitWidth, ok = scanner.Next() {
-		if keptWidth+unitWidth > contentLimit {
+	for start, next, displayWidth, ok := scanner.Next(); ok; start, next, displayWidth, ok = scanner.Next() {
+		if keptWidth+displayWidth > contentLimit {
 			end = start
 			break
 		}
-		keptWidth += unitWidth
+		keptWidth += displayWidth
 		end = next
 	}
 	mark := o.strings.Mark()

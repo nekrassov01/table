@@ -3,10 +3,14 @@ package repeat
 
 import "bytes"
 
+// blockSize is the size of the reusable homogeneous blocks.
 const blockSize = 256
 
 var (
+	// spaces is a reusable homogeneous block of spaces.
 	spaces = bytes.Repeat([]byte{' '}, blockSize)
+
+	// dashes is a reusable homogeneous block of dashes.
 	dashes = bytes.Repeat([]byte{'-'}, blockSize)
 )
 

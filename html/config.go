@@ -95,8 +95,8 @@ func (o *columnSet) apply(selector ColumnSelector, fn func(*column)) {
 			o.defaults = &defaults
 		}
 		fn(o.defaults)
-		for i := range o.values {
-			fn(&o.values[i])
+		for index := range o.values {
+			fn(&o.values[index])
 		}
 		return
 	}
@@ -111,8 +111,8 @@ func (o *columnSet) apply(selector ColumnSelector, fn func(*column)) {
 		if o.defaults != nil {
 			defaults = *o.defaults
 		}
-		for i := existing; i < columnCount; i++ {
-			o.values[i] = defaults
+		for index := existing; index < columnCount; index++ {
+			o.values[index] = defaults
 		}
 	}
 	for _, index := range selector.indexes {

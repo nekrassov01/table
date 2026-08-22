@@ -29,7 +29,7 @@ TEST_PACKAGE_golden   = ./...
 TEST_PATTERN_contract = ^TestContract_
 TEST_PATTERN_golden   = ^TestGolden_
 
-.PHONY: deps deps-lint deps-vuln deps-bump clean build check test cover bench lint vuln version check-git check-branch bump
+.PHONY: deps deps-lint deps-vuln deps-bump clean example check test cover bench lint vuln version check-git check-branch bump
 
 # -------
 #  deps
@@ -60,6 +60,9 @@ clean:
 	go clean
 	rm -f $(NAME) coverage.out coverage.html cpu.prof mem.prof $(NAME).test
 	@cd benchmarks && $(MAKE) clean
+
+example:
+	@cd examples && $(MAKE) example
 
 # --------
 #  check

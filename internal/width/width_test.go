@@ -51,7 +51,7 @@ func TestScanner_Next(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			o := Scan(test.fields.text)
+			o := NewScanner(test.fields.text)
 			var units [][3]int
 			for start, end, displayWidth, ok := o.Next(); ok; start, end, displayWidth, ok = o.Next() {
 				units = append(units, [3]int{start, end, displayWidth})

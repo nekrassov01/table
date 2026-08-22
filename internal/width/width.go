@@ -20,8 +20,8 @@ type Scanner struct {
 	ascii    bool
 }
 
-// Scan prepares a display-unit scan of s.
-func Scan(s string) Scanner {
+// NewScanner returns a Scanner for s.
+func NewScanner(s string) Scanner {
 	o := Scanner{
 		text:  s,
 		ascii: true,
