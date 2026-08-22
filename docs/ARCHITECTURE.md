@@ -212,7 +212,7 @@ The reset preserves slice and buffer capacity, resolved columns, column measurem
 Before returning an arena to the pool, `release` performs the following work:
 
 - Clear elements from column-setting, row, cell, and value slices.
-- Remove references to option functions, attributes, and input-derived strings so they cannot remain reachable through the pool.
+- Remove references to option functions, attributes, and input-derived strings, and clear copied span-comparison values so input content cannot remain reachable through the pool.
 - Detach row and horizontal-line views currently used by `painter`.
 - Retain reusable byte-buffer and slice capacity.
 

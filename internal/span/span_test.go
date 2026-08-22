@@ -46,6 +46,72 @@ func TestPreviousRow_Reset(t *testing.T) {
 	}
 }
 
+func TestPreviousRow_Clear(t *testing.T) {
+	type fields struct {
+		values  [][]byte
+		started bool
+	}
+	type want struct {
+		cleared       bool
+		lengths       []int
+		capacities    []int
+		outerCapacity int
+		started       bool
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   want
+	}{
+		{
+			name: "clears values and retains storage",
+			fields: fields{
+				values: func() [][]byte {
+					first := append(make([]byte, 0, 8), "secret!!"...)
+					return [][]byte{
+						first[:3],
+						append(make([]byte, 0, 4), "data"...),
+					}
+				}(),
+				started: true,
+			},
+			want: want{
+				cleared:       true,
+				lengths:       []int{0, 0},
+				capacities:    []int{8, 4},
+				outerCapacity: 2,
+				started:       false,
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			o := &PreviousRow{
+				values:  test.fields.values,
+				started: test.fields.started,
+			}
+			o.Clear()
+			got := want{
+				cleared:       true,
+				lengths:       make([]int, len(o.values)),
+				capacities:    make([]int, len(o.values)),
+				outerCapacity: cap(o.values),
+				started:       o.started,
+			}
+			for index := range o.values {
+				got.lengths[index] = len(o.values[index])
+				got.capacities[index] = cap(o.values[index])
+				for _, value := range o.values[index][:cap(o.values[index])] {
+					if value != 0 {
+						got.cleared = false
+					}
+				}
+			}
+			testutil.AssertValue(t, got, test.want, "Clear")
+		})
+	}
+}
+
 func TestRowspans(t *testing.T) {
 	type args struct {
 		rowspan uint64

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/nekrassov01/table/internal/span"
 	"github.com/nekrassov01/table/internal/testutil"
 	"github.com/nekrassov01/table/internal/value"
 )
@@ -519,6 +520,7 @@ func Test_arena_release(t *testing.T) {
 		columns   []column
 		cells     []cell
 		values    []string
+		bodyReset bool
 	}
 	tests := []struct {
 		name   string
@@ -545,6 +547,11 @@ func Test_arena_release(t *testing.T) {
 							},
 						},
 						values: []string{"value"},
+						previousBody: func() span.PreviousRow {
+							var previous span.PreviousRow
+							span.Rowspans(1, []string{"value"}, &previous)
+							return previous
+						}(),
 					},
 					painter: painterState{
 						lineBacking: make([]byte, 0, 1),
@@ -558,6 +565,7 @@ func Test_arena_release(t *testing.T) {
 				columns:   []column{{}},
 				cells:     []cell{{}},
 				values:    []string{""},
+				bodyReset: true,
 			},
 		},
 	}
@@ -574,6 +582,8 @@ func Test_arena_release(t *testing.T) {
 				got.columns = o.config.columns
 				got.cells = o.compiler.cells
 				got.values = o.compiler.values
+				got.bodyReset = span.Rowspans(1, []string{"value"}, &o.compiler.previousBody) == 0
+				o.compiler.previousBody.Clear()
 			}
 			testutil.AssertValue(t, got, test.want, "release")
 		})

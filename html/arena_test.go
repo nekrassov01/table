@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/nekrassov01/table/internal/span"
 	"github.com/nekrassov01/table/internal/testutil"
 	"github.com/nekrassov01/table/internal/value"
 )
@@ -475,6 +476,8 @@ func Test_arena_release(t *testing.T) {
 		lineBacking int
 		columnZero  bool
 		cellZero    bool
+		bodyReset   bool
+		bandReset   bool
 	}
 	tests := []struct {
 		name   string
@@ -501,6 +504,16 @@ func Test_arena_release(t *testing.T) {
 							value: "value",
 						},
 					},
+					previousBody: func() span.PreviousRow {
+						var previous span.PreviousRow
+						span.Rowspans(1, []string{"value"}, &previous)
+						return previous
+					}(),
+					previousBand: func() span.PreviousRow {
+						var previous span.PreviousRow
+						span.Rowspans(1, []string{"value"}, &previous)
+						return previous
+					}(),
 				},
 				painter: painterState{
 					lineBacking: make([]byte, 0, 2),
@@ -512,6 +525,8 @@ func Test_arena_release(t *testing.T) {
 				lineBacking: 8,
 				columnZero:  true,
 				cellZero:    true,
+				bodyReset:   true,
+				bandReset:   true,
 			},
 		},
 	}
@@ -528,7 +543,11 @@ func Test_arena_release(t *testing.T) {
 				lineBacking: cap(o.painter.lineBacking),
 				columnZero:  o.config.columns[0].transformer.fn == nil,
 				cellZero:    o.compiler.cells[0].value == "",
+				bodyReset:   span.Rowspans(1, []string{"value"}, &o.compiler.previousBody) == 0,
+				bandReset:   span.Rowspans(1, []string{"value"}, &o.compiler.previousBand) == 0,
 			}
+			o.compiler.previousBody.Clear()
+			o.compiler.previousBand.Clear()
 			testutil.AssertValue(t, got, test.want, "release")
 		})
 	}

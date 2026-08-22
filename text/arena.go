@@ -160,6 +160,8 @@ func (o *arena) release() {
 	clear(compiler.rows)
 	clear(painter.layouts)
 	clear(painter.segments)
+	compiler.previousBody.Clear()
+	compiler.previousBand.Clear()
 	painter.line = nil
 	painter.horizon = nil
 	pool.Put(o)

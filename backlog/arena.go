@@ -145,6 +145,8 @@ func (o *arena) release() {
 	clear(compiler.cells)
 	clear(compiler.rows)
 	clear(compiler.values)
+	compiler.previousBody.Clear()
+	compiler.previousBand.Clear()
 	painter.line = nil
 	pool.Put(o)
 }
