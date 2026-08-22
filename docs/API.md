@@ -160,7 +160,7 @@ Column-count errors follow these rules:
 
 - `Table` validates every row before writing the body and therefore writes nothing.
 - `Stream.Render` does not write an invalid row or advance its row index. A later row within the resolved column count can still be written.
-- If a dynamic footer exceeds a stream's column count, `Close` returns an error and omits the footer. Any header and body already written remain in the destination.
+- If a dynamic footer exceeds a stream's column count, `Close` returns an error and omits the footer. Any header and body already written remain in the destination. HTML also attempts to close an open `tbody` and `table`; if that write fails, the earlier footer error remains the returned error.
 - When indexing is enabled, `got` and `want` in the error message are logical column counts that include the generated index column.
 
 Write errors follow these rules:

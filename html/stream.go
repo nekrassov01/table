@@ -99,7 +99,12 @@ func (o *Stream) Close() error {
 		compiler := o.arena.resumeCompiler(config.output)
 		compiler.compileFooter()
 		if compiler.err != nil {
-			o.err = compiler.err
+			err := compiler.err
+			solver := o.arena.newSolver(compiler.output)
+			solver.solve()
+			painter := o.arena.newPainter(solver.output, o.w)
+			painter.paintFooter()
+			o.err = err
 			o.releaseArena()
 			return o.err
 		}

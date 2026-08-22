@@ -131,3 +131,5 @@ GFM normalizes code-span line endings to spaces, then removes one space from eac
 ### Match error retention to execution state
 
 A column-count error from `Stream.Render` rejects only the current row, so it is not retained and the stream can accept a subsequent valid row. A write error cannot be undone after output has been emitted, so `Stream` retains the first write error and returns it from later calls to both `Render` and `Close`. Errors raised during `Close` are also retained because execution has already ended.
+
+When an HTML stream detects a footer column-count error after opening the table, `Close` omits the invalid footer but still calls `paintFooter` to close the open elements. The footer error occurred first and remains the retained result if closing also produces a write error. Without a footer error, the same closing failure is retained as a write error.
