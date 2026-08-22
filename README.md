@@ -34,7 +34,8 @@
 `nekrassov01/table` renders Go data as terminal tables, markup tables, or CSV records. Each output package provides `Table` for complete data sets and `Stream` for row-at-a-time output while retaining the selected format's own structure and escaping rules.
 
 - Use functional options for clear, reusable configuration.
-- Minimize memory allocations for efficient rendering.
+- Lead every included comparison benchmark, running 1.3 to 9.5 times as fast as the next-fastest alternative in the measured scenarios; see [Performance](#performance).
+- Reuse internal buffers to minimize steady-state allocations.
 - Adapt typed slices and error-returning iterators with `TableOf` and `StreamOf`.
 - Measure Unicode text by terminal display width, including ambiguous character widths in CJK locales.
 - Add headers, calculated footers, indexes, placeholders, transformations, alignment, decoration, and cell spans through format-specific options.
@@ -266,23 +267,24 @@ This table records the output implementations documented by each library. `✓` 
 
 This table records whether each library exposes a direct public API for a capability in at least one output implementation. It does not imply that every format can express the capability.
 
-| Feature                         | `table`         | [`mintab` v0.1.4](https://github.com/nekrassov01/mintab/tree/v0.1.4) | [`go-pretty` v6.8.3](https://github.com/jedib0t/go-pretty/tree/v6.8.3) | [`tablewriter` v1.1.4](https://github.com/olekukonko/tablewriter/tree/v1.1.4) |
-| ------------------------------- | --------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Streaming API                   | ✓ (all formats) | -                                                                    | -                                                                      | ✓                                                                             |
-| Header                          | ✓               | ✓                                                                    | ✓                                                                      | ✓                                                                             |
-| Footer                          | ✓ (callback)    | -                                                                    | ✓                                                                      | ✓                                                                             |
-| Vertical merge                  | ✓               | ✓                                                                    | ✓                                                                      | ✓                                                                             |
-| Horizontal merge                | ✓               | -                                                                    | ✓                                                                      | ✓                                                                             |
-| Reflection-based struct input   | -               | ✓                                                                    | -                                                                      | ✓                                                                             |
-| CSV input                       | -               | -                                                                    | -                                                                      | ✓                                                                             |
-| Per-column transformation       | ✓               | -                                                                    | ✓                                                                      | ✓                                                                             |
-| Built-in sorting and filtering  | -               | -                                                                    | ✓                                                                      | -                                                                             |
-| Pagination                      | -               | -                                                                    | ✓                                                                      | -                                                                             |
-| Column hiding                   | -               | ✓                                                                    | ✓                                                                      | ✓                                                                             |
-| Width, wrapping, and truncation | ✓               | -                                                                    | ✓                                                                      | ✓                                                                             |
-| Automatic terminal fit          | ✓               | -                                                                    | -                                                                      | -                                                                             |
-| Title or caption                | ✓               | -                                                                    | ✓                                                                      | ✓                                                                             |
-| Pluggable output implementation | -               | -                                                                    | -                                                                      | ✓                                                                             |
+| Feature                         | `table` | [`mintab` v0.1.4](https://github.com/nekrassov01/mintab/tree/v0.1.4) | [`go-pretty` v6.8.3](https://github.com/jedib0t/go-pretty/tree/v6.8.3) | [`tablewriter` v1.1.4](https://github.com/olekukonko/tablewriter/tree/v1.1.4) |
+| ------------------------------- | ------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Streaming API                   | ✓       | -                                                                    | -                                                                      | ✓ (partial)                                                                   |
+| Header                          | ✓       | ✓                                                                    | ✓                                                                      | ✓                                                                             |
+| Footer                          | ✓       | -                                                                    | ✓                                                                      | ✓                                                                             |
+| Vertical merge                  | ✓       | ✓                                                                    | ✓                                                                      | ✓                                                                             |
+| Horizontal merge                | ✓       | -                                                                    | ✓                                                                      | ✓                                                                             |
+| Caller-defined row adapter      | ✓       | -                                                                    | -                                                                      | ✓                                                                             |
+| Reflection-based struct input   | -       | ✓                                                                    | -                                                                      | ✓                                                                             |
+| CSV input                       | -       | -                                                                    | -                                                                      | ✓                                                                             |
+| Per-column transformation       | ✓       | -                                                                    | ✓                                                                      | ✓                                                                             |
+| Built-in sorting and filtering  | -       | -                                                                    | ✓                                                                      | -                                                                             |
+| Pagination                      | -       | -                                                                    | ✓                                                                      | -                                                                             |
+| Column hiding                   | -       | ✓                                                                    | ✓                                                                      | ✓                                                                             |
+| Width, wrapping, and truncation | ✓       | -                                                                    | ✓                                                                      | ✓                                                                             |
+| Automatic terminal fit          | ✓       | -                                                                    | -                                                                      | -                                                                             |
+| Title or caption                | ✓       | -                                                                    | ✓                                                                      | ✓                                                                             |
+| Pluggable output implementation | -       | -                                                                    | -                                                                      | ✓                                                                             |
 
 For `table`, the feature matrix has the following qualifications:
 
@@ -294,6 +296,11 @@ For `table`, the feature matrix has the following qualifications:
 
 The comparison benchmark constructs each table, processes the scenario data, and writes the result to a reused buffer. Its options align content and table structure while preserving each library's native border style; the output is not byte-identical.
 
+> [!NOTE]
+> `table` is designed to minimize allocations and reuses internal buffers via `sync.Pool`. In steady-state benchmarks, common workloads reach one allocation per render; cold runs require additional allocations to initialize pooled state.
+>
+> Run `make bench target=comparison benchtime=1x count=1` to make cold-start costs visible in the comparison; `table` remains the fastest implementation in that run. For explicit pool-drained measurements, run `make bench target=cold`.
+
 The figures are the best of five 10,000-iteration runs on an Apple M2 with Go 1.26.6. Each cell reports `allocs/op` followed by `ns/op`.
 
 | Scenario        | `table`       | `mintab`    | `go-pretty`  | `tablewriter`   |
@@ -304,7 +311,7 @@ The figures are the best of five 10,000-iteration runs on an Apple M2 with Go 1.
 | Repeated values | **1 · 4,879** | 110 · 7,562 | 258 · 34,980 | 2,480 · 163,596 |
 | Complex values  | **5 · 6,803** | -           | 317 · 64,428 | 4,751 · 287,515 |
 
-`table` was the fastest implementation in every comparable scenario, running 1.3 to 9.5 times as fast as the next-fastest alternative. A dash indicates an unsupported scenario.
+`-` indicates that a library cannot express the scenario with the benchmark input.
 
 Run the same comparison on your machine with:
 
