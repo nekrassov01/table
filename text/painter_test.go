@@ -204,6 +204,11 @@ func Test_painter_paintHeader(t *testing.T) {
 							},
 							columns: []column{{}},
 						},
+						body: []row{
+							{
+								bars: allBars,
+							},
+						},
 					},
 					metrics: []columnMetric{
 						{
@@ -216,6 +221,124 @@ func Test_painter_paintHeader(t *testing.T) {
 			},
 			want: want{
 				output: "cap\n+-+\n",
+			},
+		},
+		{
+			name: "empty header follows first body bars",
+			fields: fields{
+				input: solverResult{
+					compilerResult: compilerResult{
+						configResult: configResult{
+							option: &option{
+								style: StyleLight,
+							},
+							columns: []column{{}, {}},
+						},
+						body: []row{
+							{
+								bars: allBars &^ 0b10,
+							},
+						},
+					},
+					metrics: []columnMetric{
+						{
+							box: box{
+								width: 1,
+							},
+						},
+						{
+							box: box{
+								width: 1,
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				output: "┌───┐\n",
+			},
+		},
+		{
+			name: "empty header follows first footer bars",
+			fields: fields{
+				input: solverResult{
+					compilerResult: compilerResult{
+						configResult: configResult{
+							option: &option{
+								style: StyleLight,
+							},
+							columns: []column{{}, {}},
+						},
+						footer: []row{
+							{
+								bars: allBars &^ 0b10,
+							},
+						},
+					},
+					metrics: []columnMetric{
+						{
+							box: box{
+								width: 1,
+							},
+						},
+						{
+							box: box{
+								width: 1,
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				output: "┌───┐\n",
+			},
+		},
+		{
+			name: "header separator follows footer bars without body",
+			fields: fields{
+				input: solverResult{
+					compilerResult: compilerResult{
+						configResult: configResult{
+							option: &option{
+								style: StyleLight,
+							},
+							columns: []column{{}, {}},
+						},
+						header: []row{
+							{
+								cells: []cell{
+									{
+										value: "A",
+									},
+									{
+										value: "B",
+									},
+								},
+								bars: allBars,
+							},
+						},
+						footer: []row{
+							{
+								bars: allBars &^ 0b10,
+							},
+						},
+					},
+					metrics: []columnMetric{
+						{
+							box: box{
+								width: 1,
+							},
+						},
+						{
+							box: box{
+								width: 1,
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				output: "┌─┬─┐\n│A│B│\n╞═╧═╡\n",
 			},
 		},
 		{

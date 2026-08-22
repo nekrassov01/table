@@ -1408,6 +1408,30 @@ func Test_compiler_setBars(t *testing.T) {
 				bars: allBars &^ 0b01100,
 			},
 		},
+		{
+			name: "rowspan continuation beside a normal cell keeps the bar",
+			fields: fields{
+				state: func() compilerState {
+					var colspans scope.Masks
+					colspans.Mark(ScopeBody, 0)
+					colspans.Mark(ScopeBody, 1)
+					return compilerState{
+						colspans: colspans,
+					}
+				}(),
+			},
+			args: args{
+				row: row{
+					cells:    make([]cell, 2),
+					rowspans: 0b10,
+				},
+				previousBars: allBars &^ 0b10,
+				scope:        ScopeBody,
+			},
+			want: want{
+				bars: allBars,
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
