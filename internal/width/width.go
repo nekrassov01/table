@@ -20,6 +20,23 @@ type Scanner struct {
 	ascii    bool
 }
 
+// NewScanner returns a Scanner for s.
+func NewScanner(s string) Scanner {
+	o := Scanner{
+		text:  s,
+		ascii: true,
+	}
+	for i := 0; i < len(s); i++ {
+		if s[i] < 0x80 {
+			continue
+		}
+		o.clusters = *graphemes.FromString(s)
+		o.ascii = false
+		break
+	}
+	return o
+}
+
 // Next returns the byte range and display width of the next unit.
 func (o *Scanner) Next() (start, end, displayWidth int, ok bool) {
 	if o.ascii {
@@ -44,23 +61,6 @@ func (o *Scanner) Next() (start, end, displayWidth int, ok bool) {
 		}
 	}
 	return o.clusters.Start(), o.clusters.End(), displayWidth, true
-}
-
-// NewScanner returns a Scanner for s.
-func NewScanner(s string) Scanner {
-	o := Scanner{
-		text:  s,
-		ascii: true,
-	}
-	for i := 0; i < len(s); i++ {
-		if s[i] < 0x80 {
-			continue
-		}
-		o.clusters = *graphemes.FromString(s)
-		o.ascii = false
-		break
-	}
-	return o
 }
 
 // StringWidth returns the display width of s in terminal columns.
