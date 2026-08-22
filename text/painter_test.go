@@ -2047,6 +2047,22 @@ func Test_painter_wrapLine(t *testing.T) {
 			},
 		},
 		{
+			name: "grapheme wider than limit stays intact",
+			args: args{
+				line:  "👩‍💻",
+				limit: 1,
+			},
+			want: want{
+				width: 2,
+				segments: []segment{
+					{
+						value: "👩‍💻",
+						width: 2,
+					},
+				},
+			},
+		},
+		{
 			name: "keeps grapheme cluster intact",
 			args: args{
 				line:  "👩‍💻x",

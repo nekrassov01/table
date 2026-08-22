@@ -138,7 +138,6 @@ func (o *Stream) Close() error {
 	solver := o.arena.newSolver(compiler.output, o.w)
 	solver.prepare()
 	solver.solve()
-	solver.freeze()
 	painter := o.arena.newPainter(solver.output, o.w)
 	painter.prepare()
 	painter.paintHeader()

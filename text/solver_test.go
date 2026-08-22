@@ -315,6 +315,43 @@ func Test_solver_freeze(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "reserves and offsets an empty column",
+			fields: fields{
+				input: compilerResult{
+					configResult: configResult{
+						option: &option{},
+					},
+				},
+				state: solverState{
+					columnMetrics: []columnMetric{
+						{},
+						{
+							box: box{
+								width: 2,
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				metrics: []columnMetric{
+					{
+						box: box{
+							width: 1,
+						},
+						limit: 1,
+					},
+					{
+						box: box{
+							offset: 1,
+							width:  2,
+						},
+						limit: 2,
+					},
+				},
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

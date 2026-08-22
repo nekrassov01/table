@@ -708,6 +708,11 @@ func contractCases() []contractCase {
 			header: []string{},
 		},
 		{
+			name:   "blank header cell",
+			header: []string{""},
+			opts:   []Option{WithPlaceholder("")},
+		},
+		{
 			name:       "empty footer",
 			omitHeader: true,
 			opts: []Option{

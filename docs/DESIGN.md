@@ -20,6 +20,7 @@ This document describes the design principles and decisions for maintainers.
     - [Choose option ownership based on value semantics](#choose-option-ownership-based-on-value-semantics)
     - [Separate value selection from evaluation order](#separate-value-selection-from-evaluation-order)
     - [Separate logical columns from display geometry](#separate-logical-columns-from-display-geometry)
+    - [Preserve grapheme clusters when wrapping](#preserve-grapheme-clusters-when-wrapping)
     - [Resolve spans at the format-appropriate stage](#resolve-spans-at-the-format-appropriate-stage)
     - [Distinguish displayed values from attribute values](#distinguish-displayed-values-from-attribute-values)
     - [Match error retention to execution state](#match-error-retention-to-execution-state)
@@ -104,6 +105,12 @@ Missingness is retained when the value is resolved rather than inferred later by
 The logical column count determined by `config` is distinct from display widths and span counts determined by `solver`. Short rows are extended to the established columns, but a wider later row never expands the table. Otherwise `Table`, which can inspect all rows, and `Stream`, which cannot revise prior output, would derive different logical column counts.
 
 Display width is measured without changing the logical column count. `Table` can measure the complete pass, while `Stream` emits later rows within the conditions established at startup. Keeping validation separate from display adjustment prevents width optimization from changing the input contract.
+
+When a text stream starts rendering body rows with a column whose content has zero display width, the solver reserves one display cell before freezing the geometry. This gives later values a usable wrapping boundary without changing columns after output has begun. A stream closed before its first body row has complete input and does not freeze its geometry.
+
+### Preserve grapheme clusters when wrapping
+
+Text column width is a wrapping boundary rather than a clipping boundary. The painter scans grapheme clusters and never divides one between physical lines. If a cluster is wider than the configured or frozen width, it remains intact and that physical line exceeds the solved column width. Splitting the cluster would corrupt its displayed value; callers that require replacement instead of wrapping can use `WithTruncate`.
 
 ### Resolve spans at the format-appropriate stage
 

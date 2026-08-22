@@ -4911,6 +4911,7 @@ func TestGolden_StreamFrozenOverflow(t *testing.T) {
 	s := NewStream(&buf,
 		WithStyle(StyleLight),
 		WithHeader([]string{"a"}),
+		WithWidth(Columns(0), 1),
 	)
 	for _, v := range []string{"x", "\u3042", "y"} {
 		if err := s.Render([]any{v}); err != nil {
@@ -4921,6 +4922,25 @@ func TestGolden_StreamFrozenOverflow(t *testing.T) {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "stream_frozen_overflow", buf.Bytes())
+}
+
+func TestGolden_StreamFrozenZeroWidth(t *testing.T) {
+	var buf bytes.Buffer
+	s := NewStream(&buf,
+		WithStyle(StyleLight),
+		WithHeader([]string{"", "B"}),
+		WithPlaceholder(""),
+	)
+	if err := s.Render([]any{"", "x"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Render([]any{"wide", "y"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Close(); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "stream_frozen_zero_width", buf.Bytes())
 }
 
 func TestGolden_StreamIndex(t *testing.T) {

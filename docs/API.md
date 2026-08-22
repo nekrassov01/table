@@ -279,13 +279,14 @@ func WithAttr(scopes Scope, columns ColumnSelector, attr *Attr) Option
 func WithTransformer(columns ColumnSelector, fn func(any) (string, *Attr)) Option
 ```
 
-- `WithWidth` fixes the display width of cell content, excluding padding. A value of zero or less removes the fixed width.
+- `WithWidth` sets the display-width boundary of cell content, excluding padding. A value of zero or less removes the boundary.
 - `WithTruncate` replaces wrapping with `...`. In a column without `WithWidth`, it applies to values that exceed the initial column width after a stream has begun.
 - `WithPadding` sets left and right space widths. Negative values become zero, and padding contributes to the total table width.
 - `WithAutoFit` reduces column widths to fit terminal output within the terminal width. It has no effect for a non-terminal destination or if any column uses `WithWidth` or `WithTruncate`.
 - `WithIndexWidth` sets the minimum width of the index column. A stream reserves at least three digits.
 - `WithCompact` omits horizontal borders between body rows. At a vertically spanned cell boundary, it retains the horizontal segments for cells that are not spanned.
-- Cell widths use Unicode terminal display widths. LF, CR, and CRLF are in-cell line breaks; output lines end with LF.
+- Cell widths use Unicode terminal display widths. Wrapping preserves grapheme clusters; a cluster wider than the boundary remains intact and makes that physical output line wider than the column. When a stream begins rendering body rows, it reserves one display cell for a column whose initial content has zero display width.
+- LF, CR, and CRLF are in-cell line breaks; output lines end with LF.
 - Invalid UTF-8 bytes are preserved rather than replaced, and ANSI sequences embedded in values are not parsed.
 
 `Attr` represents ANSI SGR color and decoration. `WithAttr` overrides `Style.Content` per column, and an `Attr` returned by a transformer overrides it per cell. ANSI attributes are omitted when the destination is not a terminal.
