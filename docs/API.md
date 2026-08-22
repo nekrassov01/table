@@ -343,7 +343,7 @@ func WithTransformer(columns ColumnSelector, fn func(any) (string, *Color, *Deco
 - Backslashes, vertical bars, backticks, emphasis markers, square brackets, angle brackets, and ampersands in displayed values are escaped. NUL and invalid UTF-8 become U+FFFD.
 - Strings resembling URLs or email addresses may be autolinked by a GFM implementation.
 - Color uses an HTML `span`. Other decorations surround the color span; with `DecorationCode`, the color span surrounds the code span.
-- `DecorationCode` follows the GFM code-span rules, chooses a delimiter that does not collide with backtick runs in the value, and converts line breaks to spaces.
+- `DecorationCode` follows the GFM code-span rules. Its fence is longer than any backtick run in the value, and LF, CR, and CRLF become spaces. When the normalized content begins and ends with spaces but is not entirely spaces, the emitted span adds one space at each end so GFM parsing preserves them.
 - `DecorationPreformatted` preserves whitespace with `<pre>`.
 - `NewColor` escapes a CSS color as an HTML attribute. Vertical bars become character references so they cannot split a GFM table row. Invalid characters follow HTML attribute replacement rules, and line breaks become spaces. CSS validity is not checked.
 - `NewDecoration` writes the supplied delimiters without escaping. Pass only trusted markup. It returns `nil` when `prefix` is empty.

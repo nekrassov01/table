@@ -124,6 +124,8 @@ Displayed values and attribute values are escaped or normalized for their output
 
 GFM separates table cells before parsing inline HTML. Markdown attribute values therefore encode vertical bars as character references, preserving both the table structure and the attribute value.
 
+GFM normalizes code-span line endings to spaces, then removes one space from each end when both are present and the content is not entirely spaces. `escapeCode` treats source line endings as the spaces they become and adds one boundary space only when parsing would otherwise remove content. `resolveTicks` independently chooses a fence longer than every backtick run in the value.
+
 `compiler` resolves displayed-value conversion and markup selection, and `painter` combines them in the established order. `painter` does not reinterpret value safety or decoration semantics, avoiding duplicate escaping and divergence from compilation decisions.
 
 ### Match error retention to execution state

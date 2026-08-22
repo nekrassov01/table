@@ -15,11 +15,18 @@ const (
 	replacement = "\uFFFD"
 )
 
-// escapeCode prepares s for a GFM code span, appending changed content to
-// escapes, and returns the value together with the updated storage.
+// escapeCode encodes s as GFM code-span content within a table cell, appending
+// changed content to escapes.
 func escapeCode(escapes []byte, s string) (string, []byte) {
+	if len(s) == 0 {
+		return s, escapes
+	}
 	pad := strings.HasPrefix(s, "`") || strings.HasSuffix(s, "`")
-	if !pad && strings.HasPrefix(s, " ") && strings.HasSuffix(s, " ") {
+	prefix := s[0]
+	suffix := s[len(s)-1]
+	spacePrefix := prefix == ' ' || prefix == '\r' || prefix == '\n'
+	spaceSuffix := suffix == ' ' || suffix == '\r' || suffix == '\n'
+	if !pad && spacePrefix && spaceSuffix {
 		for index := 0; index < len(s); index++ {
 			if s[index] != ' ' && s[index] != '\r' && s[index] != '\n' {
 				pad = true
