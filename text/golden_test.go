@@ -1818,6 +1818,37 @@ func TestGolden_StreamEmoji(t *testing.T) {
 	testutil.AssertGolden(t, "common_emoji", buf.Bytes())
 }
 
+func TestGolden_TableFlagWidth(t *testing.T) {
+	var buf bytes.Buffer
+	tb := NewTable(&buf,
+		WithHeader([]string{"W", "T"}),
+		WithWidth(Columns(0), 2),
+		WithWidth(Columns(1), 4),
+		WithTruncate(Columns(1)),
+	)
+	if err := tb.Render([][]any{{"🇯🇵🇺🇸", "🇯🇵🇺🇸x"}}); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_flag_width", buf.Bytes())
+}
+
+func TestGolden_StreamFlagWidth(t *testing.T) {
+	var buf bytes.Buffer
+	s := NewStream(&buf,
+		WithHeader([]string{"W", "T"}),
+		WithWidth(Columns(0), 2),
+		WithWidth(Columns(1), 4),
+		WithTruncate(Columns(1)),
+	)
+	if err := s.Render([]any{"🇯🇵🇺🇸", "🇯🇵🇺🇸x"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Close(); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_flag_width", buf.Bytes())
+}
+
 func TestGolden_TableEmpty(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,

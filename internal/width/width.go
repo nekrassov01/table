@@ -54,9 +54,11 @@ func (o *Scanner) Next() (start, end, displayWidth int, ok bool) {
 	if !o.clusters.Next() {
 		return 0, 0, 0, false
 	}
+	// Match runewidth.StringWidth without segmenting the resolved cluster again.
 	for _, r := range o.clusters.Value() {
-		displayWidth = runewidth.RuneWidth(r)
-		if displayWidth > 0 {
+		displayWidth += runewidth.RuneWidth(r)
+		if displayWidth >= 2 {
+			displayWidth = 2
 			break
 		}
 	}
