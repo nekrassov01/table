@@ -338,7 +338,7 @@ func TestGolden_StreamColorAttrEscape(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
 		WithHeader([]string{"A"}),
-		WithColor(ScopeBody, Columns(0), NewColor(`red" onmouseover="alert(1)`, `blue&x`)),
+		WithColor(ScopeBody, Columns(0), NewColor(`red" onmouseover="alert(1)`, `blue&x|y`)),
 	)
 	if err := s.Render([]any{"x"}); err != nil {
 		t.Fatal(err)
@@ -2079,7 +2079,7 @@ func TestGolden_TableColorAttrEscape(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
 		WithHeader([]string{"A"}),
-		WithColor(ScopeBody, Columns(0), NewColor(`red" onmouseover="alert(1)`, `blue&x`)),
+		WithColor(ScopeBody, Columns(0), NewColor(`red" onmouseover="alert(1)`, `blue&x|y`)),
 	)
 	if err := tb.Render([][]any{
 		{"x"},

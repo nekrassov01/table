@@ -81,6 +81,19 @@ func TestNewColor(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "escapes gfm table delimiter",
+			args: args{
+				fg: "re|d",
+				bg: "bl|ue",
+			},
+			want: want{
+				val: &Color{
+					Prefix: `<span style="color:re&#124;d;background-color:bl&#124;ue">`,
+					Suffix: `</span>`,
+				},
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

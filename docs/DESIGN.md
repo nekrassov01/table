@@ -122,6 +122,8 @@ Formats that measure column width mark absorbed values during compilation so the
 
 Displayed values and attribute values are escaped or normalized for their output contexts. Strings supplied to constructors such as `NewDecoration` intentionally define markup and are not escaped. Sending both categories through the same path would sacrifice either safe displayed output or the expressiveness of caller-provided markup.
 
+GFM separates table cells before parsing inline HTML. Markdown attribute values therefore encode vertical bars as character references, preserving both the table structure and the attribute value.
+
 `compiler` resolves displayed-value conversion and markup selection, and `painter` combines them in the established order. `painter` does not reinterpret value safety or decoration semantics, avoiding duplicate escaping and divergence from compilation decisions.
 
 ### Match error retention to execution state

@@ -345,7 +345,7 @@ func WithTransformer(columns ColumnSelector, fn func(any) (string, *Color, *Deco
 - Color uses an HTML `span`. Other decorations surround the color span; with `DecorationCode`, the color span surrounds the code span.
 - `DecorationCode` follows the GFM code-span rules, chooses a delimiter that does not collide with backtick runs in the value, and converts line breaks to spaces.
 - `DecorationPreformatted` preserves whitespace with `<pre>`.
-- `NewColor` escapes a CSS color as an HTML attribute. Invalid characters follow HTML attribute replacement rules, and line breaks become spaces. CSS validity is not checked.
+- `NewColor` escapes a CSS color as an HTML attribute. Vertical bars become character references so they cannot split a GFM table row. Invalid characters follow HTML attribute replacement rules, and line breaks become spaces. CSS validity is not checked.
 - `NewDecoration` writes the supplied delimiters without escaping. Pass only trusted markup. It returns `nil` when `prefix` is empty.
 
 ### backlog

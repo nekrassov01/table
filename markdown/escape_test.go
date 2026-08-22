@@ -283,12 +283,12 @@ func Test_escapeAttr(t *testing.T) {
 			},
 		},
 		{
-			name: "escapes attribute delimiters",
+			name: "escapes attribute and table delimiters",
 			args: args{
-				value: `a&"b`,
+				value: `a&"|b`,
 			},
 			want: want{
-				value: `a&amp;&quot;b`,
+				value: `a&amp;&quot;&#124;b`,
 			},
 		},
 		{
@@ -381,9 +381,9 @@ func Test_needsEscapeAttr(t *testing.T) {
 			},
 		},
 		{
-			name: "attribute delimiters",
+			name: "attribute and table delimiters",
 			args: args{
-				value: `&"`,
+				value: `&"|`,
 			},
 			want: want{
 				val: true,
