@@ -12,7 +12,7 @@
     </tr>
     <tr>
       <td>slice</td>
-      <td><code><span style="color:red">[list 3 item(s)]</span></code></td>
+      <td><code><span style="color:red">[1 2 3]</span></code></td>
     </tr>
   </tbody>
 </table>

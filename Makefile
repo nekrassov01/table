@@ -1,6 +1,7 @@
 GOBIN ?= $(shell go env GOPATH)/bin
 
-VERSION := $$(make version)
+VERSION_DIR := ./internal/version/
+VERSION     := $$(make version)
 
 HAS_LINT := $(shell command -v $(GOBIN)/golangci-lint 2> /dev/null)
 HAS_VULN := $(shell command -v $(GOBIN)/govulncheck 2> /dev/null)
@@ -93,7 +94,7 @@ vuln: deps-vuln
 # ----------
 
 version: deps-bump
-	@echo $(shell gobump show -r .)
+	@echo $(shell gobump show -r $(VERSION_DIR))
 
 check-git:
 ifneq ($(shell git status --porcelain),)
@@ -106,6 +107,6 @@ ifndef branch
 endif
 
 bump: check-branch deps-bump
-	gobump up -w ./internal/version/
-	git commit -am "bump up version to $(VERSION)"
+	gobump up -w $(VERSION_DIR)
+	git commit -am "chore: bump up version to $(VERSION)"
 	git push origin $(branch)

@@ -17,9 +17,10 @@
 //
 // Body values are converted consistently across format packages. Scalars,
 // fmt.Stringer values, errors, and byte slices use their text form. Other
-// slices, arrays, maps, and structs use compact summaries rather than recursive
-// formatting. Missing and empty values use the configured placeholder, and
-// transformer options can replace the default display text.
+// values use the representation produced by fmt.Sprint. Nil values and empty
+// strings, slices, and arrays use the configured placeholder. Transformer
+// options can replace the default display text without evaluating that
+// representation.
 //
 // Failures from format packages are returned as [Error] values that identify
 // the package and unwrap the underlying cause. The sentinel errors in this

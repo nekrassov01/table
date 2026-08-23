@@ -8,15 +8,15 @@
   <tbody>
     <tr>
       <td>ints</td>
-      <td><code>[list 3 item(s)]</code></td>
+      <td><code>[1 2 3]</code></td>
     </tr>
     <tr>
       <td>strings</td>
-      <td><code>[list 2 item(s)]</code></td>
+      <td><code>[a b]</code></td>
     </tr>
     <tr>
       <td>empty-elem</td>
-      <td><code>[list 3 item(s)]</code></td>
+      <td><code>[x  z]</code></td>
     </tr>
   </tbody>
 </table>

@@ -185,8 +185,9 @@ func WithAttr(scopes Scope, columns ColumnSelector, attr *Attr) Option {
 
 // WithTransformer sets a transformer for body cells in the selected columns.
 // The function receives the raw value and may return a replacement display
-// string and attribute. An empty string keeps the formatted raw value; a nil
-// attribute keeps the corresponding column setting.
+// string and attribute. A non-empty string skips formatting the raw value; an
+// empty string uses the formatted raw value. A nil attribute keeps the
+// corresponding column setting.
 func WithTransformer(columns ColumnSelector, fn func(any) (string, *Attr)) Option {
 	return func(o *option) {
 		o.columns.apply(columns, func(c *column) {

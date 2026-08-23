@@ -501,21 +501,23 @@ func (o *painter) writeFill(s string, fillWidth, n int) {
 	if hasAttr {
 		o.state.line = append(o.state.line, attr.Prefix...)
 	}
-	if len(s) == 1 && fillCount > 0 {
-		c := s[0]
-		start := len(o.state.line)
-		o.state.line = o.state.line[:start+fillCount]
-		for i := range o.state.line[start:] {
-			o.state.line[start+i] = c
-		}
-	} else if fillCount > 0 {
-		length := len(s)
-		start := len(o.state.line)
-		total := fillCount * length
-		o.state.line = o.state.line[:start+total]
-		copy(o.state.line[start:], s)
-		for written := length; written < total; written *= 2 {
-			copy(o.state.line[start+written:], o.state.line[start:start+written])
+	if fillCount > 0 {
+		if len(s) == 1 {
+			c := s[0]
+			start := len(o.state.line)
+			o.state.line = o.state.line[:start+fillCount]
+			for i := range o.state.line[start:] {
+				o.state.line[start+i] = c
+			}
+		} else {
+			length := len(s)
+			start := len(o.state.line)
+			total := fillCount * length
+			o.state.line = o.state.line[:start+total]
+			copy(o.state.line[start:], s)
+			for written := length; written < total; written *= 2 {
+				copy(o.state.line[start+written:], o.state.line[start:start+written])
+			}
 		}
 	}
 	o.writeSpaces(remainder)

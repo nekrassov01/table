@@ -70,7 +70,8 @@ func WithPlaceholder(s string) Option {
 
 // WithTransformer sets a transformer for body cells in the selected columns.
 // The function receives the raw value and may return a replacement display
-// string. An empty string keeps the formatted raw value.
+// string. A non-empty string skips formatting the raw value; an empty string
+// uses the formatted raw value.
 func WithTransformer(columns ColumnSelector, fn func(any) string) Option {
 	return func(o *option) {
 		o.columns.apply(columns, func(c *column) {

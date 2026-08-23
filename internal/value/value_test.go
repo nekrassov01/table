@@ -296,42 +296,42 @@ func TestFormat(t *testing.T) {
 			},
 		},
 		{
-			name: "empty struct summary",
+			name: "empty struct uses default formatting",
 			args: args{
 				v: struct{}{},
 			},
 			want: want{
-				text: "{struct 0 field(s)}",
+				text: "{}",
 			},
 		},
 		{
-			name: "anonymous struct summary",
+			name: "anonymous struct uses default formatting",
 			args: args{
 				v: struct {
 					A int
 					B int
-				}{},
+				}{A: 1, B: 2},
 			},
 			want: want{
-				text: "{struct 2 field(s)}",
+				text: "{1 2}",
 			},
 		},
 		{
-			name: "named struct summary",
+			name: "named struct uses default formatting",
 			args: args{
-				v: record{},
+				v: record{first: 1, second: 2},
 			},
 			want: want{
-				text: "{struct 2 field(s)}",
+				text: "{1 2}",
 			},
 		},
 		{
-			name: "pointer to struct summary",
+			name: "pointer to struct dereferences before default formatting",
 			args: args{
-				v: &record{},
+				v: &record{first: 1, second: 2},
 			},
 			want: want{
-				text: "{struct 2 field(s)}",
+				text: "{1 2}",
 			},
 		},
 		{
@@ -344,25 +344,25 @@ func TestFormat(t *testing.T) {
 			},
 		},
 		{
-			name: "empty map summary",
+			name: "empty map uses default formatting",
 			args: args{
 				v: map[string]int{},
 			},
 			want: want{
-				text: "{map 0 key(s)}",
+				text: "map[]",
 			},
 		},
 		{
-			name: "map with one key summary",
+			name: "map with one key uses default formatting",
 			args: args{
 				v: map[string]int{"a": 1},
 			},
 			want: want{
-				text: "{map 1 key(s)}",
+				text: "map[a:1]",
 			},
 		},
 		{
-			name: "map with multiple keys summary",
+			name: "map with multiple keys uses default formatting",
 			args: args{
 				v: map[string]int{
 					"a": 1,
@@ -370,22 +370,22 @@ func TestFormat(t *testing.T) {
 				},
 			},
 			want: want{
-				text: "{map 2 key(s)}",
+				text: "map[a:1 b:2]",
 			},
 		},
 		{
-			name: "named map summary",
+			name: "named map uses default formatting",
 			args: args{
 				v: dictionary{
 					"a": 1,
 				},
 			},
 			want: want{
-				text: "{map 1 key(s)}",
+				text: "map[a:1]",
 			},
 		},
 		{
-			name: "pointer to map summary",
+			name: "pointer to map dereferences before default formatting",
 			args: args{
 				v: func() any {
 					value := map[string]int{
@@ -395,7 +395,7 @@ func TestFormat(t *testing.T) {
 				}(),
 			},
 			want: want{
-				text: "{map 1 key(s)}",
+				text: "map[a:1]",
 			},
 		},
 		{
@@ -408,30 +408,30 @@ func TestFormat(t *testing.T) {
 			},
 		},
 		{
-			name: "slice of ints collapses to a summary",
+			name: "slice of ints uses default formatting",
 			args: args{
 				v: []int{1, 2, 3},
 			},
 			want: want{
-				text: "[list 3 item(s)]",
+				text: "[1 2 3]",
 			},
 		},
 		{
-			name: "named slice collapses to a summary",
+			name: "named slice uses default formatting",
 			args: args{
 				v: list{1, 2},
 			},
 			want: want{
-				text: "[list 2 item(s)]",
+				text: "[1 2]",
 			},
 		},
 		{
-			name: "slice of strings collapses to a summary",
+			name: "slice of strings uses default formatting",
 			args: args{
 				v: []string{"a", "", "c"},
 			},
 			want: want{
-				text: "[list 3 item(s)]",
+				text: "[a  c]",
 			},
 		},
 		{
@@ -444,21 +444,12 @@ func TestFormat(t *testing.T) {
 			},
 		},
 		{
-			name: "count beyond the pre-rendered summaries is built on demand",
-			args: args{
-				v: make([]int, summaryCacheSize+1),
-			},
-			want: want{
-				text: "[list 65 item(s)]",
-			},
-		},
-		{
-			name: "nested slices collapse to a summary",
+			name: "nested slices use default formatting",
 			args: args{
 				v: [][]int{{1}, {2}},
 			},
 			want: want{
-				text: "[list 2 item(s)]",
+				text: "[[1] [2]]",
 			},
 		},
 		{
@@ -471,12 +462,12 @@ func TestFormat(t *testing.T) {
 			},
 		},
 		{
-			name: "array collapses to a summary",
+			name: "array uses default formatting",
 			args: args{
 				v: [2]int{1, 2},
 			},
 			want: want{
-				text: "[list 2 item(s)]",
+				text: "[1 2]",
 			},
 		},
 		{
@@ -485,7 +476,7 @@ func TestFormat(t *testing.T) {
 				v: [2]byte{7, 200},
 			},
 			want: want{
-				text: "[list 2 item(s)]",
+				text: "[7 200]",
 			},
 		},
 		{
@@ -494,7 +485,7 @@ func TestFormat(t *testing.T) {
 				v: []rune("ab"),
 			},
 			want: want{
-				text: "[list 2 item(s)]",
+				text: "[97 98]",
 			},
 		},
 		{
@@ -507,21 +498,42 @@ func TestFormat(t *testing.T) {
 			},
 		},
 		{
-			name: "slice of any collapses to a summary",
+			name: "slice of any uses default formatting",
 			args: args{
 				v: []any{"x", 1, nil},
 			},
 			want: want{
-				text: "[list 3 item(s)]",
+				text: "[x 1 <nil>]",
 			},
 		},
 		{
-			name: "pointer to slice collapses to a summary",
+			name: "slice of stringers uses default formatting",
+			args: args{
+				v: []testutil.Stringer{
+					{Value: "a"},
+					{Value: "b"},
+				},
+			},
+			want: want{
+				text: "[a b]",
+			},
+		},
+		{
+			name: "slice of complex values uses default formatting",
+			args: args{
+				v: []complex64{1 + 2i},
+			},
+			want: want{
+				text: "[(1+2i)]",
+			},
+		},
+		{
+			name: "pointer to slice dereferences before default formatting",
 			args: args{
 				v: &[]int{4, 5},
 			},
 			want: want{
-				text: "[list 2 item(s)]",
+				text: "[4 5]",
 			},
 		},
 		{
@@ -585,24 +597,24 @@ func Test_formatReflect(t *testing.T) {
 			},
 		},
 		{
-			name: "empty struct summarizes fields",
+			name: "empty struct uses default formatting",
 			args: args{
 				value: struct{}{},
 			},
 			want: want{
-				text: "{struct 0 field(s)}",
+				text: "{}",
 			},
 		},
 		{
-			name: "struct summarizes fields",
+			name: "struct uses default formatting",
 			args: args{
 				value: struct {
 					First  int
 					Second int
-				}{},
+				}{First: 1, Second: 2},
 			},
 			want: want{
-				text: "{struct 2 field(s)}",
+				text: "{1 2}",
 			},
 		},
 		{
@@ -615,34 +627,34 @@ func Test_formatReflect(t *testing.T) {
 			},
 		},
 		{
-			name: "empty map summarizes keys",
+			name: "empty map uses default formatting",
 			args: args{
 				value: map[string]int{},
 			},
 			want: want{
-				text: "{map 0 key(s)}",
+				text: "map[]",
 			},
 		},
 		{
-			name: "map summarizes keys",
+			name: "map uses default formatting",
 			args: args{
 				value: map[string]int{
 					"key": 1,
 				},
 			},
 			want: want{
-				text: "{map 1 key(s)}",
+				text: "map[key:1]",
 			},
 		},
 		{
-			name: "named map summarizes keys",
+			name: "named map uses default formatting",
 			args: args{
 				value: namedMap{
 					"key": 1,
 				},
 			},
 			want: want{
-				text: "{map 1 key(s)}",
+				text: "map[key:1]",
 			},
 		},
 		{
@@ -664,21 +676,21 @@ func Test_formatReflect(t *testing.T) {
 			},
 		},
 		{
-			name: "slice summarizes items",
+			name: "slice uses default formatting",
 			args: args{
 				value: []int{1, 2},
 			},
 			want: want{
-				text: "[list 2 item(s)]",
+				text: "[1 2]",
 			},
 		},
 		{
-			name: "named slice summarizes items",
+			name: "named slice uses default formatting",
 			args: args{
 				value: namedList{1, 2},
 			},
 			want: want{
-				text: "[list 2 item(s)]",
+				text: "[1 2]",
 			},
 		},
 		{
@@ -700,12 +712,12 @@ func Test_formatReflect(t *testing.T) {
 			},
 		},
 		{
-			name: "array summarizes items",
+			name: "array uses default formatting",
 			args: args{
 				value: [2]int{1, 2},
 			},
 			want: want{
-				text: "[list 2 item(s)]",
+				text: "[1 2]",
 			},
 		},
 		{
@@ -723,6 +735,115 @@ func Test_formatReflect(t *testing.T) {
 			var st Store
 			got := formatReflect(&st, test.args.value)
 			testutil.AssertValue(t, got, test.want.text, "formatReflect")
+		})
+	}
+}
+
+func Test_formatPrimitives(t *testing.T) {
+	type args struct {
+		value any
+	}
+	type want struct {
+		text    string
+		matched bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "strings",
+			args: args{
+				value: []string{"a", "", "c"},
+			},
+			want: want{
+				text:    "[a  c]",
+				matched: true,
+			},
+		},
+		{
+			name: "booleans",
+			args: args{
+				value: []bool{true, false},
+			},
+			want: want{
+				text:    "[true false]",
+				matched: true,
+			},
+		},
+		{
+			name: "signed integers",
+			args: args{
+				value: []int{-1, 2},
+			},
+			want: want{
+				text:    "[-1 2]",
+				matched: true,
+			},
+		},
+		{
+			name: "unsigned integers",
+			args: args{
+				value: [2]uint{1, 2},
+			},
+			want: want{
+				text:    "[1 2]",
+				matched: true,
+			},
+		},
+		{
+			name: "float32 values",
+			args: args{
+				value: []float32{0.1, 1.25},
+			},
+			want: want{
+				text:    "[0.1 1.25]",
+				matched: true,
+			},
+		},
+		{
+			name: "float64 values",
+			args: args{
+				value: []float64{0.1, 1.25},
+			},
+			want: want{
+				text:    "[0.1 1.25]",
+				matched: true,
+			},
+		},
+		{
+			name: "byte array",
+			args: args{
+				value: [2]byte{7, 200},
+			},
+			want: want{
+				text:    "[7 200]",
+				matched: true,
+			},
+		},
+		{
+			name: "stringer elements use default formatting",
+			args: args{
+				value: []testutil.Stringer{{Value: "a"}},
+			},
+		},
+		{
+			name: "nested elements use default formatting",
+			args: args{
+				value: [][]int{{1}},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var st Store
+			gotText, gotMatched := formatPrimitives(&st, reflect.ValueOf(test.args.value))
+			got := want{
+				text:    gotText,
+				matched: gotMatched,
+			}
+			testutil.AssertValue(t, got, test.want, "formatPrimitives")
 		})
 	}
 }
@@ -1123,6 +1244,37 @@ func Test_appendFloat(t *testing.T) {
 			var st Store
 			got := appendFloat(&st, test.args.value, test.args.bitSize)
 			testutil.AssertValue(t, got, test.want.text, "appendFloat")
+		})
+	}
+}
+
+func Test_appendDefault(t *testing.T) {
+	type args struct {
+		value any
+	}
+	type want struct {
+		text string
+	}
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "appends default representation",
+			args: args{
+				value: map[string]int{"key": 1},
+			},
+			want: want{
+				text: "map[key:1]",
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var st Store
+			got := appendDefault(&st, test.args.value)
+			testutil.AssertValue(t, got, test.want.text, "appendDefault")
 		})
 	}
 }

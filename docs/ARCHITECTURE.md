@@ -109,7 +109,7 @@ flowchart TD
 `compileHeader` and `compileBody` convert headers and body values into logical rows and cells. `compileFooter` does the same for footers in `text`, `html`, `backlog`, and `csv`. Headers and footers use their configured labels. Formats other than CSV also select the attributes, colors, or decorations for the corresponding section. `compileBody` iterates the complete body, while `Stream` calls `compileRow` for one body row. Each row performs the following work as needed:
 
 - Generate an index value and fill missing values with the placeholder.
-- Resolve either the transformer result or the input value's default string representation.
+- Call the transformer when configured, then use the input value's default string representation only when the transformer returns an empty string.
 - Select the body attributes, colors, or decorations.
 
 Formats with spans compare these resolved strings and record where equal values continue. Escaped strings and markup are not used for comparison. Each value is then escaped or quoted according to its format, and the selected attributes, colors, and decorations are retained in the cell. Formats that need byte sizes or display widths for later capacity or geometry calculations record them here. A body row or footer wider than the resolved column count produces `ErrColumnCount` at this stage.

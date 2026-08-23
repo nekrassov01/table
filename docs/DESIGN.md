@@ -18,7 +18,7 @@ This document describes the design principles and decisions for maintainers.
     - [Limit arena to state ownership](#limit-arena-to-state-ownership)
     - [Resolve dynamic footers at render time](#resolve-dynamic-footers-at-render-time)
     - [Choose option ownership based on value semantics](#choose-option-ownership-based-on-value-semantics)
-    - [Separate value selection from evaluation order](#separate-value-selection-from-evaluation-order)
+    - [Evaluate only the selected value](#evaluate-only-the-selected-value)
     - [Separate logical columns from display geometry](#separate-logical-columns-from-display-geometry)
     - [Preserve grapheme clusters when wrapping](#preserve-grapheme-clusters-when-wrapping)
     - [Resolve spans at the format-appropriate stage](#resolve-spans-at-the-format-appropriate-stage)
@@ -39,7 +39,6 @@ The following omissions are intentional.
 | An empty `solver` in every format                | CSV has no geometry to resolve.                                                                            |
 | Active rows stored in `option`                   | Mixing state with different lifetimes would blur the boundaries between `Table`, `Stream`, and the pool.   |
 | Parsing arbitrary ANSI strings                   | `Attr` already provides a structured ANSI representation.                                                  |
-| Recursively formatting compound values           | Output could grow without bound, and the library would have to guess application-specific representations. |
 | Permanently caching terminal width               | A permanent cache could not follow terminal resizing.                                                      |
 | HTML layout options                              | Width, padding, and borders belong to the browser and CSS.                                                 |
 | Visual decoration in CSV                         | CSV cannot preserve such decoration while remaining machine-readable.                                      |
@@ -94,9 +93,11 @@ Options do not clone every referenced value. Values that must be independent of 
 
 A reusable `Option` does not mutate captured values on each application. If a value always requires the same escaping or normalization, perform that work once when constructing the option. Values such as captions and cell contents remain unprocessed until the pipeline stage responsible for their output context handles them.
 
-### Separate value selection from evaluation order
+### Evaluate only the selected value
 
-The output contract defines which candidate becomes the displayed value and the order in which placeholders, spans, escaping, and markup are applied. It does not guarantee the order in which `String()` methods and transformers are called, nor whether an unused default representation is evaluated in advance. This freedom keeps capacity estimation and common paths simple in each format.
+`compiler` calls a configured transformer before default value conversion. A non-empty transformer result becomes the displayed value, so potentially expensive `String()` or `fmt.Sprint` work is not performed. An empty transformer result selects the default representation, and an empty default representation selects the placeholder.
+
+Primitive slices and arrays are appended directly to arena-backed value storage while preserving their `fmt.Sprint` representation. Other values use `fmt.Append`, which provides the same representation without first creating a temporary string when the destination has reusable capacity.
 
 Missingness is retained when the value is resolved rather than inferred later by comparing strings with the placeholder. Spans compare displayed values before markup is added. Format-specific escaping and markup remain outside shared value conversion.
 

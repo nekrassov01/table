@@ -97,8 +97,9 @@ func WithDecoration(scopes Scope, columns ColumnSelector, decoration *Decoration
 
 // WithTransformer sets a transformer for body cells in the selected columns.
 // The function receives the raw value and may return a replacement display
-// string, color, and decoration. An empty string keeps the formatted raw value;
-// nil color or decoration values keep the corresponding column settings.
+// string, color, and decoration. A non-empty string skips formatting the raw
+// value; an empty string uses the formatted raw value. Nil color or decoration
+// values keep the corresponding column settings.
 func WithTransformer(columns ColumnSelector, fn func(any) (string, *Color, *Decoration)) Option {
 	return func(o *option) {
 		o.columns.apply(columns, func(c *column) {

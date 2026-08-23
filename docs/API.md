@@ -440,9 +440,7 @@ Transformers and text width, padding, and truncation apply to complete body colu
 
 ## Value display
 
-A body cell selects its displayed value from a transformer result, default string conversion, and the placeholder, in that order. Spans are then determined from the displayed value before format-specific escaping and markup are applied.
-
-This order defines which value wins, not the exact evaluation order. Do not rely on the order in which side effects from `String()` methods or transformers occur.
+A body cell first calls its transformer, when configured. A non-empty result becomes the displayed value without evaluating the default string conversion. An empty result selects default conversion, and an empty converted value selects the placeholder. Spans are then determined from the displayed value before format-specific escaping and markup are applied.
 
 ### String conversion
 
@@ -454,17 +452,14 @@ When a transformer does not supply a displayed value, an `any` value is converte
 | `[]byte` and named byte slices                         | Bytes interpreted as a string                                   |
 | `fmt.Stringer`                                         | Result of `String()`                                            |
 | `error`                                                | Result of `Error()`                                             |
-| Other slices and arrays                                | `[list N item(s)]`                                              |
-| Maps                                                   | `{map N key(s)}`                                                |
-| Structs                                                | `{struct N field(s)}`                                           |
 | Pointers and interfaces                                | `nil`, or recursively apply the same rule to the concrete value |
 | Other values                                           | `fmt.Sprint`                                                    |
 
-Floating-point values use the shortest representation produced by `strconv`. Compound values are not expanded recursively. Convert them before rendering or use a transformer when a representation such as JSON is required.
+Floating-point values use the shortest representation produced by `strconv`. Slices, arrays, maps, and structs therefore include their contents by default. Use a transformer when the display requires a controlled representation such as JSON or redacted text.
 
 ### Transformers
 
-`WithTransformer` receives the raw value of an existing body cell. A non-empty returned string replaces the displayed value; an empty string selects default conversion. A transformer cannot explicitly produce an empty displayed value.
+`WithTransformer` receives the raw value of an existing body cell. A non-empty returned string replaces the displayed value and skips default conversion; an empty string selects default conversion. A transformer cannot explicitly produce an empty displayed value.
 
 A `nil` color, decoration, or `Attr` preserves the corresponding column setting.
 

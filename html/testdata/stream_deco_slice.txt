@@ -8,11 +8,11 @@
   <tbody>
     <tr>
       <td>ints</td>
-      <td><code>[list 3 item(s)]</code></td>
+      <td><code>[1 2 3]</code></td>
     </tr>
     <tr>
       <td>mixed</td>
-      <td><code>[list 3 item(s)]</code></td>
+      <td><code>[a  c]</code></td>
     </tr>
   </tbody>
 </table>

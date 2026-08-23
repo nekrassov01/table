@@ -570,7 +570,7 @@ func Test_compiler_compileRow(t *testing.T) {
 				},
 			},
 			args: args{
-				source: []any{"raw", "", 42},
+				source: []any{testutil.PanicStringer{}, "", 42},
 			},
 			want: want{
 				values: []string{"new", "-", "42"},
