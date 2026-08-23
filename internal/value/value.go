@@ -4,10 +4,10 @@
 // Nil values, including typed nil references, and empty strings, slices, or
 // arrays produce an empty string so format packages can apply their own
 // placeholders. Byte slices are treated as text. Values implementing
-// fmt.Stringer or error use those representations. Other slices, arrays, maps,
-// and structs use short summaries instead of recursively formatting their
-// contents. Applications that need a different representation can configure a
-// transformer or convert the value before passing it to a Table or Stream.
+// fmt.Stringer or error use those representations. Other values use their
+// fmt.Sprint representation. Applications that need a different representation
+// can configure a transformer or convert the value before passing it to a Table
+// or Stream.
 package value
 
 import (
@@ -26,9 +26,8 @@ func Number(st *Store, x int64) string {
 
 // Format converts v to display text. Missing values include nil, a typed
 // nil, and an empty string, slice, or array. They yield the empty string.
-// A byte slice yields its text; every other slice or array yields a
-// summary. Text appended to st is returned as a view that remains valid until
-// the store is reset.
+// A byte slice yields its text. Text appended to st is returned as a view that
+// remains valid until the store is reset.
 func Format(st *Store, v any) string {
 	if v == nil {
 		return ""
@@ -95,12 +94,7 @@ func formatReflect(st *Store, v any) string {
 	if s, ok := resolveKind(st, e); ok {
 		return s
 	}
-	switch e.Kind() {
-	case reflect.Struct:
-		return summaryStruct.format(e.NumField())
-	case reflect.Map:
-		return summaryMap.format(e.Len())
-	case reflect.Slice, reflect.Array:
+	if e.Kind() == reflect.Slice || e.Kind() == reflect.Array {
 		if e.Len() == 0 {
 			return ""
 		}
@@ -109,10 +103,52 @@ func formatReflect(st *Store, v any) string {
 		if e.Kind() == reflect.Slice && e.Type().Elem().Kind() == reflect.Uint8 {
 			return appendBytes(st, e.Bytes())
 		}
-		return summaryList.format(e.Len())
-	default:
-		return fmt.Sprint(e.Interface())
+		if s, ok := formatPrimitives(st, e); ok {
+			return s
+		}
 	}
+	return appendDefault(st, e.Interface())
+}
+
+// formatPrimitives formats a slice or array of primitive values without
+// allocating a temporary string and reports whether its element type matched.
+func formatPrimitives(st *Store, rv reflect.Value) (string, bool) {
+	elemType := rv.Type().Elem()
+	if elemType.Implements(reflect.TypeFor[fmt.Stringer]()) || elemType.Implements(reflect.TypeFor[error]()) {
+		return "", false
+	}
+	switch elemType.Kind() {
+	case reflect.String, reflect.Bool,
+		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr,
+		reflect.Float32, reflect.Float64:
+	default:
+		return "", false
+	}
+	mark := st.Mark()
+	st.AppendString("[")
+	for index := range rv.Len() {
+		if index > 0 {
+			st.AppendString(" ")
+		}
+		value := rv.Index(index)
+		switch value.Kind() {
+		case reflect.String:
+			st.AppendString(value.String())
+		case reflect.Bool:
+			st.AppendString(strconv.FormatBool(value.Bool()))
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			st.AppendInt(value.Int())
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+			st.AppendUint(value.Uint())
+		case reflect.Float32:
+			st.AppendFloat(value.Float(), 32)
+		case reflect.Float64:
+			st.AppendFloat(value.Float(), 64)
+		}
+	}
+	st.AppendString("]")
+	return st.Since(mark), true
 }
 
 // resolveReference dereferences interface and pointer chains and tries
@@ -173,27 +209,41 @@ func resolveKind(st *Store, rv reflect.Value) (string, bool) {
 	return "", false
 }
 
+// appendBytes appends b to st and returns its string view.
 func appendBytes(st *Store, b []byte) string {
 	m := st.Mark()
 	st.AppendBytes(b)
 	return st.Since(m)
 }
 
+// appendInt appends the decimal text of x to st and returns its string view.
 func appendInt(st *Store, x int64) string {
 	m := st.Mark()
 	st.AppendInt(x)
 	return st.Since(m)
 }
 
+// appendUint appends the decimal text of x to st and returns its string view.
 func appendUint(st *Store, x uint64) string {
 	m := st.Mark()
 	st.AppendUint(x)
 	return st.Since(m)
 }
 
+// appendFloat appends the shortest decimal text of x to st and returns its
+// string view.
 func appendFloat(st *Store, x float64, bitSize int) string {
 	m := st.Mark()
 	st.AppendFloat(x, bitSize)
+	return st.Since(m)
+}
+
+// appendDefault appends the fmt representation of v to st and returns its
+// string view.
+func appendDefault(st *Store, v any) string {
+	m := st.Mark()
+	st.grow()
+	st.buf = fmt.Append(st.buf, v)
 	return st.Since(m)
 }
 

@@ -790,7 +790,7 @@ func Test_compiler_compileRow(t *testing.T) {
 				},
 			},
 			args: args{
-				source:   []any{42, ""},
+				source:   []any{testutil.PanicStringer{}, ""},
 				rowIndex: 4,
 			},
 			want: want{
@@ -803,7 +803,7 @@ func Test_compiler_compileRow(t *testing.T) {
 				attrLen:       9,
 				lastBars:      allBars,
 				stateLastBars: allBars,
-				stringMark:    3,
+				stringMark:    1,
 			},
 		},
 		{
@@ -905,7 +905,7 @@ func Test_compiler_compileCells(t *testing.T) {
 				row: row{
 					cells: make([]cell, 1),
 				},
-				source: []any{42},
+				source: []any{testutil.PanicStringer{}},
 			},
 			want: want{
 				cells: []cell{
@@ -915,7 +915,7 @@ func Test_compiler_compileCells(t *testing.T) {
 					},
 				},
 				attrLen:    9,
-				stringMark: 2,
+				stringMark: 0,
 			},
 		},
 		{

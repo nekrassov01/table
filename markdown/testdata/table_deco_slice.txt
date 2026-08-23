@@ -1,5 +1,5 @@
-| Type       | Values             |
-| ---------- | ------------------ |
-| ints       | `[list 3 item(s)]` |
-| strings    | `[list 2 item(s)]` |
-| empty-elem | `[list 3 item(s)]` |
+| Type       | Values    |
+| ---------- | --------- |
+| ints       | `[1 2 3]` |
+| strings    | `[a b]`   |
+| empty-elem | `[x  z]`  |

@@ -391,7 +391,7 @@ func Test_compiler_compileRow(t *testing.T) {
 				},
 			},
 			args: args{
-				source:   []any{"raw"},
+				source:   []any{testutil.PanicStringer{}},
 				rowIndex: 2,
 			},
 			want: want{

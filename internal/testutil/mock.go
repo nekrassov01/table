@@ -10,6 +10,14 @@ func (o Stringer) String() string {
 	return o.Value
 }
 
+// PanicStringer panics if String is called.
+type PanicStringer struct{}
+
+// String panics to detect unexpected default formatting in tests.
+func (PanicStringer) String() string {
+	panic("unexpected String call")
+}
+
 // Error implements error for tests.
 type Error struct {
 	Value string

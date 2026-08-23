@@ -192,7 +192,7 @@ func (o *compiler) compileCells(r row, source []any, rowIndex int) {
 		}
 		transformer := &config.columns[index].transformer
 		rawValue := source[sourceIndex]
-		text := value.Format(o.strings, rawValue)
+		text := ""
 		attr := transformer.attrs.Resolve(ScopeBody)
 		if transformer.fn != nil {
 			transformed, transformedAttr := transformer.fn(rawValue)
@@ -206,6 +206,9 @@ func (o *compiler) compileCells(r row, source []any, rowIndex int) {
 				// #nosec G115 -- attrLen is clamped to uint32.
 				o.output.attrLen = max(o.output.attrLen, uint32(attrLen))
 			}
+		}
+		if text == "" {
+			text = value.Format(o.strings, rawValue)
 		}
 		if text == "" {
 			text = config.option.placeholder

@@ -1,4 +1,4 @@
-|~Type       |~Values                        |
-| ints       | {code}[list 3 item(s)]{/code} |
-| strings    | {code}[list 2 item(s)]{/code} |
-| empty-elem | {code}[list 3 item(s)]{/code} |
+|~Type       |~Values               |
+| ints       | {code}[1 2 3]{/code} |
+| strings    | {code}[a b]{/code}   |
+| empty-elem | {code}[x  z]{/code}  |

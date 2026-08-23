@@ -34,7 +34,7 @@
 `nekrassov01/table` renders Go data as terminal tables, markup tables, or CSV records. Each output package provides `Table` for complete data sets and `Stream` for row-at-a-time output while retaining the selected format's own structure and escaping rules.
 
 - Use functional options for clear, reusable configuration.
-- Lead both comparison benchmarks, running 1.3 to 9.3 times as fast as the next-fastest alternative in the measured scenarios; see [Performance](#performance).
+- Lead both comparison benchmarks, running 1.3 to 6.9 times as fast as the next-fastest alternative in the measured scenarios; see [Performance](#performance).
 - Reuse internal buffers to minimize steady-state allocations.
 - Adapt typed slices and error-returning iterators with `TableOf` and `StreamOf`.
 - Measure Unicode text by terminal display width, including ambiguous character widths in CJK locales.
@@ -303,10 +303,10 @@ The comparison benchmark uses the shared Simple and Complex data sets. Static da
 
 The figures are the best of five 10,000-iteration runs on an Apple M2 with Go 1.26.6. Each cell reports `allocs/op` followed by `ns/op`.
 
-| Scenario       | `table`       | `mintab`   | `go-pretty`  | `tablewriter`   |
-| -------------- | ------------- | ---------- | ------------ | --------------- |
-| Simple         | **1 · 1,665** | 43 · 2,211 | 110 · 12,216 | 973 · 92,216    |
-| Complex values | **5 · 6,662** | -          | 317 · 62,228 | 4,749 · 299,384 |
+| Scenario       | `table`        | `mintab`   | `go-pretty`  | `tablewriter`   |
+| -------------- | -------------- | ---------- | ------------ | --------------- |
+| Simple         | **1 · 1,681**  | 43 · 2,238 | 110 · 11,255 | 973 · 79,960    |
+| Complex values | **35 · 9,307** | -          | 317 · 64,605 | 4,748 · 291,320 |
 
 `-` indicates that a library cannot express the scenario with the benchmark input.
 
