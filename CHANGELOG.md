@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.1.0](https://github.com/nekrassov01/table/compare/v0.0.2...v0.1.0) - 2026-08-23
+
+- Preserve rendering correctness across edge cases by @nekrassov01 in https://github.com/nekrassov01/table/pull/10
+- Simplify default value formatting by @nekrassov01 in https://github.com/nekrassov01/table/pull/12
+
 ## [v0.0.2](https://github.com/nekrassov01/table/compare/v0.0.1...v0.0.2) - 2026-08-22
 
 - Minor refactoring and improvements by @nekrassov01 in https://github.com/nekrassov01/table/pull/8
