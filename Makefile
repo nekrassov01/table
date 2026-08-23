@@ -106,6 +106,6 @@ ifndef branch
 endif
 
 bump: check-branch deps-bump
-	gobump up -w .
+	gobump up -w ./internal/version/
 	git commit -am "bump up version to $(VERSION)"
 	git push origin $(branch)
