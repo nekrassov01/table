@@ -363,7 +363,7 @@ func WithTransformer(columns ColumnSelector, fn func(any) (string, *Color, *Deco
 ```
 
 - Header and footer cells use header-cell notation beginning with `~`. A footer is a library-level section; Backlog itself does not distinguish it.
-- Backslashes, vertical bars, CR, and LF are escaped for Backlog notation. Invalid UTF-8 bytes are preserved rather than replaced.
+- Displayed values literalize bracketed links, bold, italic, strikethrough, colors, line breaks, quote and code macros, and attachment, image, revision, and contents macros. Backslashes and vertical bars are also escaped. Actual CR and LF become `&br;`, while a caller-supplied `&br;` remains text. Invalid UTF-8 bytes are preserved rather than replaced.
 - The header-cell `~` immediately follows the opening vertical bar, and padding follows the value.
 - When color is combined with any decoration other than `DecorationCode`, the color notation surrounds the decoration.
 - Backlog notation cannot represent `DecorationCode` and color simultaneously, so code decoration is retained and color is omitted.

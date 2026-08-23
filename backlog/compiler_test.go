@@ -778,7 +778,7 @@ func Test_compiler_compileCells(t *testing.T) {
 			name: "escapes applies markup and clears spans",
 			fields: fields{
 				state: compilerState{
-					values: []string{"a|b", "bold", "code", "rowspan", "colspan", "color"},
+					values: []string{"a|b&br;", "bold", "code", "rowspan", "colspan", "color"},
 				},
 			},
 			args: args{
@@ -797,7 +797,7 @@ func Test_compiler_compileCells(t *testing.T) {
 			},
 			want: want{
 				cells: []cell{
-					{value: `a\\|b`, width: 5, size: 5},
+					{value: `a\\|b\\&br;`, width: 11, size: 11},
 					{
 						value:      "bold",
 						width:      4 + len(DecorationBold.Prefix) + len(DecorationBold.Suffix),

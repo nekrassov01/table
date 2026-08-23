@@ -1,0 +1,15 @@
+|~Notation      |~Value                     |
+| link          | \\[\\[BLG-87\\]\\]        |
+| bold          | \\'\\'bold\\'\\'          |
+| italic        | \\'\\'\\'italic\\'\\'\\'  |
+| strikethrough | \\%\\%strike\\%\\%        |
+| color         | \\&color(red){value}      |
+| quote         | \\{quote}value\\{/quote}  |
+| code          | \\{code}value\\{/code}    |
+| typed code    | \\{code:go}value\\{/code} |
+| attachment    | \\#attach(sample.zip:11)  |
+| image         | \\#image(11)              |
+| thumbnail     | \\#thumbnail(11)          |
+| revision      | \\#rev(11)                |
+| contents      | \\#contents               |
+| line break    | \\&br;                    |
