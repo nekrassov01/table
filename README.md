@@ -33,12 +33,12 @@
 
 `nekrassov01/table` renders Go data as terminal tables, markup tables, or CSV records. Each output package provides `Table` for complete data sets and `Stream` for row-at-a-time output while retaining the selected format's own structure and escaping rules.
 
-- Use functional options for clear, reusable configuration.
-- Lead both comparison benchmarks, running 1.3 to 6.9 times as fast as the next-fastest alternative in the measured scenarios; see [Performance](#performance).
-- Reuse internal buffers to minimize steady-state allocations.
-- Adapt typed slices and error-returning iterators with `TableOf` and `StreamOf`.
-- Measure Unicode text by terminal display width, including ambiguous character widths in CJK locales.
-- Add headers, calculated footers, indexes, placeholders, transformations, alignment, decoration, and cell spans through format-specific options.
+- `table` uses functional options for clear, reusable configuration.
+- In the bundled comparisons, `table` runs 1.4 to 6.8 times as fast as the next-fastest alternative; see [Performance](#performance).
+- `table` reuses internal buffers to minimize steady-state allocations.
+- `TableOf` and `StreamOf` adapt typed slices and error-returning iterators.
+- `text` measures Unicode by terminal display width, including ambiguous character widths in CJK locales.
+- Format-specific options add headers, calculated footers, indexes, placeholders, transformations, alignment, decoration, and cell spans.
 
 ## Motivation
 
@@ -202,10 +202,7 @@ type AuditEvent struct {
     Resource string
 }
 
-func WriteAuditEvents(
-    w io.Writer,
-    events iter.Seq2[AuditEvent, error],
-) (err error) {
+func WriteAuditEvents(w io.Writer, events iter.Seq2[AuditEvent, error]) (err error) {
     output := text.NewStream(w,
         text.WithHeader([]string{"TIME", "ACTOR", "ACTION", "RESOURCE"}),
         text.WithCompact(),
@@ -269,9 +266,11 @@ This table records whether each library exposes a direct public API for a capabi
 
 | Feature                         | `table` | [`mintab` v0.1.4](https://github.com/nekrassov01/mintab/tree/v0.1.4) | [`go-pretty` v6.8.3](https://github.com/jedib0t/go-pretty/tree/v6.8.3) | [`tablewriter` v1.1.4](https://github.com/olekukonko/tablewriter/tree/v1.1.4) |
 | ------------------------------- | ------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Streaming API                   | ✓       | -                                                                    | -                                                                      | ✓ (partial)                                                                   |
+| Streaming API                   | ✓       | -                                                                    | -                                                                      | ✓                                                                             |
 | Header                          | ✓       | ✓                                                                    | ✓                                                                      | ✓                                                                             |
 | Footer                          | ✓       | -                                                                    | ✓                                                                      | ✓                                                                             |
+| Placeholder                     | ✓       | ✓                                                                    | ✓ (HTML)                                                               | -                                                                             |
+| Index column                    | ✓       | -                                                                    | ✓                                                                      | -                                                                             |
 | Vertical merge                  | ✓       | ✓                                                                    | ✓                                                                      | ✓                                                                             |
 | Horizontal merge                | ✓       | -                                                                    | ✓                                                                      | ✓                                                                             |
 | Caller-defined row adapter      | ✓       | -                                                                    | -                                                                      | ✓                                                                             |
@@ -292,29 +291,48 @@ For `table`, the feature matrix has the following qualifications:
 - Column hiding is intentionally left to input adaptation, so `TableOf` and `StreamOf` can omit fields before rows reach the output package.
 - Merge behavior depends on the selected output format and is documented in the [Public API guide](./docs/API.md).
 
-## Performance
+The `go-pretty` placeholder entry refers to its HTML `EmptyColumn` setting.
 
-The comparison benchmark uses the shared Simple and Complex data sets. Static data is converted to each library's required row type before timing begins. Each timed iteration constructs a table, processes the rows, and writes the result to a reused buffer. Only the settings needed to align the table structure and preserve header text are applied. Each library retains its default border characters and value formatting, so the output is not byte-identical. Complex compares native value handling rather than equivalent rendered bytes.
+## Performance
 
 > [!NOTE]
 > `table` is designed to minimize allocations and reuses internal buffers via `sync.Pool`. In steady-state benchmarks, common workloads reach one allocation per render; cold runs require additional allocations to initialize pooled state.
 >
 > Run `make bench target=comparison benchtime=1x count=1` to reduce steady-state amortization and expose one-iteration setup costs. For explicit pool-drained measurements of `table`, run `make bench target=cold`.
 
-The figures are the best of five 10,000-iteration runs on an Apple M2 with Go 1.26.6. Each cell reports `allocs/op` followed by `ns/op`.
+Run the comparison on your machine with `make bench target=comparison`. The following excerpt shows the fastest sample from each five-run benchmark group on an Apple M2 with Go 1.26.6:
+
+```console
+$ make bench target=comparison
+# output abridged to the fastest sample from each five-run benchmark group
+go test -benchmem -count 5 -benchtime 10000x -cpuprofile cpu.prof -memprofile mem.prof . -bench '^BenchmarkComparison'
+goos: darwin
+goarch: arm64
+pkg: benchmarks
+cpu: Apple M2
+BenchmarkComparisonTableSimple-8           10000      1649 ns/op      224 B/op       1 allocs/op
+BenchmarkComparisonMintabSimple-8          10000      2234 ns/op     2473 B/op      43 allocs/op
+BenchmarkComparisonGoPrettySimple-8        10000     11034 ns/op     8153 B/op     110 allocs/op
+BenchmarkComparisonTableWriterSimple-8     10000     81397 ns/op   486931 B/op     973 allocs/op
+BenchmarkComparisonTableComplex-8          10000      9219 ns/op     1149 B/op      35 allocs/op
+BenchmarkComparisonGoPrettyComplex-8       10000     63127 ns/op    49258 B/op     317 allocs/op
+BenchmarkComparisonTableWriterComplex-8    10000    288811 ns/op   719989 B/op    4749 allocs/op
+PASS
+ok      benchmarks      23.727s
+```
+
+The table summarizes those samples. Each cell reports `allocs/op` followed by `ns/op`.
 
 | Scenario       | `table`        | `mintab`   | `go-pretty`  | `tablewriter`   |
 | -------------- | -------------- | ---------- | ------------ | --------------- |
-| Simple         | **1 · 1,681**  | 43 · 2,238 | 110 · 11,255 | 973 · 79,960    |
-| Complex values | **35 · 9,307** | -          | 317 · 64,605 | 4,748 · 291,320 |
+| Simple         | **1 · 1,649**  | 43 · 2,234 | 110 · 11,034 | 973 · 81,397    |
+| Complex values | **35 · 9,219** | -          | 317 · 63,127 | 4,749 · 288,811 |
 
 `-` indicates that a library cannot express the scenario with the benchmark input.
 
-Run the same comparison on your machine with:
+The comparison benchmark uses the shared Simple and Complex data sets. Static data is converted to each library's required row type before timing begins. Each timed iteration constructs a table, processes the rows, and writes the result to a reused buffer. Complex compares native value handling rather than equivalent rendered bytes.
 
-```sh
-make bench target=comparison
-```
+The benchmark preserves each library's configuration model: `table` uses only functional options, `mintab` uses functional options and loads its input separately, `go-pretty` accumulates settings through setters, and `tablewriter` combines constructor options with methods. These native construction paths remain inside each timed iteration. Only the settings needed to align table structure and preserve header text are applied; border characters and value formatting retain each library's defaults.
 
 ## Documentation
 
