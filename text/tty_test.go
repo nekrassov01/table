@@ -66,12 +66,12 @@ func Test_resolveTerminalWidth(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			original := termSize
+			original := terminalSize
 			if test.args.termSize != nil {
-				termSize = test.args.termSize
+				terminalSize = test.args.termSize
 			}
 			t.Cleanup(func() {
-				termSize = original
+				terminalSize = original
 			})
 			got := resolveTerminalWidth(test.args.w)
 			testutil.AssertValue(t, got, test.want.val, "resolveTerminalWidth")

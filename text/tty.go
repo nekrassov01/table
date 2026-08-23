@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	// termSize reads terminal dimensions from a file descriptor.
-	termSize = term.GetSize
+	// terminalSize reads terminal dimensions from a file descriptor.
+	terminalSize = term.GetSize
 
 	// terminalWidth resolves the writer's terminal width.
 	terminalWidth = resolveTerminalWidth
@@ -26,7 +26,7 @@ func resolveTerminalWidth(w io.Writer) int {
 	if !ok {
 		return 0
 	}
-	width, _, err := termSize(int(f.Fd()))
+	width, _, err := terminalSize(int(f.Fd()))
 	if err != nil {
 		return 0
 	}
