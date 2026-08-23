@@ -111,9 +111,10 @@ func WithAlign(scopes Scope, columns ColumnSelector, align AlignSide) Option {
 	}
 }
 
-// WithWidth fixes the display width of the selected columns. Narrower content
-// is padded; wider content wraps, or truncates where [WithTruncate] applies. A
-// non-positive width clears the setting.
+// WithWidth sets the display-width boundary of the selected columns. Narrower
+// content is padded; wider content wraps, or truncates where [WithTruncate]
+// applies. Wrapping preserves grapheme clusters, so a cluster wider than the
+// boundary remains intact. A non-positive width clears the setting.
 func WithWidth(columns ColumnSelector, width int) Option {
 	// Do not mutate values captured by a reusable option.
 	limit := max(width, 0)

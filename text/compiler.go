@@ -260,7 +260,8 @@ func (o *compiler) setSpans(r *row, sc Scope, previous *span.PreviousRow) {
 	}
 }
 
-// setBars resolves the vertical boundaries visible after applying spans.
+// setBars resolves current colspans and inherits hidden boundaries only
+// between adjacent rowspan continuations.
 func (o *compiler) setBars(r *row, previousBars uint64, sc Scope) {
 	r.bars = allBars
 	if o.state.colspans.Resolve(sc) == 0 {
@@ -268,11 +269,14 @@ func (o *compiler) setBars(r *row, previousBars uint64, sc Scope) {
 	}
 	for i := 1; i < len(r.cells); i++ {
 		bit := uint64(1) << uint(i)
-		continuesRowspan := r.rowspans&bit != 0
-		if continuesRowspan && previousBars&bit != 0 {
+		if r.rowspans&bit != 0 {
+			if previousBars&bit != 0 || r.rowspans&(bit>>1) == 0 {
+				continue
+			}
+			r.bars &^= bit
 			continue
 		}
-		if !continuesRowspan && r.colspans&bit == 0 {
+		if r.colspans&bit == 0 {
 			continue
 		}
 		r.bars &^= bit

@@ -741,6 +741,44 @@ func TestGolden_StreamAutoFitWithWidth(t *testing.T) {
 	testutil.AssertGolden(t, "common_autofit_with_width", buf.Bytes())
 }
 
+func TestGolden_TableBandRowspanColspanBoundary(t *testing.T) {
+	var buf bytes.Buffer
+	tb := NewTable(&buf,
+		WithHeader(
+			[]string{"X", "A"},
+			[]string{"A", "A"},
+		),
+		WithFooter(func() [][]string {
+			return [][]string{{"A", "A"}, {"X", "A"}}
+		}),
+		WithRowspan(ScopeHeader|ScopeFooter, Columns(1)),
+		WithColspan(ScopeHeader|ScopeFooter, Columns(0, 1)),
+	)
+	if err := tb.Render(nil); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_band_rowspan_colspan_boundary", buf.Bytes())
+}
+
+func TestGolden_StreamBandRowspanColspanBoundary(t *testing.T) {
+	var buf bytes.Buffer
+	s := NewStream(&buf,
+		WithHeader(
+			[]string{"X", "A"},
+			[]string{"A", "A"},
+		),
+		WithFooter(func() [][]string {
+			return [][]string{{"A", "A"}, {"X", "A"}}
+		}),
+		WithRowspan(ScopeHeader|ScopeFooter, Columns(1)),
+		WithColspan(ScopeHeader|ScopeFooter, Columns(0, 1)),
+	)
+	if err := s.Close(); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_band_rowspan_colspan_boundary", buf.Bytes())
+}
+
 func TestGolden_TableBasic(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
@@ -1780,6 +1818,37 @@ func TestGolden_StreamEmoji(t *testing.T) {
 	testutil.AssertGolden(t, "common_emoji", buf.Bytes())
 }
 
+func TestGolden_TableFlagWidth(t *testing.T) {
+	var buf bytes.Buffer
+	tb := NewTable(&buf,
+		WithHeader([]string{"W", "T"}),
+		WithWidth(Columns(0), 2),
+		WithWidth(Columns(1), 4),
+		WithTruncate(Columns(1)),
+	)
+	if err := tb.Render([][]any{{"🇯🇵🇺🇸", "🇯🇵🇺🇸x"}}); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_flag_width", buf.Bytes())
+}
+
+func TestGolden_StreamFlagWidth(t *testing.T) {
+	var buf bytes.Buffer
+	s := NewStream(&buf,
+		WithHeader([]string{"W", "T"}),
+		WithWidth(Columns(0), 2),
+		WithWidth(Columns(1), 4),
+		WithTruncate(Columns(1)),
+	)
+	if err := s.Render([]any{"🇯🇵🇺🇸", "🇯🇵🇺🇸x"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Close(); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_flag_width", buf.Bytes())
+}
+
 func TestGolden_TableEmpty(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
@@ -2059,6 +2128,31 @@ func TestGolden_StreamHeaderOnly(t *testing.T) {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_header_only", buf.Bytes())
+}
+
+func TestGolden_TableHeaderlessColspan(t *testing.T) {
+	var buf bytes.Buffer
+	tb := NewTable(&buf,
+		WithColspan(ScopeBody, Columns(0, 1)),
+	)
+	if err := tb.Render([][]any{{"A", "A"}}); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_headerless_colspan", buf.Bytes())
+}
+
+func TestGolden_StreamHeaderlessColspan(t *testing.T) {
+	var buf bytes.Buffer
+	s := NewStream(&buf,
+		WithColspan(ScopeBody, Columns(0, 1)),
+	)
+	if err := s.Render([]any{"A", "A"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Close(); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_headerless_colspan", buf.Bytes())
 }
 
 func TestGolden_TableHeaderRowspan(t *testing.T) {
@@ -2968,6 +3062,41 @@ func TestGolden_StreamRowspanCaption(t *testing.T) {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_rowspan_caption", buf.Bytes())
+}
+
+func TestGolden_TableRowspanColspanBoundary(t *testing.T) {
+	var buf bytes.Buffer
+	tb := NewTable(&buf,
+		WithHeader([]string{"c0", "c1", "c2"}),
+		WithRowspan(ScopeBody, Columns(1, 2)),
+		WithColspan(ScopeBody, Columns(0, 1, 2)),
+	)
+	if err := tb.Render([][]any{
+		{"A", "A", "A"},
+		{"X", "A", "A"},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_rowspan_colspan_boundary", buf.Bytes())
+}
+
+func TestGolden_StreamRowspanColspanBoundary(t *testing.T) {
+	var buf bytes.Buffer
+	s := NewStream(&buf,
+		WithHeader([]string{"c0", "c1", "c2"}),
+		WithRowspan(ScopeBody, Columns(1, 2)),
+		WithColspan(ScopeBody, Columns(0, 1, 2)),
+	)
+	if err := s.Render([]any{"A", "A", "A"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Render([]any{"X", "A", "A"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Close(); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_rowspan_colspan_boundary", buf.Bytes())
 }
 
 func TestGolden_TableRowspanColspanEdge(t *testing.T) {
@@ -4782,6 +4911,7 @@ func TestGolden_StreamFrozenOverflow(t *testing.T) {
 	s := NewStream(&buf,
 		WithStyle(StyleLight),
 		WithHeader([]string{"a"}),
+		WithWidth(Columns(0), 1),
 	)
 	for _, v := range []string{"x", "\u3042", "y"} {
 		if err := s.Render([]any{v}); err != nil {
@@ -4792,6 +4922,25 @@ func TestGolden_StreamFrozenOverflow(t *testing.T) {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "stream_frozen_overflow", buf.Bytes())
+}
+
+func TestGolden_StreamFrozenZeroWidth(t *testing.T) {
+	var buf bytes.Buffer
+	s := NewStream(&buf,
+		WithStyle(StyleLight),
+		WithHeader([]string{"", "B"}),
+		WithPlaceholder(""),
+	)
+	if err := s.Render([]any{"", "x"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Render([]any{"wide", "y"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Close(); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "stream_frozen_zero_width", buf.Bytes())
 }
 
 func TestGolden_StreamIndex(t *testing.T) {

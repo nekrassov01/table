@@ -708,6 +708,11 @@ func contractCases() []contractCase {
 			header: []string{},
 		},
 		{
+			name:   "blank header cell",
+			header: []string{""},
+			opts:   []Option{WithPlaceholder("")},
+		},
+		{
 			name:       "empty footer",
 			omitHeader: true,
 			opts: []Option{
@@ -836,6 +841,17 @@ func contractCases() []contractCase {
 			rows:   [][]any{{"aaa", 1}, {"aaa", 2}, {"bbb", 3}},
 		},
 		{
+			name: "footer colspan without body",
+			opts: []Option{
+				WithStyle(StyleASCII),
+				WithFooter(func() [][]string {
+					return [][]string{{"F", "F"}}
+				}),
+				WithColspan(ScopeFooter, Columns(0, 1)),
+			},
+			header: []string{"A", "B"},
+		},
+		{
 			name:          "truncated footer label",
 			streamDiffers: true,
 			opts: []Option{
@@ -893,6 +909,25 @@ func contractCases() []contractCase {
 			},
 			header: []string{"A", "B", "C"},
 			rows:   [][]any{{"x", "x", "y"}, {"p", "q", "q"}},
+		},
+		{
+			name: "rowspan beside colspan",
+			opts: []Option{
+				WithStyle(StyleASCII),
+				WithRowspan(ScopeBody, Columns(1, 2)),
+				WithColspan(ScopeBody, Columns(0, 1, 2)),
+			},
+			header: []string{"c0", "c1", "c2"},
+			rows:   [][]any{{"A", "A", "A"}, {"X", "A", "A"}},
+		},
+		{
+			name:       "headerless initial colspan",
+			omitHeader: true,
+			opts: []Option{
+				WithStyle(StyleASCII),
+				WithColspan(ScopeBody, Columns(0, 1)),
+			},
+			rows: [][]any{{"A", "A"}},
 		},
 		{
 			name:   "colors stripped off terminal",

@@ -708,6 +708,37 @@ func TestGolden_StreamEscape(t *testing.T) {
 	testutil.AssertGolden(t, "stream_escape", buf.Bytes())
 }
 
+func TestGolden_StreamEscapeNotation(t *testing.T) {
+	var buf bytes.Buffer
+	s := NewStream(&buf,
+		WithHeader([]string{"Notation", "Value"}),
+	)
+	for _, row := range [][]any{
+		{"link", "[[BLG-87]]"},
+		{"bold", "''bold''"},
+		{"italic", "'''italic'''"},
+		{"strikethrough", "%%strike%%"},
+		{"color", "&color(red){value}"},
+		{"quote", "{quote}value{/quote}"},
+		{"code", "{code}value{/code}"},
+		{"typed code", "{code:go}value{/code}"},
+		{"attachment", "#attach(sample.zip:11)"},
+		{"image", "#image(11)"},
+		{"thumbnail", "#thumbnail(11)"},
+		{"revision", "#rev(11)"},
+		{"contents", "#contents"},
+		{"line break", "&br;"},
+	} {
+		if err := s.Render(row); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := s.Close(); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "stream_escape_notation", buf.Bytes())
+}
+
 func TestGolden_StreamEscapeCRLF(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
@@ -2186,6 +2217,32 @@ func TestGolden_TableEscape(t *testing.T) {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "table_escape", buf.Bytes())
+}
+
+func TestGolden_TableEscapeNotation(t *testing.T) {
+	var buf bytes.Buffer
+	tb := NewTable(&buf,
+		WithHeader([]string{"Notation", "Value"}),
+	)
+	if err := tb.Render([][]any{
+		{"link", "[[BLG-87]]"},
+		{"bold", "''bold''"},
+		{"italic", "'''italic'''"},
+		{"strikethrough", "%%strike%%"},
+		{"color", "&color(red){value}"},
+		{"quote", "{quote}value{/quote}"},
+		{"code", "{code}value{/code}"},
+		{"typed code", "{code:go}value{/code}"},
+		{"attachment", "#attach(sample.zip:11)"},
+		{"image", "#image(11)"},
+		{"thumbnail", "#thumbnail(11)"},
+		{"revision", "#rev(11)"},
+		{"contents", "#contents"},
+		{"line break", "&br;"},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "table_escape_notation", buf.Bytes())
 }
 
 func TestGolden_TableEscapeCRLF(t *testing.T) {

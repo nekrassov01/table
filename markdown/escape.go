@@ -15,11 +15,18 @@ const (
 	replacement = "\uFFFD"
 )
 
-// escapeCode prepares s for a GFM code span, appending changed content to
-// escapes, and returns the value together with the updated storage.
+// escapeCode encodes s as GFM code-span content within a table cell, appending
+// changed content to escapes.
 func escapeCode(escapes []byte, s string) (string, []byte) {
+	if len(s) == 0 {
+		return s, escapes
+	}
 	pad := strings.HasPrefix(s, "`") || strings.HasSuffix(s, "`")
-	if !pad && strings.HasPrefix(s, " ") && strings.HasSuffix(s, " ") {
+	prefix := s[0]
+	suffix := s[len(s)-1]
+	spacePrefix := prefix == ' ' || prefix == '\r' || prefix == '\n'
+	spaceSuffix := suffix == ' ' || suffix == '\r' || suffix == '\n'
+	if !pad && spacePrefix && spaceSuffix {
 		for index := 0; index < len(s); index++ {
 			if s[index] != ' ' && s[index] != '\r' && s[index] != '\n' {
 				pad = true
@@ -117,8 +124,8 @@ func needsEscapeValue(s string) bool {
 }
 
 // escapeAttr produces a normalized double-quoted HTML attribute value without
-// introducing a GFM line ending. It returns already-safe strings unchanged
-// without allocating.
+// introducing a GFM line ending or table delimiter. It returns already-safe
+// strings unchanged without allocating.
 func escapeAttr(s string) string {
 	if !needsEscapeAttr(s) {
 		return s
@@ -133,6 +140,9 @@ func escapeAttr(s string) string {
 			index++
 		case c == '"':
 			b.WriteString("&quot;")
+			index++
+		case c == '|':
+			b.WriteString("&#124;")
 			index++
 		case c == '\r' || c == '\n':
 			if c == '\r' && index+1 < len(s) && s[index+1] == '\n' {
@@ -169,7 +179,7 @@ func needsEscapeAttr(s string) bool {
 		c := s[index]
 		if c < utf8.RuneSelf {
 			switch {
-			case c == '&' || c == '"' || c == '\r' || c == '\n':
+			case c == '&' || c == '"' || c == '|' || c == '\r' || c == '\n':
 				return true
 			case c < 0x20 && c != '\t' && c != '\f', c == 0x7f:
 				return true

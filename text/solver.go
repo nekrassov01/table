@@ -51,14 +51,23 @@ func (o *solver) solve() {
 }
 
 // freeze turns natural widths into limits so later stream rows cannot change
-// the established geometry.
+// the established geometry. Empty columns reserve one display cell.
 func (o *solver) freeze() {
 	metrics := o.state.columnMetrics
+	changed := false
 	for i := range metrics {
 		metric := &metrics[i]
-		if metric.limit == 0 {
-			metric.limit = metric.box.width
+		if metric.limit != 0 {
+			continue
 		}
+		if metric.box.width == 0 {
+			metric.box.width = 1
+			changed = true
+		}
+		metric.limit = metric.box.width
+	}
+	if changed {
+		o.offsetColumns()
 	}
 }
 

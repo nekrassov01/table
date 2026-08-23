@@ -26,6 +26,15 @@ func (o *PreviousRow) Reset() {
 	o.started = false
 }
 
+// Clear removes retained values without discarding reusable storage.
+func (o *PreviousRow) Clear() {
+	for index, value := range o.values {
+		clear(value[:cap(value)])
+		o.values[index] = value[:0]
+	}
+	o.started = false
+}
+
 // Rowspans detects vertical spans in one row. Bit i is set when selected value
 // i equals the value above it. Among selected positions, a mismatch prevents
 // every position to its right from spanning, and the first row after Reset

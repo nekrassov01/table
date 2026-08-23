@@ -25,11 +25,29 @@ func Test_escapeCode(t *testing.T) {
 	}{
 		{
 			name: "unchanged",
+			fields: fields{
+				escapes: []byte("kept:"),
+			},
 			args: args{
 				value: `a\b`,
 			},
 			want: want{
-				value: `a\b`,
+				value:   `a\b`,
+				escapes: "kept:",
+			},
+		},
+		{
+			name: "empty",
+			args: args{},
+			want: want{},
+		},
+		{
+			name: "keeps interior backticks",
+			args: args{
+				value: "a```b`c",
+			},
+			want: want{
+				value: "a```b`c",
 			},
 		},
 		{
@@ -40,6 +58,16 @@ func Test_escapeCode(t *testing.T) {
 			want: want{
 				value:   " `x ",
 				escapes: " `x ",
+			},
+		},
+		{
+			name: "pads trailing backtick",
+			args: args{
+				value: "x`",
+			},
+			want: want{
+				value:   " x` ",
+				escapes: " x` ",
 			},
 		},
 		{
@@ -66,6 +94,25 @@ func Test_escapeCode(t *testing.T) {
 			},
 		},
 		{
+			name: "keeps valid utf-8 unchanged",
+			args: args{
+				value: "日本",
+			},
+			want: want{
+				value: "日本",
+			},
+		},
+		{
+			name: "escapes separator after backslash",
+			args: args{
+				value: `a\|b`,
+			},
+			want: want{
+				value:   `a\\|b`,
+				escapes: `a\\|b`,
+			},
+		},
+		{
 			name: "pads spaces at both ends",
 			args: args{
 				value: " x ",
@@ -76,12 +123,88 @@ func Test_escapeCode(t *testing.T) {
 			},
 		},
 		{
+			name: "pads line feeds at both ends",
+			args: args{
+				value: "\na\n",
+			},
+			want: want{
+				value:   "  a  ",
+				escapes: "  a  ",
+			},
+		},
+		{
+			name: "pads carriage returns at both ends",
+			args: args{
+				value: "\ra\r",
+			},
+			want: want{
+				value:   "  a  ",
+				escapes: "  a  ",
+			},
+		},
+		{
+			name: "pads crlf at both ends",
+			args: args{
+				value: "\r\na\r\n",
+			},
+			want: want{
+				value:   "  a  ",
+				escapes: "  a  ",
+			},
+		},
+		{
+			name: "pads mixed space and line feed",
+			args: args{
+				value: " a\n",
+			},
+			want: want{
+				value:   "  a  ",
+				escapes: "  a  ",
+			},
+		},
+		{
 			name: "keeps only spaces unpadded",
 			args: args{
 				value: "   ",
 			},
 			want: want{
 				value: "   ",
+			},
+		},
+		{
+			name: "keeps one-sided leading space",
+			args: args{
+				value: " x",
+			},
+			want: want{
+				value: " x",
+			},
+		},
+		{
+			name: "keeps one-sided trailing space",
+			args: args{
+				value: "x ",
+			},
+			want: want{
+				value: "x ",
+			},
+		},
+		{
+			name: "keeps tabs at both ends",
+			args: args{
+				value: "\tx\t",
+			},
+			want: want{
+				value: "\tx\t",
+			},
+		},
+		{
+			name: "keeps unicode spaces at both ends",
+			args: args{
+				value: "\u00a0x\u00a0",
+			},
+			want: want{
+				value: "\u00a0x\u00a0",
 			},
 		},
 		{
@@ -283,12 +406,12 @@ func Test_escapeAttr(t *testing.T) {
 			},
 		},
 		{
-			name: "escapes attribute delimiters",
+			name: "escapes attribute and table delimiters",
 			args: args{
-				value: `a&"b`,
+				value: `a&"|b`,
 			},
 			want: want{
-				value: `a&amp;&quot;b`,
+				value: `a&amp;&quot;&#124;b`,
 			},
 		},
 		{
@@ -381,9 +504,9 @@ func Test_needsEscapeAttr(t *testing.T) {
 			},
 		},
 		{
-			name: "attribute delimiters",
+			name: "attribute and table delimiters",
 			args: args{
-				value: `&"`,
+				value: `&"|`,
 			},
 			want: want{
 				val: true,

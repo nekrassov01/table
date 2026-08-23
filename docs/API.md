@@ -160,7 +160,7 @@ Column-count errors follow these rules:
 
 - `Table` validates every row before writing the body and therefore writes nothing.
 - `Stream.Render` does not write an invalid row or advance its row index. A later row within the resolved column count can still be written.
-- If a dynamic footer exceeds a stream's column count, `Close` returns an error and omits the footer. Any header and body already written remain in the destination.
+- If a dynamic footer exceeds a stream's column count, `Close` returns an error and omits the footer. Any header and body already written remain in the destination. HTML also attempts to close an open `tbody` and `table`; if that write fails, the earlier footer error remains the returned error.
 - When indexing is enabled, `got` and `want` in the error message are logical column counts that include the generated index column.
 
 Write errors follow these rules:
@@ -279,13 +279,14 @@ func WithAttr(scopes Scope, columns ColumnSelector, attr *Attr) Option
 func WithTransformer(columns ColumnSelector, fn func(any) (string, *Attr)) Option
 ```
 
-- `WithWidth` fixes the display width of cell content, excluding padding. A value of zero or less removes the fixed width.
+- `WithWidth` sets the display-width boundary of cell content, excluding padding. A value of zero or less removes the boundary.
 - `WithTruncate` replaces wrapping with `...`. In a column without `WithWidth`, it applies to values that exceed the initial column width after a stream has begun.
 - `WithPadding` sets left and right space widths. Negative values become zero, and padding contributes to the total table width.
 - `WithAutoFit` reduces column widths to fit terminal output within the terminal width. It has no effect for a non-terminal destination or if any column uses `WithWidth` or `WithTruncate`.
 - `WithIndexWidth` sets the minimum width of the index column. A stream reserves at least three digits.
 - `WithCompact` omits horizontal borders between body rows. At a vertically spanned cell boundary, it retains the horizontal segments for cells that are not spanned.
-- Cell widths use Unicode terminal display widths. LF, CR, and CRLF are in-cell line breaks; output lines end with LF.
+- Cell widths use Unicode terminal display widths. Wrapping preserves grapheme clusters; a cluster wider than the boundary remains intact and makes that physical output line wider than the column. When a stream begins rendering body rows, it reserves one display cell for a column whose initial content has zero display width.
+- LF, CR, and CRLF are in-cell line breaks; output lines end with LF.
 - Invalid UTF-8 bytes are preserved rather than replaced, and ANSI sequences embedded in values are not parsed.
 
 `Attr` represents ANSI SGR color and decoration. `WithAttr` overrides `Style.Content` per column, and an `Attr` returned by a transformer overrides it per cell. ANSI attributes are omitted when the destination is not a terminal.
@@ -339,12 +340,12 @@ func WithTransformer(columns ColumnSelector, fn func(any) (string, *Color, *Deco
 
 - A GFM table requires one header row. Omitting `WithHeader` or supplying an empty header produces `table.ErrHeaderRequired`.
 - `WithAlign` sets alignment markers on the GFM delimiter row.
-- Backslashes, vertical bars, backticks, emphasis markers, square brackets, angle brackets, and ampersands in displayed values are escaped. NUL and invalid UTF-8 become U+FFFD.
+- Backslashes, vertical bars, backticks, emphasis markers, square brackets, angle brackets, and ampersands in displayed values are escaped. LF, CR, and CRLF become `<br>`. NUL and invalid UTF-8 become U+FFFD.
 - Strings resembling URLs or email addresses may be autolinked by a GFM implementation.
 - Color uses an HTML `span`. Other decorations surround the color span; with `DecorationCode`, the color span surrounds the code span.
-- `DecorationCode` follows the GFM code-span rules, chooses a delimiter that does not collide with backtick runs in the value, and converts line breaks to spaces.
+- `DecorationCode` follows the GFM code-span rules. Its fence is longer than any backtick run in the value, and LF, CR, and CRLF become spaces. When the normalized content begins and ends with spaces but is not entirely spaces, the emitted span adds one space at each end so GFM parsing preserves them.
 - `DecorationPreformatted` preserves whitespace with `<pre>`.
-- `NewColor` escapes a CSS color as an HTML attribute. Invalid characters follow HTML attribute replacement rules, and line breaks become spaces. CSS validity is not checked.
+- `NewColor` escapes a CSS color as an HTML attribute. Vertical bars become character references so they cannot split a GFM table row. Invalid characters follow HTML attribute replacement rules, and line breaks become spaces. CSS validity is not checked.
 - `NewDecoration` writes the supplied delimiters without escaping. Pass only trusted markup. It returns `nil` when `prefix` is empty.
 
 ### backlog
@@ -362,7 +363,7 @@ func WithTransformer(columns ColumnSelector, fn func(any) (string, *Color, *Deco
 ```
 
 - Header and footer cells use header-cell notation beginning with `~`. A footer is a library-level section; Backlog itself does not distinguish it.
-- Backslashes, vertical bars, CR, and LF are escaped for Backlog notation. Invalid UTF-8 bytes are preserved rather than replaced.
+- Displayed values literalize bracketed links, bold, italic, strikethrough, colors, line breaks, quote and code macros, and attachment, image, revision, and contents macros. Backslashes and vertical bars are also escaped. Actual CR and LF become `&br;`, while a caller-supplied `&br;` remains text. Invalid UTF-8 bytes are preserved rather than replaced.
 - The header-cell `~` immediately follows the opening vertical bar, and padding follows the value.
 - When color is combined with any decoration other than `DecorationCode`, the color notation surrounds the decoration.
 - Backlog notation cannot represent `DecorationCode` and color simultaneously, so code decoration is retained and color is omitted.

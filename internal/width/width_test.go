@@ -48,6 +48,18 @@ func TestScanner_Next(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "regional indicator flags",
+			fields: fields{
+				text: "🇯🇵🇺🇸",
+			},
+			want: want{
+				units: [][3]int{
+					{0, 8, 2},
+					{8, 16, 2},
+				},
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -119,6 +131,15 @@ func TestStringWidth(t *testing.T) {
 			},
 			want: want{
 				val: 6,
+			},
+		},
+		{
+			name: "regional-indicator-flags",
+			args: args{
+				s: "🇯🇵🇺🇸",
+			},
+			want: want{
+				val: 4,
 			},
 		},
 		{

@@ -204,8 +204,53 @@ func TestContract_FooterCanWidenTableButNotStream(t *testing.T) {
 	if err := stream.Close(); err != first {
 		t.Fatalf("second Close: expected %v, got %v", first, err)
 	}
+	if !strings.HasSuffix(streamOutput.String(), "  </tbody>\n</table>\n") {
+		t.Fatalf("Stream did not close the table after the footer error:\n%s", streamOutput.String())
+	}
 	if strings.Contains(streamOutput.String(), "footer-only") {
 		t.Fatalf("Stream partially wrote the wider footer:\n%s", streamOutput.String())
+	}
+}
+
+func TestContract_StreamCloseErrorOrder(t *testing.T) {
+	cause := testutil.NewError()
+	footer := func() [][]string {
+		return [][]string{{"sum", "extra"}}
+	}
+	var footerOutput bytes.Buffer
+	footerStream := NewStream(&footerOutput,
+		WithHeader([]string{"A"}),
+		WithFooter(footer),
+	)
+	if err := footerStream.Render([]any{"a"}); err != nil {
+		t.Fatal(err)
+	}
+	footerStream.w = &testutil.ErrorWriter{Err: cause}
+	footerErr := footerStream.Close()
+	if !errors.Is(footerErr, table.ErrColumnCount) || errors.Is(footerErr, table.ErrWriteFailed) {
+		t.Fatalf("footer and close errors: expected only table.ErrColumnCount, got %v", footerErr)
+	}
+	if err := footerStream.Close(); err != footerErr {
+		t.Fatalf("second footer Close: expected %v, got %v", footerErr, err)
+	}
+
+	var writeOutput bytes.Buffer
+	writeStream := NewStream(&writeOutput,
+		WithHeader([]string{"A"}),
+		WithFooter(func() [][]string {
+			return [][]string{{"sum"}}
+		}),
+	)
+	if err := writeStream.Render([]any{"a"}); err != nil {
+		t.Fatal(err)
+	}
+	writeStream.w = &testutil.ErrorWriter{Err: cause}
+	writeErr := writeStream.Close()
+	if !errors.Is(writeErr, table.ErrWriteFailed) || !errors.Is(writeErr, cause) {
+		t.Fatalf("close error: expected table.ErrWriteFailed and writer error, got %v", writeErr)
+	}
+	if err := writeStream.Close(); err != writeErr {
+		t.Fatalf("second writer Close: expected %v, got %v", writeErr, err)
 	}
 }
 

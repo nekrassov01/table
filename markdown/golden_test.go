@@ -288,6 +288,9 @@ func TestGolden_StreamCodeSpanEdges(t *testing.T) {
 	if err := s.Render([]any{"padded spaces", " x "}); err != nil {
 		t.Fatal(err)
 	}
+	if err := s.Render([]any{"edge line breaks", "\nx\n"}); err != nil {
+		t.Fatal(err)
+	}
 	if err := s.Render([]any{"only spaces", "   "}); err != nil {
 		t.Fatal(err)
 	}
@@ -338,7 +341,7 @@ func TestGolden_StreamColorAttrEscape(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
 		WithHeader([]string{"A"}),
-		WithColor(ScopeBody, Columns(0), NewColor(`red" onmouseover="alert(1)`, `blue&x`)),
+		WithColor(ScopeBody, Columns(0), NewColor(`red" onmouseover="alert(1)`, `blue&x|y`)),
 	)
 	if err := s.Render([]any{"x"}); err != nil {
 		t.Fatal(err)
@@ -2037,6 +2040,7 @@ func TestGolden_TableCodeSpanEdges(t *testing.T) {
 		{"pipe", `a|b`},
 		{"backslash then pipe", `a\|b`},
 		{"padded spaces", " x "},
+		{"edge line breaks", "\nx\n"},
 		{"only spaces", "   "},
 	}); err != nil {
 		t.Fatal(err)
@@ -2079,7 +2083,7 @@ func TestGolden_TableColorAttrEscape(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
 		WithHeader([]string{"A"}),
-		WithColor(ScopeBody, Columns(0), NewColor(`red" onmouseover="alert(1)`, `blue&x`)),
+		WithColor(ScopeBody, Columns(0), NewColor(`red" onmouseover="alert(1)`, `blue&x|y`)),
 	)
 	if err := tb.Render([][]any{
 		{"x"},

@@ -204,6 +204,11 @@ func Test_painter_paintHeader(t *testing.T) {
 							},
 							columns: []column{{}},
 						},
+						body: []row{
+							{
+								bars: allBars,
+							},
+						},
 					},
 					metrics: []columnMetric{
 						{
@@ -216,6 +221,124 @@ func Test_painter_paintHeader(t *testing.T) {
 			},
 			want: want{
 				output: "cap\n+-+\n",
+			},
+		},
+		{
+			name: "empty header follows first body bars",
+			fields: fields{
+				input: solverResult{
+					compilerResult: compilerResult{
+						configResult: configResult{
+							option: &option{
+								style: StyleLight,
+							},
+							columns: []column{{}, {}},
+						},
+						body: []row{
+							{
+								bars: allBars &^ 0b10,
+							},
+						},
+					},
+					metrics: []columnMetric{
+						{
+							box: box{
+								width: 1,
+							},
+						},
+						{
+							box: box{
+								width: 1,
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				output: "┌───┐\n",
+			},
+		},
+		{
+			name: "empty header follows first footer bars",
+			fields: fields{
+				input: solverResult{
+					compilerResult: compilerResult{
+						configResult: configResult{
+							option: &option{
+								style: StyleLight,
+							},
+							columns: []column{{}, {}},
+						},
+						footer: []row{
+							{
+								bars: allBars &^ 0b10,
+							},
+						},
+					},
+					metrics: []columnMetric{
+						{
+							box: box{
+								width: 1,
+							},
+						},
+						{
+							box: box{
+								width: 1,
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				output: "┌───┐\n",
+			},
+		},
+		{
+			name: "header separator follows footer bars without body",
+			fields: fields{
+				input: solverResult{
+					compilerResult: compilerResult{
+						configResult: configResult{
+							option: &option{
+								style: StyleLight,
+							},
+							columns: []column{{}, {}},
+						},
+						header: []row{
+							{
+								cells: []cell{
+									{
+										value: "A",
+									},
+									{
+										value: "B",
+									},
+								},
+								bars: allBars,
+							},
+						},
+						footer: []row{
+							{
+								bars: allBars &^ 0b10,
+							},
+						},
+					},
+					metrics: []columnMetric{
+						{
+							box: box{
+								width: 1,
+							},
+						},
+						{
+							box: box{
+								width: 1,
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				output: "┌─┬─┐\n│A│B│\n╞═╧═╡\n",
 			},
 		},
 		{
@@ -1924,6 +2047,22 @@ func Test_painter_wrapLine(t *testing.T) {
 			},
 		},
 		{
+			name: "grapheme wider than limit stays intact",
+			args: args{
+				line:  "👩‍💻",
+				limit: 1,
+			},
+			want: want{
+				width: 2,
+				segments: []segment{
+					{
+						value: "👩‍💻",
+						width: 2,
+					},
+				},
+			},
+		},
+		{
 			name: "keeps grapheme cluster intact",
 			args: args{
 				line:  "👩‍💻x",
@@ -1939,6 +2078,26 @@ func Test_painter_wrapLine(t *testing.T) {
 					{
 						value: "x",
 						width: 1,
+					},
+				},
+			},
+		},
+		{
+			name: "wraps regional indicator flags by display width",
+			args: args{
+				line:  "🇯🇵🇺🇸",
+				limit: 2,
+			},
+			want: want{
+				width: 2,
+				segments: []segment{
+					{
+						value: "🇯🇵",
+						width: 2,
+					},
+					{
+						value: "🇺🇸",
+						width: 2,
 					},
 				},
 			},
@@ -2056,6 +2215,19 @@ func Test_painter_truncateLine(t *testing.T) {
 				line:       "a👩‍💻...",
 				width:      6,
 				stringMark: 15,
+			},
+		},
+		{
+			name: "does not retain a flag beyond the content limit",
+			args: args{
+				line:      "🇯🇵🇺🇸x",
+				lineWidth: 5,
+				limit:     4,
+			},
+			want: want{
+				line:       "...",
+				width:      3,
+				stringMark: 3,
 			},
 		},
 	}

@@ -97,16 +97,21 @@ func (o *painter) paintHeader() {
 	option := o.input.option
 	header := o.input.header
 	body := o.input.body
+	footer := o.input.footer
 	if option.captionSide == CaptionTop {
 		o.paintCaption()
 	}
-	if len(header) == 0 {
-		o.paintHorizon(option.style.Border.Top, 0, noBars, allBars)
-		return
+	nextRows := body
+	if len(nextRows) == 0 {
+		nextRows = footer
 	}
 	downBars := allBars
-	if len(body) > 0 {
-		downBars = body[0].bars
+	if len(nextRows) > 0 {
+		downBars = nextRows[0].bars
+	}
+	if len(header) == 0 {
+		o.paintHorizon(option.style.Border.Top, 0, noBars, downBars)
+		return
 	}
 	o.paintHorizon(option.style.Border.Top, 0, noBars, header[0].bars)
 	for i := range header {

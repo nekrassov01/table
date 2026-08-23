@@ -20,6 +20,7 @@ This document describes the design principles and decisions for maintainers.
     - [Choose option ownership based on value semantics](#choose-option-ownership-based-on-value-semantics)
     - [Separate value selection from evaluation order](#separate-value-selection-from-evaluation-order)
     - [Separate logical columns from display geometry](#separate-logical-columns-from-display-geometry)
+    - [Preserve grapheme clusters when wrapping](#preserve-grapheme-clusters-when-wrapping)
     - [Resolve spans at the format-appropriate stage](#resolve-spans-at-the-format-appropriate-stage)
     - [Distinguish displayed values from attribute values](#distinguish-displayed-values-from-attribute-values)
     - [Match error retention to execution state](#match-error-retention-to-execution-state)
@@ -105,6 +106,12 @@ The logical column count determined by `config` is distinct from display widths 
 
 Display width is measured without changing the logical column count. `Table` can measure the complete pass, while `Stream` emits later rows within the conditions established at startup. Keeping validation separate from display adjustment prevents width optimization from changing the input contract.
 
+When a text stream starts rendering body rows with a column whose content has zero display width, the solver reserves one display cell before freezing the geometry. This gives later values a usable wrapping boundary without changing columns after output has begun. A stream closed before its first body row has complete input and does not freeze its geometry.
+
+### Preserve grapheme clusters when wrapping
+
+Text column width is a wrapping boundary rather than a clipping boundary. The painter scans grapheme clusters and never divides one between physical lines. If a cluster is wider than the configured or frozen width, it remains intact and that physical line exceeds the solved column width. Splitting the cluster would corrupt its displayed value; callers that require replacement instead of wrapping can use `WithTruncate`.
+
 ### Resolve spans at the format-appropriate stage
 
 `compiler` compares displayed values before markup and records vertical or horizontal continuation positions. Spans never cross header, body, or footer boundaries.
@@ -115,8 +122,14 @@ Formats that measure column width mark absorbed values during compilation so the
 
 Displayed values and attribute values are escaped or normalized for their output contexts. Strings supplied to constructors such as `NewDecoration` intentionally define markup and are not escaped. Sending both categories through the same path would sacrifice either safe displayed output or the expressiveness of caller-provided markup.
 
+GFM separates table cells before parsing inline HTML. Markdown attribute values therefore encode vertical bars as character references, preserving both the table structure and the attribute value.
+
+GFM normalizes code-span line endings to spaces, then removes one space from each end when both are present and the content is not entirely spaces. `escapeCode` treats source line endings as the spaces they become and adds one boundary space only when parsing would otherwise remove content. `resolveTicks` independently chooses a fence longer than every backtick run in the value.
+
 `compiler` resolves displayed-value conversion and markup selection, and `painter` combines them in the established order. `painter` does not reinterpret value safety or decoration semantics, avoiding duplicate escaping and divergence from compilation decisions.
 
 ### Match error retention to execution state
 
 A column-count error from `Stream.Render` rejects only the current row, so it is not retained and the stream can accept a subsequent valid row. A write error cannot be undone after output has been emitted, so `Stream` retains the first write error and returns it from later calls to both `Render` and `Close`. Errors raised during `Close` are also retained because execution has already ended.
+
+When an HTML stream detects a footer column-count error after opening the table, `Close` omits the invalid footer but still calls `paintFooter` to close the open elements. The footer error occurred first and remains the retained result if closing also produces a write error. Without a footer error, the same closing failure is retained as a write error.

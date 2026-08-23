@@ -45,6 +45,16 @@ func Test_escapeValue(t *testing.T) {
 				escapes: `kept:a\\\b\\|c&br;d&br;e&br;f`,
 			},
 		},
+		{
+			name: "literalizes inline notation",
+			args: args{
+				value: `[[link]] ''bold'' %%strike%% {code}code{/code} #contents &br; &color(red){value}`,
+			},
+			want: want{
+				value:   `\\[\\[link\\]\\] \\'\\'bold\\'\\' \\%\\%strike\\%\\% \\{code}code\\{/code} \\#contents \\&br; \\&color(red){value}`,
+				escapes: `\\[\\[link\\]\\] \\'\\'bold\\'\\' \\%\\%strike\\%\\% \\{code}code\\{/code} \\#contents \\&br; \\&color(red){value}`,
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -95,6 +105,129 @@ func Test_needsEscapeValue(t *testing.T) {
 			},
 		},
 		{
+			name: "plain punctuation",
+			args: args{
+				value: "[]'%&{}#",
+			},
+		},
+		{
+			name: "adjacent marker",
+			args: args{
+				value: "''",
+			},
+			want: want{
+				escape: true,
+			},
+		},
+		{
+			name: "line break notation",
+			args: args{
+				value: "&br;",
+			},
+			want: want{
+				escape: true,
+			},
+		},
+		{
+			name: "color notation",
+			args: args{
+				value: "&color(red){value}",
+			},
+			want: want{
+				escape: true,
+			},
+		},
+		{
+			name: "quote notation",
+			args: args{
+				value: "{quote}",
+			},
+			want: want{
+				escape: true,
+			},
+		},
+		{
+			name: "quote close notation",
+			args: args{
+				value: "{/quote}",
+			},
+			want: want{
+				escape: true,
+			},
+		},
+		{
+			name: "code notation",
+			args: args{
+				value: "{code}",
+			},
+			want: want{
+				escape: true,
+			},
+		},
+		{
+			name: "typed code notation",
+			args: args{
+				value: "{code:go}",
+			},
+			want: want{
+				escape: true,
+			},
+		},
+		{
+			name: "code close notation",
+			args: args{
+				value: "{/code}",
+			},
+			want: want{
+				escape: true,
+			},
+		},
+		{
+			name: "attachment notation",
+			args: args{
+				value: "#attach(file:1)",
+			},
+			want: want{
+				escape: true,
+			},
+		},
+		{
+			name: "image notation",
+			args: args{
+				value: "#image(1)",
+			},
+			want: want{
+				escape: true,
+			},
+		},
+		{
+			name: "thumbnail notation",
+			args: args{
+				value: "#thumbnail(1)",
+			},
+			want: want{
+				escape: true,
+			},
+		},
+		{
+			name: "revision notation",
+			args: args{
+				value: "#rev(1)",
+			},
+			want: want{
+				escape: true,
+			},
+		},
+		{
+			name: "contents notation",
+			args: args{
+				value: "#contents",
+			},
+			want: want{
+				escape: true,
+			},
+		},
+		{
 			name: "carriage return",
 			args: args{
 				value: "a\rb",
@@ -118,7 +251,7 @@ func Test_needsEscapeValue(t *testing.T) {
 			got := want{
 				escape: needsEscapeValue(test.args.value),
 			}
-			testutil.AssertValue(t, got, test.want, "needsEscape")
+			testutil.AssertValue(t, got, test.want, "needsEscapeValue")
 		})
 	}
 }

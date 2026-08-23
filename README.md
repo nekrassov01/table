@@ -34,7 +34,7 @@
 `nekrassov01/table` renders Go data as terminal tables, markup tables, or CSV records. Each output package provides `Table` for complete data sets and `Stream` for row-at-a-time output while retaining the selected format's own structure and escaping rules.
 
 - Use functional options for clear, reusable configuration.
-- Lead every included comparison benchmark, running 1.3 to 9.5 times as fast as the next-fastest alternative in the measured scenarios; see [Performance](#performance).
+- Lead both comparison benchmarks, running 1.3 to 9.3 times as fast as the next-fastest alternative in the measured scenarios; see [Performance](#performance).
 - Reuse internal buffers to minimize steady-state allocations.
 - Adapt typed slices and error-returning iterators with `TableOf` and `StreamOf`.
 - Measure Unicode text by terminal display width, including ambiguous character widths in CJK locales.
@@ -288,28 +288,25 @@ This table records whether each library exposes a direct public API for a capabi
 
 For `table`, the feature matrix has the following qualifications:
 
-- Footer callbacks allow values such as totals and averages to be calculated after the body has been processed.
+- Footer callbacks derive values such as totals and averages from captured state.
 - Column hiding is intentionally left to input adaptation, so `TableOf` and `StreamOf` can omit fields before rows reach the output package.
 - Merge behavior depends on the selected output format and is documented in the [Public API guide](./docs/API.md).
 
 ## Performance
 
-The comparison benchmark constructs each table, processes the scenario data, and writes the result to a reused buffer. Its options align content and table structure while preserving each library's native border style; the output is not byte-identical.
+The comparison benchmark uses the shared Simple and Complex data sets. Static data is converted to each library's required row type before timing begins. Each timed iteration constructs a table, processes the rows, and writes the result to a reused buffer. Only the settings needed to align the table structure and preserve header text are applied. Each library retains its default border characters and value formatting, so the output is not byte-identical. Complex compares native value handling rather than equivalent rendered bytes.
 
 > [!NOTE]
 > `table` is designed to minimize allocations and reuses internal buffers via `sync.Pool`. In steady-state benchmarks, common workloads reach one allocation per render; cold runs require additional allocations to initialize pooled state.
 >
-> Run `make bench target=comparison benchtime=1x count=1` to make cold-start costs visible in the comparison; `table` remains the fastest implementation in that run. For explicit pool-drained measurements, run `make bench target=cold`.
+> Run `make bench target=comparison benchtime=1x count=1` to reduce steady-state amortization and expose one-iteration setup costs. For explicit pool-drained measurements of `table`, run `make bench target=cold`.
 
 The figures are the best of five 10,000-iteration runs on an Apple M2 with Go 1.26.6. Each cell reports `allocs/op` followed by `ns/op`.
 
-| Scenario        | `table`       | `mintab`    | `go-pretty`  | `tablewriter`   |
-| --------------- | ------------- | ----------- | ------------ | --------------- |
-| Simple          | **1 · 1,702** | 43 · 2,266  | 110 · 11,617 | 975 · 81,063    |
-| Footer          | **1 · 6,896** | -           | 323 · 37,549 | 2,850 · 199,518 |
-| Compact         | **1 · 2,466** | 62 · 3,836  | 143 · 17,924 | 1,292 · 98,700  |
-| Repeated values | **1 · 4,879** | 110 · 7,562 | 258 · 34,980 | 2,480 · 163,596 |
-| Complex values  | **5 · 6,803** | -           | 317 · 64,428 | 4,751 · 287,515 |
+| Scenario       | `table`       | `mintab`   | `go-pretty`  | `tablewriter`   |
+| -------------- | ------------- | ---------- | ------------ | --------------- |
+| Simple         | **1 · 1,665** | 43 · 2,211 | 110 · 12,216 | 973 · 92,216    |
+| Complex values | **5 · 6,662** | -          | 317 · 62,228 | 4,749 · 299,384 |
 
 `-` indicates that a library cannot express the scenario with the benchmark input.
 

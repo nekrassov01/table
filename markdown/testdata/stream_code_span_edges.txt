@@ -9,4 +9,5 @@
 | pipe | `a\|b` |
 | backslash then pipe | `a\\|b` |
 | padded spaces | `  x  ` |
+| edge line breaks | `  x  ` |
 | only spaces | `   ` |
