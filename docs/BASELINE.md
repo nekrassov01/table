@@ -20,7 +20,7 @@ Use the following criteria in order. Absolute thresholds are not fixed because r
 
 | Priority | Metric    | Acceptance condition                                                                                                                                                                                                       |
 | -------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1        | allocs/op | The changed result must not exceed the baseline.<br/>The `Table` `Reuse` path must remain at 0.                                                                                                                            |
+| 1        | allocs/op | The changed result must not exceed the baseline.<br/>A `Table` `Reuse` case whose caller-provided functions do not allocate must remain at 0.                                                                              |
 | 2        | ns/op     | The minimum changed result must not exceed the minimum baseline result.<br/>Run multiple measurements with the same environment and input.<br/>Increase the iteration and sample counts if results do not converge.        |
 | 3        | B/op      | If neither higher-priority metric regresses and at least one improves, obtain approval for an increase of 10% or more.<br/>If both higher-priority metrics are unchanged, the changed result must not exceed the baseline. |
 

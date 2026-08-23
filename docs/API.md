@@ -340,7 +340,7 @@ func WithTransformer(columns ColumnSelector, fn func(any) (string, *Color, *Deco
 
 - A GFM table requires one header row. Omitting `WithHeader` or supplying an empty header produces `table.ErrHeaderRequired`.
 - `WithAlign` sets alignment markers on the GFM delimiter row.
-- Backslashes, vertical bars, backticks, emphasis markers, square brackets, angle brackets, and ampersands in displayed values are escaped. NUL and invalid UTF-8 become U+FFFD.
+- Backslashes, vertical bars, backticks, emphasis markers, square brackets, angle brackets, and ampersands in displayed values are escaped. LF, CR, and CRLF become `<br>`. NUL and invalid UTF-8 become U+FFFD.
 - Strings resembling URLs or email addresses may be autolinked by a GFM implementation.
 - Color uses an HTML `span`. Other decorations surround the color span; with `DecorationCode`, the color span surrounds the code span.
 - `DecorationCode` follows the GFM code-span rules. Its fence is longer than any backtick run in the value, and LF, CR, and CRLF become spaces. When the normalized content begins and ends with spaces but is not entirely spaces, the emitted span adds one space at each end so GFM parsing preserves them.
