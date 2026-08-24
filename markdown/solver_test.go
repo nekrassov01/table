@@ -28,7 +28,7 @@ func Test_solver_prepare(t *testing.T) {
 						option: &option{
 							indexOffset: 1,
 						},
-						columns: []column{
+						columns: []columnConfig{
 							{},
 							{
 								align: AlignCenter,

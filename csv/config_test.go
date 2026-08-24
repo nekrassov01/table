@@ -49,7 +49,7 @@ func Test_config_prepare(t *testing.T) {
 						delimiter:   ',',
 						indexOffset: 1,
 						columns: columnSet{
-							values: []column{
+							Values: []columnConfig{
 								{},
 								{
 									transformer: func(any) string {
@@ -57,7 +57,7 @@ func Test_config_prepare(t *testing.T) {
 									},
 								},
 							},
-							defaults: &column{
+							Defaults: &columnConfig{
 								transformer: func(any) string {
 									return "default"
 								},
@@ -68,7 +68,7 @@ func Test_config_prepare(t *testing.T) {
 					footer: [][]string{{"x", "y", "z", "ignored"}},
 				},
 				state: configState{
-					columns: make([]column, 0, 4),
+					columns: make([]columnConfig, 0, 4),
 				},
 			},
 			want: want{
@@ -153,7 +153,7 @@ func Test_option_apply(t *testing.T) {
 			name: "sets defaults",
 			want: want{
 				delimiter:   '\t',
-				placeholder: DefaultPlaceholder,
+				placeholder: placeholder,
 			},
 		},
 		{
@@ -192,7 +192,7 @@ func Test_option_apply(t *testing.T) {
 
 func Test_columnSet_apply(t *testing.T) {
 	type fields struct {
-		values       []column
+		values       []columnConfig
 		defaultValue string
 	}
 	type args struct {
@@ -212,7 +212,7 @@ func Test_columnSet_apply(t *testing.T) {
 		{
 			name: "applies to all existing and future columns",
 			fields: fields{
-				values: []column{{}, {}},
+				values: []columnConfig{{}, {}},
 			},
 			args: args{
 				selector: AllColumns(),
@@ -226,7 +226,7 @@ func Test_columnSet_apply(t *testing.T) {
 		{
 			name: "replaces existing default",
 			fields: fields{
-				values:       []column{{}},
+				values:       []columnConfig{{}},
 				defaultValue: "old",
 			},
 			args: args{
@@ -241,7 +241,7 @@ func Test_columnSet_apply(t *testing.T) {
 		{
 			name: "grows explicit columns from default and ignores negative index",
 			fields: fields{
-				values:       []column{{}},
+				values:       []columnConfig{{}},
 				defaultValue: "default",
 			},
 			args: args{
@@ -256,7 +256,7 @@ func Test_columnSet_apply(t *testing.T) {
 		{
 			name: "updates existing explicit column without growing",
 			fields: fields{
-				values: []column{{}, {}},
+				values: []columnConfig{{}, {}},
 			},
 			args: args{
 				selector: Columns(0),
@@ -270,71 +270,36 @@ func Test_columnSet_apply(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			set := columnSet{
-				values: test.fields.values,
+				Values: test.fields.values,
 			}
 			if test.fields.defaultValue != "" {
-				set.defaults = &column{
+				set.Defaults = &columnConfig{
 					transformer: func(any) string {
 						return test.fields.defaultValue
 					},
 				}
 			}
-			set.apply(test.args.selector, func(c *column) {
+			set.apply(test.args.selector, func(c *columnConfig) {
 				value := test.args.value
 				c.transformer = func(any) string {
 					return value
 				}
 			})
-			values := make([]string, len(set.values))
-			for index := range set.values {
-				if fn := set.values[index].transformer; fn != nil {
+			values := make([]string, len(set.Values))
+			for index := range set.Values {
+				if fn := set.Values[index].transformer; fn != nil {
 					values[index] = fn(nil)
 				}
 			}
 			defaultValue := ""
-			if set.defaults != nil && set.defaults.transformer != nil {
-				defaultValue = set.defaults.transformer(nil)
+			if set.Defaults != nil && set.Defaults.transformer != nil {
+				defaultValue = set.Defaults.transformer(nil)
 			}
 			got := want{
 				values:       values,
 				defaultValue: defaultValue,
 			}
 			testutil.AssertValue(t, got, test.want, "apply")
-		})
-	}
-}
-
-func Test_maxColumns(t *testing.T) {
-	type args struct {
-		rows [][]string
-	}
-	type want struct {
-		count int
-	}
-	tests := []struct {
-		name string
-		args args
-		want want
-	}{
-		{
-			name: "no rows",
-		},
-		{
-			name: "finds widest row",
-			args: args{
-				rows: [][]string{{"a"}, {"a", "b", "c"}, {"a", "b"}},
-			},
-			want: want{
-				count: 3,
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			got := want{
-				count: maxColumns(test.args.rows),
-			}
-			testutil.AssertValue(t, got, test.want, "maxColumns")
 		})
 	}
 }

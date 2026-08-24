@@ -3,6 +3,7 @@ package csv
 import (
 	"testing"
 
+	"github.com/nekrassov01/table/internal/column"
 	"github.com/nekrassov01/table/internal/testutil"
 )
 
@@ -312,7 +313,7 @@ func TestWithTransformer(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{
 				columns: columnSet{
-					values: []column{
+					Values: []columnConfig{
 						{
 							transformer: func(any) string {
 								return "old"
@@ -322,7 +323,7 @@ func TestWithTransformer(t *testing.T) {
 				},
 			}
 			WithTransformer(test.args.columns, test.args.fn)(o)
-			fn := o.columns.values[0].transformer
+			fn := o.columns.Values[0].transformer
 			got := want{
 				isNil: fn == nil,
 			}
@@ -361,7 +362,7 @@ func TestColumns(t *testing.T) {
 			},
 			want: want{
 				selector: ColumnSelector{
-					indexes: []int{0, -1, 2},
+					selector: column.NewSelector(0, -1, 2),
 				},
 			},
 		},
@@ -390,7 +391,7 @@ func TestAllColumns(t *testing.T) {
 			name: "selects all columns",
 			want: want{
 				selector: ColumnSelector{
-					all: true,
+					selector: column.All(),
 				},
 			},
 		},

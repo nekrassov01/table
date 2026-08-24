@@ -1,10 +1,13 @@
 package csv
 
-import "unicode/utf8"
+import (
+	"unicode/utf8"
 
-// DefaultPlaceholder is the default placeholder for missing or empty body
-// cells.
-const DefaultPlaceholder = ""
+	"github.com/nekrassov01/table/internal/column"
+)
+
+// placeholder is the default text for missing or empty body cells.
+const placeholder = ""
 
 // config validates construction options and resolves pass data into logical
 // columns.
@@ -25,7 +28,7 @@ func (o *config) prepare() {
 		return
 	}
 	headerColumns := len(result.header)
-	footerColumns := maxColumns(result.footer)
+	footerColumns := column.MaxColumns(result.footer)
 	columnCount := headerColumns
 	if columnCount == 0 {
 		columnCount = max(o.bodyColumns, footerColumns)
@@ -35,22 +38,22 @@ func (o *config) prepare() {
 	}
 	columns := o.state.columns
 	if cap(columns) < columnCount {
-		columns = make([]column, columnCount)
+		columns = make([]columnConfig, columnCount)
 	} else {
 		columns = columns[:columnCount]
 	}
 	for index := 0; index < min(option.indexOffset, columnCount); index++ {
-		columns[index] = column{}
+		columns[index] = columnConfig{}
 	}
-	defaults := column{}
-	if option.columns.defaults != nil {
-		defaults = *option.columns.defaults
+	defaults := columnConfig{}
+	if option.columns.Defaults != nil {
+		defaults = *option.columns.Defaults
 	}
 	for index := option.indexOffset; index < columnCount; index++ {
 		columns[index] = defaults
 	}
 	if option.indexOffset < columnCount {
-		copy(columns[option.indexOffset:], option.columns.values)
+		copy(columns[option.indexOffset:], option.columns.Values)
 	}
 	o.state.columns = columns
 	result.columns = columns
@@ -59,12 +62,12 @@ func (o *config) prepare() {
 
 // configResult carries pass data and resolved logical columns.
 type configResult struct {
-	option        *option    // Options fixed at construction.
-	header        []string   // Header fields in input order.
-	footer        [][]string // Footer rows in top-to-bottom order.
-	bodyRows      int        // Number of body rows in this pass.
-	columns       []column   // Resolved column settings in logical order.
-	footerColumns int        // Footer width resolved for the current config pass.
+	option        *option        // Options fixed at construction.
+	header        []string       // Header fields in input order.
+	footer        [][]string     // Footer rows in top-to-bottom order.
+	bodyRows      int            // Number of body rows in this pass.
+	columns       []columnConfig // Resolved column settings in logical order.
+	footerColumns int            // Footer width resolved for the current config pass.
 }
 
 // option holds settings fixed when a Table or Stream is constructed.
@@ -81,65 +84,23 @@ type option struct {
 // apply sets defaults and applies opts in order.
 func (o *option) apply(opts ...Option) {
 	o.delimiter = '\t'
-	o.placeholder = DefaultPlaceholder
+	o.placeholder = placeholder
 	for _, opt := range opts {
 		opt(o)
 	}
 }
 
-// columnSet holds explicit input columns and the default used by AllColumns.
-type columnSet struct {
-	values   []column // Explicit columns in input order.
-	defaults *column  // Column inherited by every input position.
-}
+// columnSet applies shared column selection to CSV column settings.
+type columnSet column.Set[columnConfig]
 
 // apply updates every input column selected by selector.
-func (o *columnSet) apply(selector ColumnSelector, fn func(*column)) {
-	if selector.all {
-		if o.defaults == nil {
-			defaults := column{}
-			o.defaults = &defaults
-		}
-		fn(o.defaults)
-		for index := range o.values {
-			fn(&o.values[index])
-		}
-		return
-	}
-	columnCount := 0
-	for _, index := range selector.indexes {
-		columnCount = max(columnCount, index+1)
-	}
-	existing := len(o.values)
-	if columnCount > existing {
-		o.values = append(o.values, make([]column, columnCount-existing)...)
-		defaults := column{}
-		if o.defaults != nil {
-			defaults = *o.defaults
-		}
-		for index := existing; index < columnCount; index++ {
-			o.values[index] = defaults
-		}
-	}
-	for _, index := range selector.indexes {
-		if index >= 0 {
-			fn(&o.values[index])
-		}
-	}
+func (o *columnSet) apply(selector ColumnSelector, fn func(*columnConfig)) {
+	(*column.Set[columnConfig])(o).Apply(selector.selector, nil, fn)
 }
 
-// column defines the behavior of one resolved logical column.
-type column struct {
+// columnConfig holds CSV settings for one logical column.
+type columnConfig struct {
 	transformer func(any) string // Optional body-value transformation.
-}
-
-// maxColumns returns the greatest column count among rows.
-func maxColumns(rows [][]string) int {
-	columnCount := 0
-	for _, row := range rows {
-		columnCount = max(columnCount, len(row))
-	}
-	return columnCount
 }
 
 // validDelimiter reports whether delimiter can separate fields.

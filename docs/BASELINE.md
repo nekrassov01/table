@@ -16,12 +16,12 @@ This document defines the performance requirements and measurement process for m
 
 ## Evaluation criteria
 
-Use the following criteria in order. Absolute thresholds are not fixed because results depend on the environment. Measure the unchanged and changed implementations under the same conditions and use the unchanged result as the baseline. `B/op` can vary slightly with the initial growth of `sync.Pool` storage and benchmark execution order.
+Use the following criteria in order. Absolute thresholds are not fixed because results depend on the environment. Measure the unchanged and changed implementations under the same conditions and use the unchanged result as the baseline. Unless stated otherwise, a result is the median of the repeated samples for that benchmark and metric. `B/op` can vary slightly with the initial growth of `sync.Pool` storage and benchmark execution order.
 
 | Priority | Metric    | Acceptance condition                                                                                                                                                                                                       |
 | -------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1        | allocs/op | The changed result must not exceed the baseline.<br/>A `Table` `Reuse` case whose caller-provided functions do not allocate must remain at 0.                                                                              |
-| 2        | ns/op     | The minimum changed result must not exceed the minimum baseline result.<br/>Run multiple measurements with the same environment and input.<br/>Increase the iteration and sample counts if results do not converge.        |
+| 2        | ns/op     | The changed result must not exceed the baseline.<br/>Run multiple measurements with the same environment and input.<br/>Increase the iteration and sample counts if results do not converge.                               |
 | 3        | B/op      | If neither higher-priority metric regresses and at least one improves, obtain approval for an increase of 10% or more.<br/>If both higher-priority metrics are unchanged, the changed result must not exceed the baseline. |
 
 An intentional regression required by a feature must be approved with its reason, affected paths, and considered alternatives. An improvement in a lower-priority metric does not offset a regression in a higher-priority metric.
@@ -46,7 +46,7 @@ The `benchmarks` module uses shared sample data and the corresponding format-spe
 
 ## Comparing changes
 
-Save before-and-after results using the same machine, Go version, `benchtime`, and `count`. Compare the minimum ns/op observed for each benchmark before and after the change.
+Save before-and-after results using the same machine, Go version, `benchtime`, and `count`. Compare the median of the repeated samples for each benchmark and metric.
 
 ```sh
 make bench target=text count=10 cpuprofile=before.cpu memprofile=before.mem > before.txt
@@ -54,7 +54,9 @@ make bench target=text count=10 cpuprofile=after.cpu memprofile=after.mem > afte
 benchstat before.txt after.txt
 ```
 
-The example selects `text`; replace it with the affected format. Use `benchstat` to inspect variance and the overall direction of the change. The ns/op baseline is the minimum value in the saved samples, not the representative value reported by `benchstat`.
+The example selects `text`; replace it with the affected format. Use `benchstat` to inspect variance and the overall direction of the change. The baseline-checking script reports the explicit per-benchmark medians used for acceptance.
+
+When publishing measurements in `README.md` or another document, paste the complete console output from a run with at least five samples. Do not remove, reorder, or annotate sample lines inside the console block. Derive any summary from the same output and report the median for each benchmark and metric.
 
 ## Checking allocation counts
 
@@ -81,16 +83,16 @@ Interpret the results as follows:
 
 ## Checking execution time
 
-Compare ns/op after allocs/op. Background processes and CPU frequency affect execution time, so use the minimum from multiple measurements.
+Compare ns/op after allocs/op. Background processes and CPU frequency affect execution time, so use the median from multiple measurements.
 
 Each pipeline stage passes forward results produced while transforming values, escaping text, or measuring display width. Later stages do not repeat value conversion or cell scans merely to derive the same result.
 
 - Keep the machine, Go version, input data, options, `benchtime`, and `count` identical before and after the change.
-- Select the minimum ns/op for each benchmark independently. Do not combine values from different benchmarks.
-- If the minimum regresses, increase `benchtime` and `count` and measure both versions again.
+- Select the median ns/op for each benchmark independently. Do not combine values from different benchmarks.
+- If the median regresses, increase `benchtime` and `count` and measure both versions again.
 - Use a CPU profile to locate the additional work and connect it to the affected implementation path.
 
-A change in only the mean or median is not sufficient evidence of a regression. If results do not stabilize, discard them and measure again in a controlled environment.
+A change in only the mean or minimum is not sufficient evidence of a regression. If the median does not stabilize, discard the results and measure again in a controlled environment.
 
 ## Checking allocated bytes
 
@@ -106,7 +108,7 @@ Verify all of the following:
 
 - Unit, contract, and golden tests pass with the race detector enabled.
 - allocs/op meets the evaluation criteria for every affected benchmark.
-- Repeated before-and-after measurements show no regression in the minimum ns/op.
+- Repeated before-and-after measurements show no regression in the median ns/op.
 - Any B/op difference can be explained by arena growth or values captured by closures.
 - A local optimization in one format does not unnecessarily break responsibility and vocabulary symmetry with other formats.
 

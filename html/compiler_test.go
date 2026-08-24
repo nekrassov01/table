@@ -47,7 +47,7 @@ func Test_compiler_prepare(t *testing.T) {
 					header:   [][]string{{"header"}},
 					footer:   [][]string{{"footer"}},
 					bodyRows: 1,
-					columns: []column{
+					columns: []columnConfig{
 						{
 							rowspan: ScopeHeader | ScopeBody,
 							colspan: ScopeFooter,
@@ -96,7 +96,7 @@ func Test_compiler_prepare(t *testing.T) {
 				input: configResult{
 					option:   &option{},
 					bodyRows: 1,
-					columns:  make([]column, 2),
+					columns:  make([]columnConfig, 2),
 				},
 				state: compilerState{
 					rows:  make([]row, 2, 5),
@@ -172,7 +172,7 @@ func Test_compiler_compileHeader(t *testing.T) {
 				input: configResult{
 					option:  &option{},
 					header:  [][]string{{"top"}, {"bottom"}},
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 				state: compilerState{
 					cells:       make([]cell, 0, 2),
@@ -251,7 +251,7 @@ func Test_compiler_compileBody(t *testing.T) {
 			fields: fields{
 				input: configResult{
 					option:  &option{},
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 				state: compilerState{
 					cells:       make([]cell, 0, 2),
@@ -271,7 +271,7 @@ func Test_compiler_compileBody(t *testing.T) {
 			fields: fields{
 				input: configResult{
 					option:  &option{},
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 				state: compilerState{
 					columnSizes: make([]int, 1),
@@ -333,7 +333,7 @@ func Test_compiler_compileFooter(t *testing.T) {
 				input: configResult{
 					option:        &option{},
 					footer:        [][]string{{"subtotal"}, {"total"}},
-					columns:       []column{{}},
+					columns:       []columnConfig{{}},
 					footerColumns: 1,
 				},
 				state: compilerState{
@@ -352,7 +352,7 @@ func Test_compiler_compileFooter(t *testing.T) {
 				input: configResult{
 					option:        &option{},
 					footer:        [][]string{{"a", "b"}},
-					columns:       []column{{}},
+					columns:       []columnConfig{{}},
 					footerColumns: 2,
 				},
 			},
@@ -410,7 +410,7 @@ func Test_compiler_compileBand(t *testing.T) {
 	type want struct {
 		values []string
 	}
-	columns := make([]column, 3)
+	columns := make([]columnConfig, 3)
 	tests := []struct {
 		name   string
 		fields fields
@@ -510,7 +510,7 @@ func Test_compiler_compileRow(t *testing.T) {
 						placeholder: "-",
 						indexOffset: 1,
 					},
-					columns: make([]column, 2),
+					columns: make([]columnConfig, 2),
 				},
 				state: compilerState{
 					cells:       make([]cell, 0, 2),
@@ -530,7 +530,7 @@ func Test_compiler_compileRow(t *testing.T) {
 			fields: fields{
 				input: configResult{
 					option:  &option{},
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 				state: compilerState{
 					columnSizes: make([]int, 1),
@@ -550,8 +550,8 @@ func Test_compiler_compileRow(t *testing.T) {
 					option: &option{
 						placeholder: "-",
 					},
-					columns: func() []column {
-						columns := make([]column, 3)
+					columns: func() []columnConfig {
+						columns := make([]columnConfig, 3)
 						columns[0].transformer.fn = func(any) (string, *Color, *Decoration) {
 							return "new", ColorFgRed, DecorationBold
 						}
@@ -628,7 +628,7 @@ func Test_compiler_reserveBand(t *testing.T) {
 			name: "reserves rows and cell capacity",
 			fields: fields{
 				input: configResult{
-					columns: make([]column, 2),
+					columns: make([]columnConfig, 2),
 				},
 				state: compilerState{
 					cells: make([]cell, 1),
@@ -683,7 +683,7 @@ func Test_compiler_newRow(t *testing.T) {
 			name: "takes a row from cell storage",
 			fields: fields{
 				input: configResult{
-					columns: make([]column, 2),
+					columns: make([]columnConfig, 2),
 				},
 				state: compilerState{
 					cells: func() []cell {

@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/nekrassov01/table"
+	"github.com/nekrassov01/table/internal/column"
 )
 
 var _ table.Tabular = (*Table)(nil)
@@ -26,7 +27,7 @@ func NewTable(w io.Writer, opts ...Option) *Table {
 func (o *Table) Render(rows [][]any) error {
 	header := o.option.header
 	body := rows
-	if maxColumns(header) == 0 {
+	if column.MaxColumns(header) == 0 {
 		for len(body) > 0 && len(body[0]) == 0 {
 			body = body[1:]
 		}

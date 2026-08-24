@@ -7,11 +7,12 @@ set -euo pipefail
 
 pkg="${1:-}"
 if [[ -z "$pkg" ]]; then
-  echo "usage: $0 {text|markdown|backlog|csv|html}" >&2
+  echo "usage: $0 {text|html|markdown|backlog|csv}" >&2
   exit 1
 fi
 
-dir="$(dirname "$0")/${pkg}/testdata"
+root="$(cd "$(dirname "$0")/.." && pwd)"
+dir="${root}/${pkg}/testdata"
 if [[ ! -d "$dir" ]]; then
   echo "not found: $dir" >&2
   exit 1

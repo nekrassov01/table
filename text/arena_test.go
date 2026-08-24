@@ -196,7 +196,7 @@ func Test_arena_resumeConfig(t *testing.T) {
 			name: "restores resolved columns",
 			fields: fields{
 				config: configState{
-					columns: []column{
+					columns: []columnConfig{
 						{
 							limit: 3,
 						},
@@ -220,7 +220,7 @@ func Test_arena_resumeConfig(t *testing.T) {
 					header:   [][]string{{"header"}},
 					footer:   [][]string{{"total"}},
 					bodyRows: 2,
-					columns: []column{
+					columns: []columnConfig{
 						{
 							limit: 3,
 						},
@@ -278,7 +278,7 @@ func Test_arena_newCompiler(t *testing.T) {
 			args: args{
 				input: configResult{
 					option: &option{},
-					columns: []column{
+					columns: []columnConfig{
 						{},
 					},
 				},
@@ -288,7 +288,7 @@ func Test_arena_newCompiler(t *testing.T) {
 				output: compilerResult{
 					configResult: configResult{
 						option: &option{},
-						columns: []column{
+						columns: []columnConfig{
 							{},
 						},
 					},
@@ -358,7 +358,7 @@ func Test_arena_resumeCompiler(t *testing.T) {
 			args: args{
 				input: configResult{
 					option: &option{},
-					columns: []column{
+					columns: []columnConfig{
 						{},
 						{},
 					},
@@ -368,7 +368,7 @@ func Test_arena_resumeCompiler(t *testing.T) {
 				output: compilerResult{
 					configResult: configResult{
 						option: &option{},
-						columns: []column{
+						columns: []columnConfig{
 							{},
 							{},
 						},
@@ -662,7 +662,7 @@ func Test_arena_release(t *testing.T) {
 			name: "drops retained views",
 			fields: &fields{
 				config: configState{
-					columns: []column{
+					columns: []columnConfig{
 						{
 							transformer: transformer{
 								fn: func(any) (string, *Attr) {

@@ -15,7 +15,7 @@ Synchronize documentation with the implementation after code changes. Treat the 
 4. Decide whether the code change affects documentation. Internal changes with no observable, structural, procedural, or performance-contract impact may require no documentation edit; state that conclusion explicitly.
 5. Update every affected document, but keep each fact in its canonical document. Replace stale text instead of appending a second explanation. Keep `README.md` concise and link to detailed documents when detail is necessary.
 6. Check the edited prose against the implementation and tests. Preserve the repository vocabulary and the media order `text`, `html`, `markdown`, `backlog`, `csv`.
-7. Run validation appropriate to the edits, including `git diff --check` and the relevant commands in `docs/DEVELOPMENT.md`. If behavior or performance changed, verify the contracts in `docs/API.md` or the criteria in `docs/BASELINE.md`.
+7. Run validation appropriate to the edits, including `git diff --check` and the relevant commands in `docs/DEVELOPMENT.md`. If behavior or performance changed, verify the contracts in `docs/API.md` or the criteria and publication rules in `docs/BASELINE.md`.
 8. Report the code-to-document mapping, edited files, omitted documents and reasons, and validation results.
 9. Do not stage or commit. Ask the user to approve the complete code and documentation diff before committing, even if an earlier request authorized implementation.
 

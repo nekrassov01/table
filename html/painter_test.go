@@ -30,7 +30,7 @@ func Test_painter_prepare(t *testing.T) {
 					compilerResult: compilerResult{
 						configResult: configResult{
 							option:  &option{},
-							columns: []column{{}},
+							columns: []columnConfig{{}},
 						},
 						columnSizes: []int{5},
 					},
@@ -66,7 +66,7 @@ func Test_painter_prepare(t *testing.T) {
 									},
 								},
 							},
-							columns: []column{{}},
+							columns: []columnConfig{{}},
 						},
 						columnSizes: []int{5},
 					},
@@ -84,7 +84,7 @@ func Test_painter_prepare(t *testing.T) {
 					compilerResult: compilerResult{
 						configResult: configResult{
 							option:  &option{},
-							columns: []column{{}},
+							columns: []columnConfig{{}},
 						},
 						columnSizes: []int{5},
 					},
@@ -200,7 +200,7 @@ func Test_painter_paintBody(t *testing.T) {
 					compilerResult: compilerResult{
 						configResult: configResult{
 							option:  &option{},
-							columns: []column{{}},
+							columns: []columnConfig{{}},
 						},
 						body: []row{
 							{
@@ -408,7 +408,7 @@ func Test_painter_paintBand(t *testing.T) {
 					compilerResult: compilerResult{
 						configResult: configResult{
 							option:  &option{},
-							columns: []column{{}},
+							columns: []columnConfig{{}},
 						},
 					},
 				},
@@ -584,7 +584,7 @@ func Test_painter_paintRow(t *testing.T) {
 			name: "paints visible cells",
 			fields: fields{
 				input: func() solverResult {
-					columns := make([]column, 3)
+					columns := make([]columnConfig, 3)
 					columns[2].aligns.Set(ScopeBody, AlignCenter)
 					return solverResult{
 						compilerResult: compilerResult{

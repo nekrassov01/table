@@ -33,15 +33,15 @@ The five output packages consume the same table data, but they cannot express th
 
 The following omissions are intentional.
 
-| Omitted abstraction or feature                   | Reason                                                                                                     |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| A pipeline implementation shared by every format | Callbacks or type parameters would obscure format-specific rules.                                          |
-| An empty `solver` in every format                | CSV has no geometry to resolve.                                                                            |
-| Active rows stored in `option`                   | Mixing state with different lifetimes would blur the boundaries between `Table`, `Stream`, and the pool.   |
-| Parsing arbitrary ANSI strings                   | `Attr` already provides a structured ANSI representation.                                                  |
-| Permanently caching terminal width               | A permanent cache could not follow terminal resizing.                                                      |
-| HTML layout options                              | Width, padding, and borders belong to the browser and CSS.                                                 |
-| Visual decoration in CSV                         | CSV cannot preserve such decoration while remaining machine-readable.                                      |
+| Omitted abstraction or feature                   | Reason                                                                                                   |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| A pipeline implementation shared by every format | Callbacks or type parameters would obscure format-specific rules.                                        |
+| An empty `solver` in every format                | CSV has no geometry to resolve.                                                                          |
+| Active rows stored in `option`                   | Mixing state with different lifetimes would blur the boundaries between `Table`, `Stream`, and the pool. |
+| Parsing arbitrary ANSI strings                   | `Attr` already provides a structured ANSI representation.                                                |
+| Permanently caching terminal width               | A permanent cache could not follow terminal resizing.                                                    |
+| HTML layout options                              | Width, padding, and borders belong to the browser and CSS.                                               |
+| Visual decoration in CSV                         | CSV cannot preserve such decoration while remaining machine-readable.                                    |
 
 ### Use the same vocabulary for the same responsibility
 
@@ -49,7 +49,7 @@ The pipeline stages are named `config`, `compiler`, `solver`, and `painter`. A f
 
 ### Separate decisions from representations
 
-When several formats share a rule, they share only the decision and retain their own output representation. For example, `internal/span` identifies continuation positions for adjacent cells with equal values, but it does not decide whether those positions become borders, empty cells, or HTML attributes.
+When several formats share a rule, they share only the decision and retain their own output representation. `internal/column` derives maximum column counts from header and footer rows and owns column selection and default inheritance, while each format retains its own column settings. Similarly, `internal/span` identifies continuation positions for adjacent cells with equal values, but it does not decide whether those positions become borders, empty cells, or HTML attributes.
 
 ### Separate state with different lifetimes
 

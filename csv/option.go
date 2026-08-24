@@ -1,6 +1,6 @@
 package csv
 
-import "slices"
+import "github.com/nekrassov01/table/internal/column"
 
 // Option configures a [Table] or [Stream] during construction. Column indexes
 // refer to positions in the input rows; a generated index column does not
@@ -74,7 +74,7 @@ func WithPlaceholder(s string) Option {
 // uses the formatted raw value.
 func WithTransformer(columns ColumnSelector, fn func(any) string) Option {
 	return func(o *option) {
-		o.columns.apply(columns, func(c *column) {
+		o.columns.apply(columns, func(c *columnConfig) {
 			c.transformer = fn
 		})
 	}
@@ -82,14 +82,13 @@ func WithTransformer(columns ColumnSelector, fn func(any) string) Option {
 
 // ColumnSelector identifies input columns for a column option.
 type ColumnSelector struct {
-	indexes []int
-	all     bool
+	selector column.Selector
 }
 
 // Columns selects the input columns at indexes. Negative indexes are ignored.
 func Columns(indexes ...int) ColumnSelector {
 	return ColumnSelector{
-		indexes: slices.Clone(indexes),
+		selector: column.NewSelector(indexes...),
 	}
 }
 
@@ -97,6 +96,6 @@ func Columns(indexes ...int) ColumnSelector {
 // options are applied. A generated index column is excluded.
 func AllColumns() ColumnSelector {
 	return ColumnSelector{
-		all: true,
+		selector: column.All(),
 	}
 }

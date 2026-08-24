@@ -3,12 +3,12 @@ package text
 import (
 	"io"
 
+	"github.com/nekrassov01/table/internal/column"
 	"github.com/nekrassov01/table/internal/scope"
 )
 
-// DefaultPlaceholder is the default placeholder for missing or empty body
-// cells.
-const DefaultPlaceholder = " "
+// placeholder is the default text for missing or empty body cells.
+const placeholder = " "
 
 // config resolves construction options and pass data into logical columns.
 type config struct {
@@ -22,8 +22,8 @@ type config struct {
 func (o *config) prepare() {
 	result := &o.output
 	option := result.option
-	headerColumns := maxColumns(result.header)
-	footerColumns := maxColumns(result.footer)
+	headerColumns := column.MaxColumns(result.header)
+	footerColumns := column.MaxColumns(result.footer)
 	columnCount := headerColumns
 	if columnCount == 0 {
 		columnCount = max(o.bodyColumns, footerColumns)
@@ -33,7 +33,7 @@ func (o *config) prepare() {
 	}
 	columns := o.state.columns
 	if cap(columns) < columnCount {
-		columns = make([]column, columnCount)
+		columns = make([]columnConfig, columnCount)
 	} else {
 		columns = columns[:columnCount]
 	}
@@ -41,14 +41,14 @@ func (o *config) prepare() {
 		columns[index] = defaultColumn()
 	}
 	defaults := defaultColumn()
-	if option.columns.defaults != nil {
-		defaults = *option.columns.defaults
+	if option.columns.Defaults != nil {
+		defaults = *option.columns.Defaults
 	}
 	for index := option.indexOffset; index < columnCount; index++ {
 		columns[index] = defaults
 	}
 	if option.indexOffset < columnCount {
-		copy(columns[option.indexOffset:], option.columns.values)
+		copy(columns[option.indexOffset:], option.columns.Values)
 	}
 	o.state.columns = columns
 	result.columns = columns
@@ -57,12 +57,12 @@ func (o *config) prepare() {
 
 // configResult carries pass data and resolved logical columns.
 type configResult struct {
-	option        *option    // Options fixed at construction.
-	header        [][]string // Header rows in top-to-bottom order.
-	footer        [][]string // Footer rows in top-to-bottom order.
-	bodyRows      int        // Number of body rows in this pass.
-	columns       []column   // Resolved column settings in logical order.
-	footerColumns int        // Footer width resolved for the current config pass.
+	option        *option        // Options fixed at construction.
+	header        [][]string     // Header rows in top-to-bottom order.
+	footer        [][]string     // Footer rows in top-to-bottom order.
+	bodyRows      int            // Number of body rows in this pass.
+	columns       []columnConfig // Resolved column settings in logical order.
+	footerColumns int            // Footer width resolved for the current config pass.
 }
 
 // option holds settings fixed when a Table or Stream is constructed.
@@ -85,7 +85,7 @@ type option struct {
 // behavior.
 func (o *option) apply(w io.Writer, minIndexWidth int, opts ...Option) {
 	o.style = StyleLight
-	o.placeholder = DefaultPlaceholder
+	o.placeholder = placeholder
 	for _, opt := range opts {
 		opt(o)
 	}
@@ -97,22 +97,22 @@ func (o *option) apply(w io.Writer, minIndexWidth int, opts ...Option) {
 	if o.plain {
 		o.style.Border.Attr = nil
 		o.style.Content = ContentStyle{}
-		if columns.defaults != nil {
-			columns.defaults.transformer.attrs = scope.Scopes[*Attr]{}
+		if columns.Defaults != nil {
+			columns.Defaults.transformer.attrs = scope.Scopes[*Attr]{}
 		}
-		for i := range columns.values {
-			columns.values[i].transformer.attrs = scope.Scopes[*Attr]{}
+		for i := range columns.Values {
+			columns.Values[i].transformer.attrs = scope.Scopes[*Attr]{}
 		}
 	}
 	if !o.autoFit {
 		return
 	}
-	if defaults := columns.defaults; defaults != nil && (defaults.limit > 0 || defaults.truncate) {
+	if defaults := columns.Defaults; defaults != nil && (defaults.limit > 0 || defaults.truncate) {
 		o.autoFit = false
 		return
 	}
-	for i := range columns.values {
-		col := &columns.values[i]
+	for i := range columns.Values {
+		col := &columns.Values[i]
 		if col.limit > 0 || col.truncate {
 			o.autoFit = false
 			return
@@ -120,49 +120,16 @@ func (o *option) apply(w io.Writer, minIndexWidth int, opts ...Option) {
 	}
 }
 
-// columnSet holds explicit input columns and the default used by AllColumns.
-type columnSet struct {
-	values   []column // Explicit columns in input order.
-	defaults *column  // Column inherited by every input position.
-}
+// columnSet applies shared column selection to text column settings.
+type columnSet column.Set[columnConfig]
 
 // apply updates every input column selected by selector.
-func (o *columnSet) apply(selector ColumnSelector, fn func(*column)) {
-	if selector.all {
-		if o.defaults == nil {
-			defaults := defaultColumn()
-			o.defaults = &defaults
-		}
-		fn(o.defaults)
-		for index := range o.values {
-			fn(&o.values[index])
-		}
-		return
-	}
-	columnCount := 0
-	for _, index := range selector.indexes {
-		columnCount = max(columnCount, index+1)
-	}
-	existing := len(o.values)
-	if columnCount > existing {
-		o.values = append(o.values, make([]column, columnCount-existing)...)
-		defaults := defaultColumn()
-		if o.defaults != nil {
-			defaults = *o.defaults
-		}
-		for index := existing; index < columnCount; index++ {
-			o.values[index] = defaults
-		}
-	}
-	for _, index := range selector.indexes {
-		if index >= 0 {
-			fn(&o.values[index])
-		}
-	}
+func (o *columnSet) apply(selector ColumnSelector, fn func(*columnConfig)) {
+	(*column.Set[columnConfig])(o).Apply(selector.selector, defaultColumn, fn)
 }
 
-// column defines the behavior of one resolved logical column.
-type column struct {
+// columnConfig holds text settings for one logical column.
+type columnConfig struct {
 	transformer transformer             // Value transformation and attributes.
 	aligns      scope.Scopes[AlignSide] // Alignment by table part.
 	limit       int                     // Configured display width; zero is unconstrained.
@@ -179,18 +146,9 @@ type transformer struct {
 	fn    func(any) (string, *Attr) // Per-cell transformer for body values.
 }
 
-// maxColumns returns the greatest column count among rows.
-func maxColumns(rows [][]string) int {
-	columnCount := 0
-	for _, row := range rows {
-		columnCount = max(columnCount, len(row))
-	}
-	return columnCount
-}
-
 // defaultColumn returns an unconfigured input column.
-func defaultColumn() column {
-	return column{
+func defaultColumn() columnConfig {
+	return columnConfig{
 		lPad: 1,
 		rPad: 1,
 	}
