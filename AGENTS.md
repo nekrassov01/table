@@ -17,7 +17,7 @@ Select the documents that correspond to the task and read them before changing t
 
 Read `ARCHITECTURE.md` and `DESIGN.md` before changing internal structure, and read `API.md` before changing public behavior. For performance-sensitive work, read the evaluation order and measurement conditions in `BASELINE.md` before implementation. Use the entry points documented in `DEVELOPMENT.md` rather than recalling commands from memory.
 
-After code changes and validation are complete, use the `sync-docs` skill before committing. Do not commit until the skill has updated the affected files in `docs/` and `README.md` and the user has approved the complete change.
+After code changes and validation are complete, use the `sync-docs` skill to update the affected files in `docs/` and `README.md`, then follow the handoff rules under Commits.
 
 ## Code
 
@@ -38,4 +38,4 @@ After code changes and validation are complete, use the `sync-docs` skill before
 ## Commits
 
 - Use English Conventional Commit messages. Separate structural changes from behavior changes, and keep every commit independently verifiable.
-- Do not commit until the implementation, tests, related documentation, and validation results have been presented and approved. Approval applies only to the diff presented at that point.
+- Once the implementation, tests, related documentation, and validation are complete, do not create the commit. Report that the changes are ready and provide one proposed commit message for the user to use.
