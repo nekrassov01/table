@@ -29,17 +29,17 @@ This document describes the architecture for maintainers.
 
 The repository contains the following directories.
 
-| Directory    | Category         | Role                                                 |
-| ------------ | ---------------- | ---------------------------------------------------- |
-| `.`          | Shared contract  | Common interfaces, row adapters, and errors          |
-| `text`       | Output format    | Unicode or ASCII bordered text tables                |
-| `html`       | Output format    | Semantic HTML tables                                 |
-| `markdown`   | Output format    | GitHub Flavored Markdown tables                      |
-| `backlog`    | Output format    | Backlog notation tables                              |
-| `csv`        | Output format    | Records separated by a configurable delimiter        |
-| `internal/*` | Shared internals | Internal processing shared by multiple formats       |
-| `examples`   | Samples          | Input data used by examples and benchmarks           |
-| `benchmarks` | Benchmarks       | Performance measurements in an independent Go module |
+| Directory    | Category          | Role                                                   |
+| ------------ | ----------------- | ------------------------------------------------------ |
+| `.`          | Shared contract   | Common interfaces, row adapters, and errors            |
+| `text`       | Output format     | Unicode or ASCII bordered text tables                  |
+| `html`       | Output format     | Semantic HTML tables                                   |
+| `markdown`   | Output format     | GitHub Flavored Markdown tables                        |
+| `backlog`    | Output format     | Backlog notation tables                                |
+| `csv`        | Output format     | Records separated by a configurable delimiter          |
+| `internal/*` | Internal packages | Shared processing and repository maintenance commands  |
+| `examples`   | Samples           | Input data used by examples and benchmarks             |
+| `benchmarks` | Benchmarks        | Performance measurements in an independent Go module   |
 
 The five output packages do not depend on one another. Shared packages do not refer to the types or control flow of a specific output format.
 
@@ -224,7 +224,7 @@ Strings obtained from `internal/value.Store` refer to the same memory as the sto
 
 ## Internal packages
 
-The following internal packages are shared by multiple output formats.
+The following internal packages support output formats and repository maintenance.
 
 | Package    | Responsibility                                                                        |
 | ---------- | ------------------------------------------------------------------------------------- |
@@ -235,6 +235,7 @@ The following internal packages are shared by multiple output formats.
 | `param`    | Define shared constants independent of an output format.                              |
 | `repeat`   | Append a repeated byte to a caller-owned buffer.                                      |
 | `scope`    | Identify header, body, and footer sections and retain section values or column masks. |
+| `skills`   | Implement maintenance commands invoked by repository skill entry points.              |
 | `span`     | Identify vertical or horizontal runs of equal displayed values.                       |
 | `testutil` | Provide shared test assertions, data, and mocks.                                      |
 | `unsafe`   | Convert a byte slice to a string without copying.                                     |

@@ -1,11 +1,13 @@
-package main
+package skills
 
 import (
+	"context"
 	"crypto/sha256"
 	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io"
 	"os"
 	"path/filepath"
 	"slices"
@@ -38,63 +40,15 @@ type audit struct {
 	uncoveredPairs []string
 }
 
-func main() {
-	media := os.Args[1:]
-	if len(media) == 0 {
-		media = defaultMedia
-	}
-	failed := false
-	for _, medium := range media {
-		result, err := auditMedium(medium)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s: %v\n", medium, err)
-			failed = true
-			continue
-		}
-		result.print()
-		if len(result.missingFiles) > 0 || len(result.orphanedFiles) > 0 || len(result.badReferences) > 0 {
-			failed = true
-		}
-	}
-	if failed {
-		os.Exit(1)
-	}
-}
-
-func (o audit) print() {
-	fmt.Printf("%s: tests=%d calls=%d files=%d options=%d uncovered_pairs=%d\n", o.medium, len(o.tests), countCalls(o.tests), len(o.files), len(o.options), len(o.uncoveredPairs))
-	printItems("  missing files", o.missingFiles)
-	printItems("  orphaned files", o.orphanedFiles)
-	printItems("  invalid references", o.badReferences)
+func (o audit) write(w io.Writer) {
+	_, _ = fmt.Fprintf(w, "%s: tests=%d calls=%d files=%d options=%d uncovered_pairs=%d\n", o.medium, len(o.tests), countCalls(o.tests), len(o.files), len(o.options), len(o.uncoveredPairs))
+	writeItems(w, "  missing files", o.missingFiles)
+	writeItems(w, "  orphaned files", o.orphanedFiles)
+	writeItems(w, "  invalid references", o.badReferences)
 	for _, item := range o.duplicates {
-		fmt.Printf("  identical bytes: %s\n", strings.Join(item.names, ", "))
+		_, _ = fmt.Fprintf(w, "  identical bytes: %s\n", strings.Join(item.names, ", "))
 	}
-	printItems("  uncovered option pairs", o.uncoveredPairs)
-}
-
-func auditMedium(medium string) (audit, error) {
-	tests, err := parseGoldenTests(filepath.Join(medium, "golden_test.go"))
-	if err != nil {
-		return audit{}, err
-	}
-	files, hashes, err := readGoldenFiles(filepath.Join(medium, "testdata"))
-	if err != nil {
-		return audit{}, err
-	}
-	options, err := parseOptions(filepath.Join(medium, "option.go"))
-	if err != nil {
-		return audit{}, err
-	}
-	result := audit{
-		medium:         medium,
-		tests:          tests,
-		files:          files,
-		duplicates:     resolveDuplicates(hashes),
-		options:        options,
-		uncoveredPairs: resolveUncoveredPairs(options, tests),
-	}
-	result.reconcile()
-	return result, nil
+	writeItems(w, "  uncovered option pairs", o.uncoveredPairs)
 }
 
 func (o *audit) reconcile() {
@@ -135,6 +89,59 @@ func (o *audit) reconcile() {
 	slices.Sort(o.badReferences)
 }
 
+// RunGoldens audits golden tests and their output files.
+func RunGoldens(ctx context.Context, media []string, stdout, stderr io.Writer) int {
+	if len(media) == 0 {
+		media = defaultMedia
+	}
+	failed := false
+	for _, medium := range media {
+		if err := ctx.Err(); err != nil {
+			_, _ = fmt.Fprintln(stderr, err)
+			return 1
+		}
+		result, err := auditMedium(medium)
+		if err != nil {
+			_, _ = fmt.Fprintf(stderr, "%s: %v\n", medium, err)
+			failed = true
+			continue
+		}
+		result.write(stdout)
+		if len(result.missingFiles) > 0 || len(result.orphanedFiles) > 0 || len(result.badReferences) > 0 {
+			failed = true
+		}
+	}
+	if failed {
+		return 1
+	}
+	return 0
+}
+
+func auditMedium(medium string) (audit, error) {
+	tests, err := parseGoldenTests(filepath.Join(medium, "golden_test.go"))
+	if err != nil {
+		return audit{}, err
+	}
+	files, hashes, err := readGoldenFiles(filepath.Join(medium, "testdata"))
+	if err != nil {
+		return audit{}, err
+	}
+	options, err := parseGoldenOptions(filepath.Join(medium, "option.go"))
+	if err != nil {
+		return audit{}, err
+	}
+	result := audit{
+		medium:         medium,
+		tests:          tests,
+		files:          files,
+		duplicates:     resolveDuplicates(hashes),
+		options:        options,
+		uncoveredPairs: resolveUncoveredPairs(options, tests),
+	}
+	result.reconcile()
+	return result, nil
+}
+
 func parseGoldenTests(path string) ([]goldenTest, error) {
 	set := token.NewFileSet()
 	file, err := parser.ParseFile(set, path, nil, 0)
@@ -164,12 +171,8 @@ func parseGoldenTests(path string) ([]goldenTest, error) {
 			if !ok || selector.Sel.Name != "AssertGolden" || len(call.Args) < 2 {
 				return true
 			}
-			literal, ok := call.Args[1].(*ast.BasicLit)
-			if !ok || literal.Kind != token.STRING {
-				return true
-			}
-			name, err := strconv.Unquote(literal.Value)
-			if err != nil {
+			name, ok := goldenName(call.Args[1])
+			if !ok {
 				return true
 			}
 			calls++
@@ -188,7 +191,49 @@ func parseGoldenTests(path string) ([]goldenTest, error) {
 	return tests, nil
 }
 
-func parseOptions(path string) ([]string, error) {
+func callName(expression ast.Expr) string {
+	switch value := expression.(type) {
+	case *ast.Ident:
+		return value.Name
+	case *ast.SelectorExpr:
+		return value.Sel.Name
+	default:
+		return ""
+	}
+}
+
+func goldenName(expression ast.Expr) (string, bool) {
+	literal, ok := expression.(*ast.BasicLit)
+	if !ok || literal.Kind != token.STRING {
+		return "", false
+	}
+	name, err := strconv.Unquote(literal.Value)
+	return name, err == nil
+}
+
+func readGoldenFiles(directory string) ([]string, map[[sha256.Size]byte][]string, error) {
+	paths, err := filepath.Glob(filepath.Join(directory, "*.txt"))
+	if err != nil {
+		return nil, nil, err
+	}
+	names := make([]string, 0, len(paths))
+	hashes := make(map[[sha256.Size]byte][]string)
+	for _, path := range paths {
+		// #nosec G304,G703 -- paths come from the requested medium's testdata glob.
+		contents, err := os.ReadFile(path)
+		if err != nil {
+			return nil, nil, err
+		}
+		name := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+		names = append(names, name)
+		hash := sha256.Sum256(contents)
+		hashes[hash] = append(hashes[hash], name)
+	}
+	slices.Sort(names)
+	return names, hashes, nil
+}
+
+func parseGoldenOptions(path string) ([]string, error) {
 	set := token.NewFileSet()
 	file, err := parser.ParseFile(set, path, nil, 0)
 	if err != nil {
@@ -203,27 +248,6 @@ func parseOptions(path string) ([]string, error) {
 	}
 	slices.Sort(options)
 	return options, nil
-}
-
-func readGoldenFiles(directory string) ([]string, map[[sha256.Size]byte][]string, error) {
-	paths, err := filepath.Glob(filepath.Join(directory, "*.txt"))
-	if err != nil {
-		return nil, nil, err
-	}
-	names := make([]string, 0, len(paths))
-	hashes := make(map[[sha256.Size]byte][]string)
-	for _, path := range paths {
-		contents, err := os.ReadFile(path)
-		if err != nil {
-			return nil, nil, err
-		}
-		name := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
-		names = append(names, name)
-		hash := sha256.Sum256(contents)
-		hashes[hash] = append(hashes[hash], name)
-	}
-	slices.Sort(names)
-	return names, hashes, nil
 }
 
 func resolveDuplicates(hashes map[[sha256.Size]byte][]string) []duplicate {
@@ -272,19 +296,8 @@ func countCalls(tests []goldenTest) int {
 	return count
 }
 
-func callName(expression ast.Expr) string {
-	switch value := expression.(type) {
-	case *ast.Ident:
-		return value.Name
-	case *ast.SelectorExpr:
-		return value.Sel.Name
-	default:
-		return ""
-	}
-}
-
-func printItems(label string, items []string) {
+func writeItems(w io.Writer, label string, items []string) {
 	for _, item := range items {
-		fmt.Printf("%s: %s\n", label, item)
+		_, _ = fmt.Fprintf(w, "%s: %s\n", label, item)
 	}
 }
