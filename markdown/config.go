@@ -5,9 +5,8 @@ import (
 	"github.com/nekrassov01/table/internal/scope"
 )
 
-// DefaultPlaceholder is the default placeholder for missing or empty body
-// cells.
-const DefaultPlaceholder = " "
+// placeholder is the default text for missing or empty body cells.
+const placeholder = " "
 
 // config resolves construction options and the required header into logical
 // columns.
@@ -68,7 +67,7 @@ type option struct {
 
 // apply sets defaults and applies opts in order.
 func (o *option) apply(opts ...Option) {
-	o.placeholder = DefaultPlaceholder
+	o.placeholder = placeholder
 	for _, opt := range opts {
 		opt(o)
 	}

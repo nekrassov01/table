@@ -147,7 +147,7 @@ func Test_option_apply(t *testing.T) {
 		{
 			name: "defaults",
 			want: want{
-				placeholder: DefaultPlaceholder,
+				placeholder: placeholder,
 			},
 		},
 		{

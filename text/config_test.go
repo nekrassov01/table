@@ -195,7 +195,7 @@ func Test_option_apply(t *testing.T) {
 				w: &bytes.Buffer{},
 			},
 			want: want{
-				placeholder: DefaultPlaceholder,
+				placeholder: placeholder,
 				plain:       true,
 			},
 		},
@@ -244,7 +244,7 @@ func Test_option_apply(t *testing.T) {
 				}(),
 			},
 			want: want{
-				placeholder: DefaultPlaceholder,
+				placeholder: placeholder,
 				columns: func() columnSet {
 					plainDefault := defaultColumn()
 					return columnSet{
@@ -268,7 +268,7 @@ func Test_option_apply(t *testing.T) {
 				terminal: true,
 			},
 			want: want{
-				placeholder: DefaultPlaceholder,
+				placeholder: placeholder,
 				columns: func() columnSet {
 					configured := defaultColumn()
 					configured.limit = 4
@@ -289,7 +289,7 @@ func Test_option_apply(t *testing.T) {
 				terminal: true,
 			},
 			want: want{
-				placeholder: DefaultPlaceholder,
+				placeholder: placeholder,
 				columns: func() columnSet {
 					configured := defaultColumn()
 					configured.truncate = true
@@ -310,7 +310,7 @@ func Test_option_apply(t *testing.T) {
 				terminal: true,
 			},
 			want: want{
-				placeholder: DefaultPlaceholder,
+				placeholder: placeholder,
 				columns: func() columnSet {
 					configured := defaultColumn()
 					configured.limit = 4
@@ -331,7 +331,7 @@ func Test_option_apply(t *testing.T) {
 				terminal: true,
 			},
 			want: want{
-				placeholder: DefaultPlaceholder,
+				placeholder: placeholder,
 				columns: func() columnSet {
 					configured := defaultColumn()
 					configured.truncate = true
