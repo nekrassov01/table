@@ -10,6 +10,104 @@ import (
 	"github.com/nekrassov01/table/internal/testutil"
 )
 
+func TestGolden_TableAlignAttrPaddingTransformerTruncate(t *testing.T) {
+	restore := isTerminal
+	isTerminal = func(io.Writer) bool { return true }
+	t.Cleanup(func() { isTerminal = restore })
+	var buf bytes.Buffer
+	tb := NewTable(&buf,
+		WithStyle(StyleLight),
+		WithHeader([]string{"A", "B"}),
+		WithWidth(Columns(1), 5),
+		WithPadding(Columns(1), 2, 1),
+		WithAlign(ScopeBody, Columns(1), AlignRight),
+		WithAttr(ScopeBody, Columns(1), ColorFgRed),
+		WithTransformer(Columns(1), func(v any) (string, *Attr) {
+			if v == "raw" {
+				return "transformed", nil
+			}
+			return "", nil
+		}),
+		WithTruncate(Columns(1)),
+	)
+	if err := tb.Render([][]any{{"x", "raw"}, {"y", "ok"}}); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_align_attr_padding_transformer_truncate", buf.Bytes())
+}
+
+func TestGolden_StreamAlignAttrPaddingTransformerTruncate(t *testing.T) {
+	restore := isTerminal
+	isTerminal = func(io.Writer) bool { return true }
+	t.Cleanup(func() { isTerminal = restore })
+	var buf bytes.Buffer
+	s := NewStream(&buf,
+		WithStyle(StyleLight),
+		WithHeader([]string{"A", "B"}),
+		WithWidth(Columns(1), 5),
+		WithPadding(Columns(1), 2, 1),
+		WithAlign(ScopeBody, Columns(1), AlignRight),
+		WithAttr(ScopeBody, Columns(1), ColorFgRed),
+		WithTransformer(Columns(1), func(v any) (string, *Attr) {
+			if v == "raw" {
+				return "transformed", nil
+			}
+			return "", nil
+		}),
+		WithTruncate(Columns(1)),
+	)
+	for _, row := range [][]any{{"x", "raw"}, {"y", "ok"}} {
+		if err := s.Render(row); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := s.Close(); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_align_attr_padding_transformer_truncate", buf.Bytes())
+}
+
+func TestGolden_TableAlignAttrPlaceholder(t *testing.T) {
+	restore := isTerminal
+	isTerminal = func(io.Writer) bool { return true }
+	t.Cleanup(func() { isTerminal = restore })
+	var buf bytes.Buffer
+	tb := NewTable(&buf,
+		WithStyle(StyleLight),
+		WithHeader([]string{"A", "B"}),
+		WithPlaceholder("N/A"),
+		WithAlign(ScopeBody, Columns(1), AlignRight),
+		WithAttr(ScopeBody, Columns(1), ColorFgRed),
+	)
+	if err := tb.Render([][]any{{"x", nil}, {"y", "z"}}); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_align_attr_placeholder", buf.Bytes())
+}
+
+func TestGolden_StreamAlignAttrPlaceholder(t *testing.T) {
+	restore := isTerminal
+	isTerminal = func(io.Writer) bool { return true }
+	t.Cleanup(func() { isTerminal = restore })
+	var buf bytes.Buffer
+	s := NewStream(&buf,
+		WithStyle(StyleLight),
+		WithHeader([]string{"A", "B"}),
+		WithPlaceholder("N/A"),
+		WithAlign(ScopeBody, Columns(1), AlignRight),
+		WithAttr(ScopeBody, Columns(1), ColorFgRed),
+	)
+	for _, row := range [][]any{{"x", nil}, {"y", "z"}} {
+		if err := s.Render(row); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := s.Close(); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_align_attr_placeholder", buf.Bytes())
+}
+
 func TestGolden_TableAlignMultiline(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
@@ -782,7 +880,6 @@ func TestGolden_StreamBandRowspanColspanBoundary(t *testing.T) {
 func TestGolden_TableBasic(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
-		WithStyle(StyleLight),
 		WithHeader([]string{"Name", "Value"}),
 	)
 	if err := tb.Render([][]any{
@@ -796,7 +893,6 @@ func TestGolden_TableBasic(t *testing.T) {
 func TestGolden_StreamBasic(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
-		WithStyle(StyleLight),
 		WithHeader([]string{"Name", "Value"}),
 	)
 	if err := s.Render([]any{"foo", 1}); err != nil {
@@ -2305,6 +2401,45 @@ func TestGolden_StreamIndexWidth(t *testing.T) {
 	testutil.AssertGolden(t, "common_index_width", buf.Bytes())
 }
 
+func TestGolden_TableIndexWidthAutoFit(t *testing.T) {
+	restore := terminalWidth
+	terminalWidth = func(io.Writer) int { return 20 }
+	t.Cleanup(func() { terminalWidth = restore })
+	var buf bytes.Buffer
+	tb := NewTable(&buf,
+		WithStyle(StyleLight),
+		WithHeader([]string{"A", "B"}),
+		WithAutoFit(),
+		WithIndexWidth(4),
+	)
+	if err := tb.Render([][]any{{"a fairly long value", "x"}, {"short", "y"}}); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_index_width_autofit", buf.Bytes())
+}
+
+func TestGolden_StreamIndexWidthAutoFit(t *testing.T) {
+	restore := terminalWidth
+	terminalWidth = func(io.Writer) int { return 20 }
+	t.Cleanup(func() { terminalWidth = restore })
+	var buf bytes.Buffer
+	s := NewStream(&buf,
+		WithStyle(StyleLight),
+		WithHeader([]string{"A", "B"}),
+		WithAutoFit(),
+		WithIndexWidth(4),
+	)
+	for _, row := range [][]any{{"a fairly long value", "x"}, {"short", "y"}} {
+		if err := s.Render(row); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := s.Close(); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_index_width_autofit", buf.Bytes())
+}
+
 func TestGolden_TableInvalidUtf8(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
@@ -2771,6 +2906,53 @@ func TestGolden_StreamPlaceholderFixedWidth(t *testing.T) {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_placeholder_fixed_width", buf.Bytes())
+}
+
+func TestGolden_TablePlaceholderTransformerTruncate(t *testing.T) {
+	var buf bytes.Buffer
+	tb := NewTable(&buf,
+		WithStyle(StyleLight),
+		WithHeader([]string{"A", "B"}),
+		WithPlaceholder("missing"),
+		WithWidth(Columns(1), 4),
+		WithTransformer(Columns(1), func(v any) (string, *Attr) {
+			if v == "raw" {
+				return "replacement", nil
+			}
+			return "", nil
+		}),
+		WithTruncate(Columns(1)),
+	)
+	if err := tb.Render([][]any{{"empty", ""}, {"nil", nil}, {"raw", "raw"}}); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_placeholder_transformer_truncate", buf.Bytes())
+}
+
+func TestGolden_StreamPlaceholderTransformerTruncate(t *testing.T) {
+	var buf bytes.Buffer
+	s := NewStream(&buf,
+		WithStyle(StyleLight),
+		WithHeader([]string{"A", "B"}),
+		WithPlaceholder("missing"),
+		WithWidth(Columns(1), 4),
+		WithTransformer(Columns(1), func(v any) (string, *Attr) {
+			if v == "raw" {
+				return "replacement", nil
+			}
+			return "", nil
+		}),
+		WithTruncate(Columns(1)),
+	)
+	for _, row := range [][]any{{"empty", ""}, {"nil", nil}, {"raw", "raw"}} {
+		if err := s.Render(row); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := s.Close(); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_placeholder_transformer_truncate", buf.Bytes())
 }
 
 func TestGolden_TablePlaceholderWideBytes(t *testing.T) {
