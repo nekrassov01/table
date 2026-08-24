@@ -147,7 +147,7 @@ func (o *arena) release() {
 
 // configState retains resolved columns across stream passes.
 type configState struct {
-	columns []column // Resolved column settings in logical order.
+	columns []columnConfig // Resolved column settings in logical order.
 }
 
 // compilerState owns reusable compilation storage and cross-row span state.

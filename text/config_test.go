@@ -15,7 +15,7 @@ func Test_config_prepare(t *testing.T) {
 		output      configResult
 	}
 	type want struct {
-		columns       []column
+		columns       []columnConfig
 		footerColumns int
 		output        configResult
 	}
@@ -28,7 +28,7 @@ func Test_config_prepare(t *testing.T) {
 			name: "header with index and column settings",
 			fields: fields{
 				output: func() configResult {
-					defaults := column{
+					defaults := columnConfig{
 						limit: 9,
 						lPad:  2,
 						rPad:  3,
@@ -36,14 +36,14 @@ func Test_config_prepare(t *testing.T) {
 					return configResult{
 						option: &option{
 							columns: columnSet{
-								values: []column{
+								Values: []columnConfig{
 									{
 										limit: 7,
 										lPad:  4,
 										rPad:  5,
 									},
 								},
-								defaults: &defaults,
+								Defaults: &defaults,
 							},
 							indexOffset: 1,
 						},
@@ -54,11 +54,11 @@ func Test_config_prepare(t *testing.T) {
 				}(),
 				bodyColumns: 3,
 				state: configState{
-					columns: make([]column, 3, 4),
+					columns: make([]columnConfig, 3, 4),
 				},
 			},
 			want: want{
-				columns: []column{
+				columns: []columnConfig{
 					defaultColumn(),
 					{
 						limit: 7,
@@ -84,7 +84,7 @@ func Test_config_prepare(t *testing.T) {
 				},
 			},
 			want: want{
-				columns: []column{
+				columns: []columnConfig{
 					defaultColumn(),
 					defaultColumn(),
 					defaultColumn(),
@@ -103,7 +103,7 @@ func Test_config_prepare(t *testing.T) {
 				},
 			},
 			want: want{
-				columns: []column{
+				columns: []columnConfig{
 					defaultColumn(),
 				},
 				footerColumns: 4,
@@ -118,13 +118,13 @@ func Test_config_prepare(t *testing.T) {
 					},
 				},
 				state: configState{
-					columns: []column{{
+					columns: []columnConfig{{
 						limit: 9,
 					}},
 				},
 			},
 			want: want{
-				columns: []column{},
+				columns: []columnConfig{},
 			},
 		},
 	}
@@ -220,7 +220,7 @@ func Test_option_apply(t *testing.T) {
 					configured := defaultColumn()
 					configured.transformer.attrs.Set(ScopeBody, attr)
 					return columnSet{
-						defaults: &configured,
+						Defaults: &configured,
 					}
 				}(),
 				indexOffset: 1,
@@ -248,10 +248,10 @@ func Test_option_apply(t *testing.T) {
 				columns: func() columnSet {
 					plainDefault := defaultColumn()
 					return columnSet{
-						values: []column{
+						Values: []columnConfig{
 							defaultColumn(),
 						},
-						defaults: &plainDefault,
+						Defaults: &plainDefault,
 					}
 				}(),
 				plain: true,
@@ -273,7 +273,7 @@ func Test_option_apply(t *testing.T) {
 					configured := defaultColumn()
 					configured.limit = 4
 					return columnSet{
-						defaults: &configured,
+						Defaults: &configured,
 					}
 				}(),
 			},
@@ -294,7 +294,7 @@ func Test_option_apply(t *testing.T) {
 					configured := defaultColumn()
 					configured.truncate = true
 					return columnSet{
-						defaults: &configured,
+						Defaults: &configured,
 					}
 				}(),
 			},
@@ -315,7 +315,7 @@ func Test_option_apply(t *testing.T) {
 					configured := defaultColumn()
 					configured.limit = 4
 					return columnSet{
-						values: []column{configured},
+						Values: []columnConfig{configured},
 					}
 				}(),
 			},
@@ -336,7 +336,7 @@ func Test_option_apply(t *testing.T) {
 					configured := defaultColumn()
 					configured.truncate = true
 					return columnSet{
-						values: []column{configured},
+						Values: []columnConfig{configured},
 					}
 				}(),
 			},
@@ -383,18 +383,18 @@ func Test_option_apply(t *testing.T) {
 
 func Test_columnSet_apply(t *testing.T) {
 	type fields struct {
-		values   []column
-		defaults *column
+		values   []columnConfig
+		defaults *columnConfig
 	}
 	type args struct {
 		selector ColumnSelector
-		fn       func(*column)
+		fn       func(*columnConfig)
 	}
 	type want struct {
-		values   []column
-		defaults *column
+		values   []columnConfig
+		defaults *columnConfig
 	}
-	increment := func(column *column) {
+	increment := func(column *columnConfig) {
 		column.limit++
 	}
 	tests := []struct {
@@ -406,7 +406,7 @@ func Test_columnSet_apply(t *testing.T) {
 		{
 			name: "all columns creates defaults",
 			fields: fields{
-				values: []column{{
+				values: []columnConfig{{
 					limit: 1,
 				}},
 			},
@@ -415,10 +415,10 @@ func Test_columnSet_apply(t *testing.T) {
 				fn:       increment,
 			},
 			want: want{
-				values: []column{{
+				values: []columnConfig{{
 					limit: 2,
 				}},
-				defaults: &column{
+				defaults: &columnConfig{
 					limit: 1,
 					lPad:  1,
 					rPad:  1,
@@ -428,8 +428,8 @@ func Test_columnSet_apply(t *testing.T) {
 		{
 			name: "all columns updates defaults",
 			fields: fields{
-				values: []column{{}},
-				defaults: &column{
+				values: []columnConfig{{}},
+				defaults: &columnConfig{
 					limit: 2,
 					lPad:  1,
 					rPad:  1,
@@ -440,10 +440,10 @@ func Test_columnSet_apply(t *testing.T) {
 				fn:       increment,
 			},
 			want: want{
-				values: []column{{
+				values: []columnConfig{{
 					limit: 1,
 				}},
-				defaults: &column{
+				defaults: &columnConfig{
 					limit: 3,
 					lPad:  1,
 					rPad:  1,
@@ -453,7 +453,7 @@ func Test_columnSet_apply(t *testing.T) {
 		{
 			name: "indexes extend default columns",
 			fields: fields{
-				values: []column{{
+				values: []columnConfig{{
 					limit: 4,
 				}},
 			},
@@ -462,7 +462,7 @@ func Test_columnSet_apply(t *testing.T) {
 				fn:       increment,
 			},
 			want: want{
-				values: []column{
+				values: []columnConfig{
 					{
 						limit: 4,
 					},
@@ -478,7 +478,7 @@ func Test_columnSet_apply(t *testing.T) {
 		{
 			name: "indexes inherit configured defaults",
 			fields: fields{
-				defaults: &column{
+				defaults: &columnConfig{
 					limit: 5,
 					lPad:  2,
 					rPad:  3,
@@ -489,7 +489,7 @@ func Test_columnSet_apply(t *testing.T) {
 				fn:       increment,
 			},
 			want: want{
-				values: []column{
+				values: []columnConfig{
 					{
 						limit: 5,
 						lPad:  2,
@@ -501,7 +501,7 @@ func Test_columnSet_apply(t *testing.T) {
 						rPad:  3,
 					},
 				},
-				defaults: &column{
+				defaults: &columnConfig{
 					limit: 5,
 					lPad:  2,
 					rPad:  3,
@@ -511,14 +511,14 @@ func Test_columnSet_apply(t *testing.T) {
 		{
 			name: "negative index is ignored",
 			fields: fields{
-				values: []column{{}},
+				values: []columnConfig{{}},
 			},
 			args: args{
 				selector: Columns(-1, 0),
 				fn:       increment,
 			},
 			want: want{
-				values: []column{{
+				values: []columnConfig{{
 					limit: 1,
 				}},
 			},
@@ -527,68 +527,22 @@ func Test_columnSet_apply(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			o := &columnSet{
-				values:   test.fields.values,
-				defaults: test.fields.defaults,
+				Values:   test.fields.values,
+				Defaults: test.fields.defaults,
 			}
 			o.apply(test.args.selector, test.args.fn)
 			got := want{
-				values:   o.values,
-				defaults: o.defaults,
+				values:   o.Values,
+				defaults: o.Defaults,
 			}
 			testutil.AssertValue(t, got, test.want, "apply")
 		})
 	}
 }
 
-func Test_maxColumns(t *testing.T) {
-	type args struct {
-		rows [][]string
-	}
-	type want struct {
-		val int
-	}
-	tests := []struct {
-		name string
-		args args
-		want want
-	}{
-		{
-			name: "no rows",
-		},
-		{
-			name: "empty rows",
-			args: args{
-				rows: [][]string{
-					{},
-					{},
-				},
-			},
-		},
-		{
-			name: "widest row",
-			args: args{
-				rows: [][]string{
-					{"a"},
-					{"a", "b", "c"},
-					{"a", "b"},
-				},
-			},
-			want: want{
-				val: 3,
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			got := maxColumns(test.args.rows)
-			testutil.AssertValue(t, got, test.want.val, "maxColumns")
-		})
-	}
-}
-
 func Test_defaultColumn(t *testing.T) {
 	type want struct {
-		val column
+		val columnConfig
 	}
 	tests := []struct {
 		name string
@@ -597,7 +551,7 @@ func Test_defaultColumn(t *testing.T) {
 		{
 			name: "default padding",
 			want: want{
-				val: column{
+				val: columnConfig{
 					lPad: 1,
 					rPad: 1,
 				},

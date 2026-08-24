@@ -34,7 +34,7 @@ func Test_compiler_prepare(t *testing.T) {
 					header:   []string{"A", "B"},
 					footer:   [][]string{{"x", "y"}},
 					bodyRows: 2,
-					columns:  []column{{}, {}},
+					columns:  []columnConfig{{}, {}},
 				},
 			},
 			want: want{
@@ -48,7 +48,7 @@ func Test_compiler_prepare(t *testing.T) {
 			fields: fields{
 				input: configResult{
 					bodyRows: 1,
-					columns:  []column{{}, {}},
+					columns:  []columnConfig{{}, {}},
 				},
 				state: compilerState{
 					rows:   []row{{}, {}},
@@ -114,7 +114,7 @@ func Test_compiler_compileHeader(t *testing.T) {
 						indexOffset: 1,
 					},
 					header:  []string{"A,B", "C"},
-					columns: []column{{}, {}, {}},
+					columns: []columnConfig{{}, {}, {}},
 				},
 				state: compilerState{
 					cells:  make([]cell, 0, 3),
@@ -196,7 +196,7 @@ func Test_compiler_compileBody(t *testing.T) {
 					option: &option{
 						delimiter: '\t',
 					},
-					columns: []column{{}, {}},
+					columns: []columnConfig{{}, {}},
 				},
 				state: compilerState{
 					cells:  make([]cell, 0, 4),
@@ -218,7 +218,7 @@ func Test_compiler_compileBody(t *testing.T) {
 					option: &option{
 						delimiter: '\t',
 					},
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 				state: compilerState{
 					cells:  make([]cell, 0, 2),
@@ -288,7 +288,7 @@ func Test_compiler_compileFooter(t *testing.T) {
 						indexOffset: 1,
 					},
 					footer:        [][]string{{"sum", "1,2"}, {"end"}},
-					columns:       []column{{}, {}, {}},
+					columns:       []columnConfig{{}, {}, {}},
 					footerColumns: 2,
 				},
 				state: compilerState{
@@ -307,7 +307,7 @@ func Test_compiler_compileFooter(t *testing.T) {
 				input: configResult{
 					option:        &option{},
 					footer:        [][]string{{"a", "b"}},
-					columns:       []column{{}},
+					columns:       []columnConfig{{}},
 					footerColumns: 2,
 				},
 			},
@@ -390,7 +390,7 @@ func Test_compiler_compileBand(t *testing.T) {
 						delimiter:   '\t',
 						indexOffset: 1,
 					},
-					columns: []column{{}, {}, {}},
+					columns: []columnConfig{{}, {}, {}},
 				},
 				state: compilerState{
 					cells:  make([]cell, 0, 3),
@@ -413,7 +413,7 @@ func Test_compiler_compileBand(t *testing.T) {
 						delimiter:   '\t',
 						indexOffset: 1,
 					},
-					columns: []column{{}, {}, {}},
+					columns: []columnConfig{{}, {}, {}},
 				},
 				state: compilerState{
 					cells:  make([]cell, 0, 3),
@@ -481,7 +481,7 @@ func Test_compiler_compileRow(t *testing.T) {
 						placeholder: "-",
 						indexOffset: 1,
 					},
-					columns: []column{
+					columns: []columnConfig{
 						{},
 						{
 							transformer: func(any) string {
@@ -518,7 +518,7 @@ func Test_compiler_compileRow(t *testing.T) {
 			fields: fields{
 				input: configResult{
 					option:  &option{},
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 				bodyStart: -1,
 			},
@@ -537,7 +537,7 @@ func Test_compiler_compileRow(t *testing.T) {
 					option: &option{
 						delimiter: '\t',
 					},
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 				state: compilerState{
 					cells:  make([]cell, 0, 1),
@@ -667,7 +667,7 @@ func Test_compiler_reserveBand(t *testing.T) {
 			name: "grows rows and cell capacity",
 			fields: fields{
 				input: configResult{
-					columns: []column{{}, {}},
+					columns: []columnConfig{{}, {}},
 				},
 				state: compilerState{
 					rows:  []row{{}},
@@ -687,7 +687,7 @@ func Test_compiler_reserveBand(t *testing.T) {
 			name: "reserves zero rows",
 			fields: fields{
 				input: configResult{
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 			},
 		},
@@ -728,7 +728,7 @@ func Test_compiler_newRow(t *testing.T) {
 			name: "reserves one row view",
 			fields: fields{
 				input: configResult{
-					columns: []column{{}, {}},
+					columns: []columnConfig{{}, {}},
 				},
 				state: compilerState{
 					cells: make([]cell, 0, 2),

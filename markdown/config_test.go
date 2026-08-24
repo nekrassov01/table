@@ -14,7 +14,7 @@ func Test_config_prepare(t *testing.T) {
 		state  configState
 	}
 	type want struct {
-		columns       []column
+		columns       []columnConfig
 		output        configResult
 		isHeaderError bool
 	}
@@ -38,18 +38,18 @@ func Test_config_prepare(t *testing.T) {
 			name: "index defaults and explicit columns",
 			fields: fields{
 				output: func() configResult {
-					defaults := column{
+					defaults := columnConfig{
 						align: AlignLeft,
 					}
 					return configResult{
 						option: &option{
 							columns: columnSet{
-								values: []column{
+								Values: []columnConfig{
 									{
 										align: AlignRight,
 									},
 								},
-								defaults: &defaults,
+								Defaults: &defaults,
 							},
 							indexOffset: 1,
 						},
@@ -58,11 +58,11 @@ func Test_config_prepare(t *testing.T) {
 					}
 				}(),
 				state: configState{
-					columns: make([]column, 1, 4),
+					columns: make([]columnConfig, 1, 4),
 				},
 			},
 			want: want{
-				columns: []column{
+				columns: []columnConfig{
 					{},
 					{
 						align: AlignRight,
@@ -157,18 +157,18 @@ func Test_option_apply(t *testing.T) {
 
 func Test_columnSet_apply(t *testing.T) {
 	type fields struct {
-		values   []column
-		defaults *column
+		values   []columnConfig
+		defaults *columnConfig
 	}
 	type args struct {
 		selector ColumnSelector
-		fn       func(*column)
+		fn       func(*columnConfig)
 	}
 	type want struct {
-		values   []column
-		defaults *column
+		values   []columnConfig
+		defaults *columnConfig
 	}
-	setRowspan := func(column *column) {
+	setRowspan := func(column *columnConfig) {
 		column.rowspan = true
 	}
 	tests := []struct {
@@ -180,7 +180,7 @@ func Test_columnSet_apply(t *testing.T) {
 		{
 			name: "all columns creates and updates defaults",
 			fields: fields{
-				values: []column{
+				values: []columnConfig{
 					{
 						colspan: true,
 					},
@@ -191,13 +191,13 @@ func Test_columnSet_apply(t *testing.T) {
 				fn:       setRowspan,
 			},
 			want: want{
-				values: []column{
+				values: []columnConfig{
 					{
 						rowspan: true,
 						colspan: true,
 					},
 				},
-				defaults: &column{
+				defaults: &columnConfig{
 					rowspan: true,
 				},
 			},
@@ -205,12 +205,12 @@ func Test_columnSet_apply(t *testing.T) {
 		{
 			name: "selected columns inherit defaults",
 			fields: fields{
-				values: []column{
+				values: []columnConfig{
 					{
 						align: AlignRight,
 					},
 				},
-				defaults: &column{
+				defaults: &columnConfig{
 					colspan: true,
 				},
 			},
@@ -219,7 +219,7 @@ func Test_columnSet_apply(t *testing.T) {
 				fn:       setRowspan,
 			},
 			want: want{
-				values: []column{
+				values: []columnConfig{
 					{
 						align: AlignRight,
 					},
@@ -231,7 +231,7 @@ func Test_columnSet_apply(t *testing.T) {
 						colspan: true,
 					},
 				},
-				defaults: &column{
+				defaults: &columnConfig{
 					colspan: true,
 				},
 			},
@@ -240,13 +240,13 @@ func Test_columnSet_apply(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			o := &columnSet{
-				values:   test.fields.values,
-				defaults: test.fields.defaults,
+				Values:   test.fields.values,
+				Defaults: test.fields.defaults,
 			}
 			o.apply(test.args.selector, test.args.fn)
 			got := want{
-				values:   o.values,
-				defaults: o.defaults,
+				values:   o.Values,
+				defaults: o.Defaults,
 			}
 			testutil.AssertValue(t, got, test.want, "apply")
 		})

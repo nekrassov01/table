@@ -25,7 +25,7 @@ func Test_solver_prepare(t *testing.T) {
 			fields: fields{
 				input: compilerResult{
 					configResult: configResult{
-						columns: []column{{}, {}},
+						columns: []columnConfig{{}, {}},
 					},
 					header: []row{{
 						cells: []cell{{width: 2}, {width: 5}},
@@ -50,7 +50,7 @@ func Test_solver_prepare(t *testing.T) {
 			fields: fields{
 				input: compilerResult{
 					configResult: configResult{
-						columns: []column{{}, {}},
+						columns: []columnConfig{{}, {}},
 					},
 				},
 			},

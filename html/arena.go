@@ -4,6 +4,7 @@ import (
 	"io"
 	"sync"
 
+	"github.com/nekrassov01/table/internal/column"
 	"github.com/nekrassov01/table/internal/param"
 	"github.com/nekrassov01/table/internal/scope"
 	"github.com/nekrassov01/table/internal/span"
@@ -66,7 +67,7 @@ func (o *arena) resumeConfig(option *option, footer [][]string, bodyRows int) co
 			footer:        footer,
 			bodyRows:      bodyRows,
 			columns:       state.columns,
-			footerColumns: maxColumns(footer),
+			footerColumns: column.MaxColumns(footer),
 		},
 	}
 }
@@ -144,7 +145,7 @@ func (o *arena) release() {
 
 // configState retains resolved columns across stream passes.
 type configState struct {
-	columns []column // Resolved column settings in logical order.
+	columns []columnConfig // Resolved column settings in logical order.
 }
 
 // compilerState owns reusable compilation storage, capacity estimates, and

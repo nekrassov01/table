@@ -158,7 +158,7 @@ func Test_arena_resumeConfig(t *testing.T) {
 			name: "restores resolved columns",
 			fields: fields{
 				config: configState{
-					columns: []column{
+					columns: []columnConfig{
 						{
 							rowspan: ScopeBody,
 						},
@@ -182,7 +182,7 @@ func Test_arena_resumeConfig(t *testing.T) {
 					header:   [][]string{{"header"}},
 					footer:   [][]string{{"sum", "total"}},
 					bodyRows: 2,
-					columns: []column{
+					columns: []columnConfig{
 						{
 							rowspan: ScopeBody,
 						},
@@ -488,7 +488,7 @@ func Test_arena_release(t *testing.T) {
 			name: "severs views and retains grown line backing",
 			fields: fields{
 				config: configState{
-					columns: []column{
+					columns: []columnConfig{
 						{
 							transformer: transformer{
 								fn: func(any) (string, *Color, *Decoration) {

@@ -39,7 +39,7 @@ func Test_solver_prepare(t *testing.T) {
 									},
 								},
 							},
-							columns: []column{
+							columns: []columnConfig{
 								{
 									lPad: 1,
 									rPad: 2,
@@ -103,7 +103,7 @@ func Test_solver_prepare(t *testing.T) {
 				input: compilerResult{
 					configResult: configResult{
 						option: &option{},
-						columns: []column{
+						columns: []columnConfig{
 							{
 								lPad: 2,
 								rPad: 3,

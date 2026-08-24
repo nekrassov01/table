@@ -81,7 +81,7 @@ func Test_painter_prepare(t *testing.T) {
 									},
 								},
 							},
-							columns: make([]column, 2),
+							columns: make([]columnConfig, 2),
 						},
 					},
 					metrics: []columnMetric{
@@ -118,7 +118,7 @@ func Test_painter_prepare(t *testing.T) {
 							option: &option{
 								caption: "caption",
 							},
-							columns: []column{{}},
+							columns: []columnConfig{{}},
 						},
 					},
 					metrics: []columnMetric{
@@ -202,7 +202,7 @@ func Test_painter_paintHeader(t *testing.T) {
 								caption:     "cap",
 								captionSide: CaptionTop,
 							},
-							columns: []column{{}},
+							columns: []columnConfig{{}},
 						},
 						body: []row{
 							{
@@ -232,7 +232,7 @@ func Test_painter_paintHeader(t *testing.T) {
 							option: &option{
 								style: StyleLight,
 							},
-							columns: []column{{}, {}},
+							columns: []columnConfig{{}, {}},
 						},
 						body: []row{
 							{
@@ -267,7 +267,7 @@ func Test_painter_paintHeader(t *testing.T) {
 							option: &option{
 								style: StyleLight,
 							},
-							columns: []column{{}, {}},
+							columns: []columnConfig{{}, {}},
 						},
 						footer: []row{
 							{
@@ -302,7 +302,7 @@ func Test_painter_paintHeader(t *testing.T) {
 							option: &option{
 								style: StyleLight,
 							},
-							columns: []column{{}, {}},
+							columns: []columnConfig{{}, {}},
 						},
 						header: []row{
 							{
@@ -353,7 +353,7 @@ func Test_painter_paintHeader(t *testing.T) {
 								option: &option{
 									style: style,
 								},
-								columns: []column{{}},
+								columns: []columnConfig{{}},
 							},
 							header: []row{
 								{
@@ -448,7 +448,7 @@ func Test_painter_paintBody(t *testing.T) {
 							option: &option{
 								style: StyleASCII,
 							},
-							columns: []column{{}},
+							columns: []columnConfig{{}},
 						},
 						body: []row{
 							{
@@ -492,7 +492,7 @@ func Test_painter_paintBody(t *testing.T) {
 							option: &option{
 								style: StyleASCII,
 							},
-							columns: []column{{}},
+							columns: []columnConfig{{}},
 						},
 						body: []row{
 							{
@@ -529,7 +529,7 @@ func Test_painter_paintBody(t *testing.T) {
 							option: &option{
 								style: StyleASCII,
 							},
-							columns: []column{{}},
+							columns: []columnConfig{{}},
 						},
 						body: []row{
 							{
@@ -621,7 +621,7 @@ func Test_painter_paintFooter(t *testing.T) {
 								style:   StyleASCII,
 								caption: "cap",
 							},
-							columns: []column{{}},
+							columns: []columnConfig{{}},
 						},
 						footer: []row{
 							{
@@ -667,7 +667,7 @@ func Test_painter_paintFooter(t *testing.T) {
 								caption:     "cap",
 								captionSide: CaptionTop,
 							},
-							columns: []column{{}},
+							columns: []columnConfig{{}},
 						},
 						footer: []row{
 							{
@@ -839,7 +839,7 @@ func Test_painter_paintRow(t *testing.T) {
 							option: &option{
 								style: StyleASCII,
 							},
-							columns: []column{{}, {}},
+							columns: []columnConfig{{}, {}},
 						},
 					},
 					metrics: []columnMetric{
@@ -1470,7 +1470,7 @@ func Test_painter_layoutRow(t *testing.T) {
 			name: "body index and configured alignment",
 			fields: fields{
 				input: func() solverResult {
-					columns := make([]column, 2)
+					columns := make([]columnConfig, 2)
 					columns[1].aligns.Set(ScopeBody, AlignCenter)
 					return solverResult{
 						compilerResult: compilerResult{
@@ -1539,7 +1539,7 @@ func Test_painter_layoutRow(t *testing.T) {
 					compilerResult: compilerResult{
 						configResult: configResult{
 							option:  &option{},
-							columns: []column{{}},
+							columns: []columnConfig{{}},
 						},
 					},
 					metrics: []columnMetric{
@@ -1583,7 +1583,7 @@ func Test_painter_layoutRow(t *testing.T) {
 					compilerResult: compilerResult{
 						configResult: configResult{
 							option:  &option{},
-							columns: make([]column, 3),
+							columns: make([]columnConfig, 3),
 						},
 					},
 					metrics: []columnMetric{
@@ -1666,7 +1666,7 @@ func Test_painter_layoutRow(t *testing.T) {
 					compilerResult: compilerResult{
 						configResult: configResult{
 							option:  &option{},
-							columns: []column{{}},
+							columns: []columnConfig{{}},
 						},
 					},
 					metrics: []columnMetric{
@@ -1709,7 +1709,7 @@ func Test_painter_layoutRow(t *testing.T) {
 					compilerResult: compilerResult{
 						configResult: configResult{
 							option:  &option{},
-							columns: []column{{}},
+							columns: []columnConfig{{}},
 						},
 					},
 					metrics: []columnMetric{

@@ -3,6 +3,7 @@ package backlog
 import (
 	"testing"
 
+	"github.com/nekrassov01/table/internal/column"
 	"github.com/nekrassov01/table/internal/testutil"
 )
 
@@ -230,7 +231,7 @@ func TestWithRowspan(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{
 				columns: columnSet{
-					values: []column{
+					Values: []columnConfig{
 						{
 							rowspan: test.fields.rowspan,
 						},
@@ -239,7 +240,7 @@ func TestWithRowspan(t *testing.T) {
 			}
 			WithRowspan(test.args.scopes, test.args.columns)(o)
 			got := want{
-				rowspan: o.columns.values[0].rowspan,
+				rowspan: o.columns.Values[0].rowspan,
 			}
 			testutil.AssertValue(t, got, test.want, "WithRowspan")
 		})
@@ -281,7 +282,7 @@ func TestWithColspan(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{
 				columns: columnSet{
-					values: []column{
+					Values: []columnConfig{
 						{
 							colspan: test.fields.colspan,
 						},
@@ -290,7 +291,7 @@ func TestWithColspan(t *testing.T) {
 			}
 			WithColspan(test.args.scopes, test.args.columns)(o)
 			got := want{
-				colspan: o.columns.values[0].colspan,
+				colspan: o.columns.Values[0].colspan,
 			}
 			testutil.AssertValue(t, got, test.want, "WithColspan")
 		})
@@ -330,7 +331,7 @@ func TestWithColor(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{}
 			WithColor(test.args.scopes, test.args.columns, test.args.color)(o)
-			colors := &o.columns.values[0].transformer.colors
+			colors := &o.columns.Values[0].transformer.colors
 			got := want{
 				header: colors.Resolve(ScopeHeader),
 				body:   colors.Resolve(ScopeBody),
@@ -374,7 +375,7 @@ func TestWithDecoration(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{}
 			WithDecoration(test.args.scopes, test.args.columns, test.args.decoration)(o)
-			decorations := &o.columns.values[0].transformer.decorations
+			decorations := &o.columns.Values[0].transformer.decorations
 			got := want{
 				header: decorations.Resolve(ScopeHeader),
 				body:   decorations.Resolve(ScopeBody),
@@ -442,7 +443,7 @@ func TestWithTransformer(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{
 				columns: columnSet{
-					values: []column{
+					Values: []columnConfig{
 						{
 							transformer: transformer{
 								fn: test.fields.fn,
@@ -452,7 +453,7 @@ func TestWithTransformer(t *testing.T) {
 				},
 			}
 			WithTransformer(test.args.columns, test.args.fn)(o)
-			gotFn := o.columns.values[0].transformer.fn
+			gotFn := o.columns.Values[0].transformer.fn
 			got := want{
 				isNil: gotFn == nil,
 			}
@@ -491,7 +492,7 @@ func TestColumns(t *testing.T) {
 			},
 			want: want{
 				val: ColumnSelector{
-					indexes: []int{0, -1, 2},
+					selector: column.NewSelector(0, -1, 2),
 				},
 			},
 		},
@@ -517,7 +518,7 @@ func TestAllColumns(t *testing.T) {
 			name: "all columns",
 			want: want{
 				val: ColumnSelector{
-					all: true,
+					selector: column.All(),
 				},
 			},
 		},

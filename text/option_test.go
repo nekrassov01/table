@@ -3,6 +3,7 @@ package text
 import (
 	"testing"
 
+	"github.com/nekrassov01/table/internal/column"
 	"github.com/nekrassov01/table/internal/testutil"
 )
 
@@ -527,9 +528,9 @@ func TestWithAlign(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{}
 			WithAlign(test.args.scopes, test.args.columns, test.args.align)(o)
-			column := o.columns.values[1]
+			column := o.columns.Values[1]
 			got := want{
-				columns: len(o.columns.values),
+				columns: len(o.columns.Values),
 				header:  column.aligns.Resolve(ScopeHeader),
 				body:    column.aligns.Resolve(ScopeBody),
 				footer:  column.aligns.Resolve(ScopeFooter),
@@ -590,7 +591,7 @@ func TestWithWidth(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{
 				columns: columnSet{
-					values: []column{
+					Values: []columnConfig{
 						{
 							limit: test.fields.limit,
 						},
@@ -599,7 +600,7 @@ func TestWithWidth(t *testing.T) {
 			}
 			WithWidth(test.args.columns, test.args.width)(o)
 			got := want{
-				limit: o.columns.values[0].limit,
+				limit: o.columns.Values[0].limit,
 			}
 			testutil.AssertValue(t, got, test.want, "WithWidth")
 		})
@@ -648,7 +649,7 @@ func TestWithTruncate(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{
 				columns: columnSet{
-					values: []column{
+					Values: []columnConfig{
 						{
 							truncate: test.fields.truncate,
 						},
@@ -657,7 +658,7 @@ func TestWithTruncate(t *testing.T) {
 			}
 			WithTruncate(test.args.columns)(o)
 			got := want{
-				truncate: o.columns.values[0].truncate,
+				truncate: o.columns.Values[0].truncate,
 			}
 			testutil.AssertValue(t, got, test.want, "WithTruncate")
 		})
@@ -713,7 +714,7 @@ func TestWithPadding(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{
 				columns: columnSet{
-					values: []column{
+					Values: []columnConfig{
 						{
 							lPad: test.fields.lPad,
 							rPad: test.fields.rPad,
@@ -723,8 +724,8 @@ func TestWithPadding(t *testing.T) {
 			}
 			WithPadding(test.args.columns, test.args.left, test.args.right)(o)
 			got := want{
-				lPad: o.columns.values[0].lPad,
-				rPad: o.columns.values[0].rPad,
+				lPad: o.columns.Values[0].lPad,
+				rPad: o.columns.Values[0].rPad,
 			}
 			testutil.AssertValue(t, got, test.want, "WithPadding")
 		})
@@ -766,7 +767,7 @@ func TestWithRowspan(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{
 				columns: columnSet{
-					values: []column{
+					Values: []columnConfig{
 						{
 							rowspan: test.fields.rowspan,
 						},
@@ -775,7 +776,7 @@ func TestWithRowspan(t *testing.T) {
 			}
 			WithRowspan(test.args.scopes, test.args.columns)(o)
 			got := want{
-				rowspan: o.columns.values[0].rowspan,
+				rowspan: o.columns.Values[0].rowspan,
 			}
 			testutil.AssertValue(t, got, test.want, "WithRowspan")
 		})
@@ -817,7 +818,7 @@ func TestWithColspan(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{
 				columns: columnSet{
-					values: []column{
+					Values: []columnConfig{
 						{
 							colspan: test.fields.colspan,
 						},
@@ -826,7 +827,7 @@ func TestWithColspan(t *testing.T) {
 			}
 			WithColspan(test.args.scopes, test.args.columns)(o)
 			got := want{
-				colspan: o.columns.values[0].colspan,
+				colspan: o.columns.Values[0].colspan,
 			}
 			testutil.AssertValue(t, got, test.want, "WithColspan")
 		})
@@ -887,10 +888,10 @@ func TestWithAttr(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{
 				columns: columnSet{
-					values: []column{{}},
+					Values: []columnConfig{{}},
 				},
 			}
-			attrs := &o.columns.values[0].transformer.attrs
+			attrs := &o.columns.Values[0].transformer.attrs
 			attrs.Set(ScopeHeader, test.fields.header)
 			attrs.Set(ScopeBody, test.fields.body)
 			attrs.Set(ScopeFooter, test.fields.footer)
@@ -963,7 +964,7 @@ func TestWithTransformer(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{
 				columns: columnSet{
-					values: []column{
+					Values: []columnConfig{
 						{
 							transformer: transformer{
 								fn: test.fields.fn,
@@ -973,7 +974,7 @@ func TestWithTransformer(t *testing.T) {
 				},
 			}
 			WithTransformer(test.args.columns, test.args.fn)(o)
-			gotFn := o.columns.values[0].transformer.fn
+			gotFn := o.columns.Values[0].transformer.fn
 			got := want{
 				isNil: gotFn == nil,
 			}
@@ -1012,7 +1013,7 @@ func TestColumns(t *testing.T) {
 			},
 			want: want{
 				val: ColumnSelector{
-					indexes: []int{0, -1, 2},
+					selector: column.NewSelector(0, -1, 2),
 				},
 			},
 		},
@@ -1038,7 +1039,7 @@ func TestAllColumns(t *testing.T) {
 			name: "all columns",
 			want: want{
 				val: ColumnSelector{
-					all: true,
+					selector: column.All(),
 				},
 			},
 		},

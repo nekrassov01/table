@@ -3,6 +3,7 @@ package markdown
 import (
 	"testing"
 
+	"github.com/nekrassov01/table/internal/column"
 	"github.com/nekrassov01/table/internal/testutil"
 )
 
@@ -155,7 +156,7 @@ func TestWithAlign(t *testing.T) {
 		align   AlignSide
 	}
 	type want struct {
-		columns []column
+		columns []columnConfig
 	}
 	tests := []struct {
 		name   string
@@ -170,7 +171,7 @@ func TestWithAlign(t *testing.T) {
 				align:   AlignRight,
 			},
 			want: want{
-				columns: []column{
+				columns: []columnConfig{
 					{},
 					{
 						align: AlignRight,
@@ -182,7 +183,7 @@ func TestWithAlign(t *testing.T) {
 			name: "clears alignment",
 			fields: fields{
 				columns: columnSet{
-					values: []column{
+					Values: []columnConfig{
 						{
 							align: AlignRight,
 						},
@@ -193,7 +194,7 @@ func TestWithAlign(t *testing.T) {
 				columns: Columns(0),
 			},
 			want: want{
-				columns: []column{{}},
+				columns: []columnConfig{{}},
 			},
 		},
 	}
@@ -204,7 +205,7 @@ func TestWithAlign(t *testing.T) {
 			}
 			WithAlign(test.args.columns, test.args.align)(o)
 			got := want{
-				columns: o.columns.values,
+				columns: o.columns.Values,
 			}
 			testutil.AssertValue(t, got, test.want, "WithAlign")
 		})
@@ -219,7 +220,7 @@ func TestWithRowspan(t *testing.T) {
 		columns ColumnSelector
 	}
 	type want struct {
-		columns []column
+		columns []columnConfig
 	}
 	tests := []struct {
 		name   string
@@ -233,7 +234,7 @@ func TestWithRowspan(t *testing.T) {
 				columns: Columns(0, 1),
 			},
 			want: want{
-				columns: []column{
+				columns: []columnConfig{
 					{
 						rowspan: true,
 					},
@@ -251,7 +252,7 @@ func TestWithRowspan(t *testing.T) {
 			}
 			WithRowspan(test.args.columns)(o)
 			got := want{
-				columns: o.columns.values,
+				columns: o.columns.Values,
 			}
 			testutil.AssertValue(t, got, test.want, "WithRowspan")
 		})
@@ -266,7 +267,7 @@ func TestWithColspan(t *testing.T) {
 		columns ColumnSelector
 	}
 	type want struct {
-		columns []column
+		columns []columnConfig
 	}
 	tests := []struct {
 		name   string
@@ -280,7 +281,7 @@ func TestWithColspan(t *testing.T) {
 				columns: Columns(1),
 			},
 			want: want{
-				columns: []column{
+				columns: []columnConfig{
 					{},
 					{
 						colspan: true,
@@ -296,7 +297,7 @@ func TestWithColspan(t *testing.T) {
 			}
 			WithColspan(test.args.columns)(o)
 			got := want{
-				columns: o.columns.values,
+				columns: o.columns.Values,
 			}
 			testutil.AssertValue(t, got, test.want, "WithColspan")
 		})
@@ -337,10 +338,10 @@ func TestWithColor(t *testing.T) {
 			name: "clears scoped color",
 			fields: fields{
 				columns: columnSet{
-					values: func() []column {
-						configured := column{}
+					Values: func() []columnConfig {
+						configured := columnConfig{}
 						configured.transformer.colors.Set(ScopeHeader|ScopeBody, ColorFgBlue)
-						return []column{configured}
+						return []columnConfig{configured}
 					}(),
 				},
 			},
@@ -359,7 +360,7 @@ func TestWithColor(t *testing.T) {
 				columns: test.fields.columns,
 			}
 			WithColor(test.args.scopes, test.args.columns, test.args.color)(o)
-			colors := o.columns.values[0].transformer.colors
+			colors := o.columns.Values[0].transformer.colors
 			got := want{
 				header: colors.Resolve(ScopeHeader),
 				body:   colors.Resolve(ScopeBody),
@@ -401,7 +402,7 @@ func TestWithDecoration(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{}
 			WithDecoration(test.args.scopes, test.args.columns, test.args.decoration)(o)
-			decorations := o.columns.values[0].transformer.decorations
+			decorations := o.columns.Values[0].transformer.decorations
 			got := want{
 				header: decorations.Resolve(ScopeHeader),
 				body:   decorations.Resolve(ScopeBody),
@@ -447,7 +448,7 @@ func TestWithTransformer(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{}
 			WithTransformer(test.args.columns, test.args.transformer)(o)
-			text, color, decoration := o.columns.values[0].transformer.fn(test.args.value)
+			text, color, decoration := o.columns.Values[0].transformer.fn(test.args.value)
 			got := want{
 				text:       text,
 				color:      color,
@@ -463,8 +464,7 @@ func TestColumns(t *testing.T) {
 		indexes []int
 	}
 	type want struct {
-		indexes []int
-		all     bool
+		selector ColumnSelector
 	}
 	tests := []struct {
 		name string
@@ -477,7 +477,9 @@ func TestColumns(t *testing.T) {
 				indexes: []int{0, 2},
 			},
 			want: want{
-				indexes: []int{0, 2},
+				selector: ColumnSelector{
+					selector: column.NewSelector(0, 2),
+				},
 			},
 		},
 	}
@@ -488,8 +490,7 @@ func TestColumns(t *testing.T) {
 				test.args.indexes[0] = 9
 			}
 			got := want{
-				indexes: selector.indexes,
-				all:     selector.all,
+				selector: selector,
 			}
 			testutil.AssertValue(t, got, test.want, "Columns")
 		})
@@ -498,8 +499,7 @@ func TestColumns(t *testing.T) {
 
 func TestAllColumns(t *testing.T) {
 	type want struct {
-		indexes []int
-		all     bool
+		selector ColumnSelector
 	}
 	tests := []struct {
 		name string
@@ -508,7 +508,9 @@ func TestAllColumns(t *testing.T) {
 		{
 			name: "selects every column",
 			want: want{
-				all: true,
+				selector: ColumnSelector{
+					selector: column.All(),
+				},
 			},
 		},
 	}
@@ -516,8 +518,7 @@ func TestAllColumns(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			selector := AllColumns()
 			got := want{
-				indexes: selector.indexes,
-				all:     selector.all,
+				selector: selector,
 			}
 			testutil.AssertValue(t, got, test.want, "AllColumns")
 		})

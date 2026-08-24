@@ -41,7 +41,7 @@ func Test_arena_resetRows(t *testing.T) {
 					return strings
 				},
 				config: configState{
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 				compiler: compilerState{
 					cells: []cell{
@@ -198,7 +198,7 @@ func Test_arena_resumeConfig(t *testing.T) {
 			name: "pairs current input with retained columns",
 			fields: fields{
 				state: configState{
-					columns: []column{{}, {}},
+					columns: []columnConfig{{}, {}},
 				},
 			},
 			args: args{
@@ -251,18 +251,18 @@ func Test_arena_newCompiler(t *testing.T) {
 			name: "binds fresh compiler",
 			args: args{
 				input: configResult{
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 			},
 			want: want{
 				input: configResult{
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 				stateBound: true,
 				storeBound: true,
 				bodyStart:  -1,
 				outputInput: configResult{
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 			},
 		},
@@ -311,7 +311,7 @@ func Test_arena_resumeCompiler(t *testing.T) {
 			},
 			args: args{
 				input: configResult{
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 			},
 			want: want{
@@ -427,7 +427,7 @@ func Test_arena_release(t *testing.T) {
 				arena: func() *arena {
 					return &arena{
 						config: configState{
-							columns: []column{
+							columns: []columnConfig{
 								{
 									transformer: func(any) string {
 										return "value"

@@ -13,7 +13,7 @@ func Test_config_prepare(t *testing.T) {
 		state       configState
 	}
 	type want struct {
-		columns       []column
+		columns       []columnConfig
 		footerColumns int
 		output        configResult
 	}
@@ -26,17 +26,17 @@ func Test_config_prepare(t *testing.T) {
 			name: "header with index and configured column",
 			fields: fields{
 				output: func() configResult {
-					configured := column{
+					configured := columnConfig{
 						rowspan: ScopeBody,
 					}
-					defaults := column{
+					defaults := columnConfig{
 						colspan: ScopeFooter,
 					}
 					return configResult{
 						option: &option{
 							columns: columnSet{
-								values:   []column{configured},
-								defaults: &defaults,
+								Values:   []columnConfig{configured},
+								Defaults: &defaults,
 							},
 							indexOffset: 1,
 						},
@@ -48,14 +48,14 @@ func Test_config_prepare(t *testing.T) {
 				bodyColumns: 4,
 			},
 			want: want{
-				columns: func() []column {
-					configured := column{
+				columns: func() []columnConfig {
+					configured := columnConfig{
 						rowspan: ScopeBody,
 					}
-					defaults := column{
+					defaults := columnConfig{
 						colspan: ScopeFooter,
 					}
-					return []column{
+					return []columnConfig{
 						{},
 						configured,
 						defaults,
@@ -73,11 +73,11 @@ func Test_config_prepare(t *testing.T) {
 					footer: [][]string{{"a", "b", "c"}},
 				},
 				state: configState{
-					columns: make([]column, 1, 4),
+					columns: make([]columnConfig, 1, 4),
 				},
 			},
 			want: want{
-				columns:       make([]column, 3),
+				columns:       make([]columnConfig, 3),
 				footerColumns: 3,
 			},
 		},
@@ -90,16 +90,16 @@ func Test_config_prepare(t *testing.T) {
 					},
 				},
 				state: func() configState {
-					configured := column{
+					configured := columnConfig{
 						rowspan: ScopeBody,
 					}
 					return configState{
-						columns: []column{configured},
+						columns: []columnConfig{configured},
 					}
 				}(),
 			},
 			want: want{
-				columns: []column{},
+				columns: []columnConfig{},
 			},
 		},
 	}
@@ -183,18 +183,18 @@ func Test_option_apply(t *testing.T) {
 
 func Test_columnSet_apply(t *testing.T) {
 	type fields struct {
-		values   []column
-		defaults *column
+		values   []columnConfig
+		defaults *columnConfig
 	}
 	type args struct {
 		selector ColumnSelector
-		fn       func(*column)
+		fn       func(*columnConfig)
 	}
 	type want struct {
-		values   []column
-		defaults *column
+		values   []columnConfig
+		defaults *columnConfig
 	}
-	setBody := func(column *column) {
+	setBody := func(column *columnConfig) {
 		column.rowspan |= ScopeBody
 	}
 	tests := []struct {
@@ -206,7 +206,7 @@ func Test_columnSet_apply(t *testing.T) {
 		{
 			name: "all columns creates defaults",
 			fields: fields{
-				values: []column{{
+				values: []columnConfig{{
 					rowspan: ScopeHeader,
 				}},
 			},
@@ -215,10 +215,10 @@ func Test_columnSet_apply(t *testing.T) {
 				fn:       setBody,
 			},
 			want: want{
-				values: []column{{
+				values: []columnConfig{{
 					rowspan: ScopeHeader | ScopeBody,
 				}},
-				defaults: &column{
+				defaults: &columnConfig{
 					rowspan: ScopeBody,
 				},
 			},
@@ -226,8 +226,8 @@ func Test_columnSet_apply(t *testing.T) {
 		{
 			name: "all columns updates defaults",
 			fields: fields{
-				values: []column{{}},
-				defaults: &column{
+				values: []columnConfig{{}},
+				defaults: &columnConfig{
 					rowspan: ScopeHeader,
 				},
 			},
@@ -236,10 +236,10 @@ func Test_columnSet_apply(t *testing.T) {
 				fn:       setBody,
 			},
 			want: want{
-				values: []column{{
+				values: []columnConfig{{
 					rowspan: ScopeBody,
 				}},
-				defaults: &column{
+				defaults: &columnConfig{
 					rowspan: ScopeHeader | ScopeBody,
 				},
 			},
@@ -247,7 +247,7 @@ func Test_columnSet_apply(t *testing.T) {
 		{
 			name: "indexes extend default columns",
 			fields: fields{
-				values: []column{{
+				values: []columnConfig{{
 					rowspan: ScopeHeader,
 				}},
 			},
@@ -256,7 +256,7 @@ func Test_columnSet_apply(t *testing.T) {
 				fn:       setBody,
 			},
 			want: want{
-				values: []column{
+				values: []columnConfig{
 					{
 						rowspan: ScopeHeader | ScopeBody,
 					},
@@ -270,7 +270,7 @@ func Test_columnSet_apply(t *testing.T) {
 		{
 			name: "indexes inherit configured defaults",
 			fields: fields{
-				defaults: &column{
+				defaults: &columnConfig{
 					colspan: ScopeFooter,
 				},
 			},
@@ -279,7 +279,7 @@ func Test_columnSet_apply(t *testing.T) {
 				fn:       setBody,
 			},
 			want: want{
-				values: []column{
+				values: []columnConfig{
 					{
 						colspan: ScopeFooter,
 					},
@@ -288,7 +288,7 @@ func Test_columnSet_apply(t *testing.T) {
 						colspan: ScopeFooter,
 					},
 				},
-				defaults: &column{
+				defaults: &columnConfig{
 					colspan: ScopeFooter,
 				},
 			},
@@ -297,48 +297,15 @@ func Test_columnSet_apply(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			o := &columnSet{
-				values:   test.fields.values,
-				defaults: test.fields.defaults,
+				Values:   test.fields.values,
+				Defaults: test.fields.defaults,
 			}
 			o.apply(test.args.selector, test.args.fn)
 			got := want{
-				values:   o.values,
-				defaults: o.defaults,
+				values:   o.Values,
+				defaults: o.Defaults,
 			}
 			testutil.AssertValue(t, got, test.want, "apply")
-		})
-	}
-}
-
-func Test_maxColumns(t *testing.T) {
-	type args struct {
-		rows [][]string
-	}
-	type want struct {
-		val int
-	}
-	tests := []struct {
-		name string
-		args args
-		want want
-	}{
-		{
-			name: "widest row",
-			args: args{
-				rows: [][]string{{"a"}, {"a", "b", "c"}, {"a", "b"}},
-			},
-			want: want{
-				val: 3,
-			},
-		},
-		{
-			name: "empty",
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			got := maxColumns(test.args.rows)
-			testutil.AssertValue(t, got, test.want.val, "maxColumns")
 		})
 	}
 }

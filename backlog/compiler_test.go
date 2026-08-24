@@ -44,7 +44,7 @@ func Test_compiler_prepare(t *testing.T) {
 					header:   [][]string{{"header"}},
 					footer:   [][]string{{"footer"}},
 					bodyRows: 1,
-					columns: []column{
+					columns: []columnConfig{
 						{rowspan: ScopeHeader | ScopeBody, colspan: ScopeFooter},
 						{rowspan: ScopeBody | ScopeFooter, colspan: ScopeHeader | ScopeBody},
 					},
@@ -68,7 +68,7 @@ func Test_compiler_prepare(t *testing.T) {
 			fields: fields{
 				input: configResult{
 					bodyRows: 1,
-					columns:  make([]column, 2),
+					columns:  make([]columnConfig, 2),
 				},
 				state: compilerState{
 					rows:  make([]row, 2, 5),
@@ -153,7 +153,7 @@ func Test_compiler_compileHeader(t *testing.T) {
 						{"same", "Top", "Top"},
 						{"same", "A", "B"},
 					},
-					columns: []column{
+					columns: []columnConfig{
 						{rowspan: ScopeHeader},
 						{colspan: ScopeHeader},
 						{colspan: ScopeHeader},
@@ -219,7 +219,7 @@ func Test_compiler_compileBody(t *testing.T) {
 			fields: fields{
 				input: configResult{
 					option: &option{}, bodyRows: 2,
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 			},
 			args: args{
@@ -235,7 +235,7 @@ func Test_compiler_compileBody(t *testing.T) {
 			fields: fields{
 				input: configResult{
 					option: &option{}, bodyRows: 2,
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 			},
 			args: args{
@@ -303,7 +303,7 @@ func Test_compiler_compileFooter(t *testing.T) {
 			fields: fields{
 				input: configResult{
 					option: &option{}, footer: [][]string{{"f"}},
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 				err: testutil.NewError(),
 			},
@@ -316,7 +316,7 @@ func Test_compiler_compileFooter(t *testing.T) {
 			fields: fields{
 				input: configResult{
 					option: &option{}, footer: [][]string{{"a", "b"}},
-					columns:       []column{{}},
+					columns:       []columnConfig{{}},
 					footerColumns: 2,
 				},
 			},
@@ -331,7 +331,7 @@ func Test_compiler_compileFooter(t *testing.T) {
 				input: configResult{
 					option:        &option{},
 					footer:        [][]string{{"f"}, {"f"}},
-					columns:       []column{{rowspan: ScopeFooter}},
+					columns:       []columnConfig{{rowspan: ScopeFooter}},
 					footerColumns: 1,
 				},
 			},
@@ -391,7 +391,7 @@ func Test_compiler_compileBand(t *testing.T) {
 				input: configResult{
 					option: &option{indexOffset: 1},
 					header: [][]string{{"", "b"}},
-					columns: []column{
+					columns: []columnConfig{
 						{},
 						{transformer: transformer{colors: func() scope.Scopes[*Color] {
 							var colors scope.Scopes[*Color]
@@ -472,7 +472,7 @@ func Test_compiler_compileRow(t *testing.T) {
 						indexOffset: 1,
 					},
 					bodyRows: 1,
-					columns: []column{
+					columns: []columnConfig{
 						{},
 						{},
 						{transformer: transformer{fn: func(any) (string, *Color, *Decoration) {
@@ -497,7 +497,7 @@ func Test_compiler_compileRow(t *testing.T) {
 			fields: fields{
 				input: configResult{
 					option: &option{}, bodyRows: 1,
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 			},
 			args: args{
@@ -563,7 +563,7 @@ func Test_compiler_reserveBand(t *testing.T) {
 			name: "reserves rows and cell capacity",
 			fields: fields{
 				input: configResult{
-					columns: make([]column, 2),
+					columns: make([]columnConfig, 2),
 				},
 				state: compilerState{
 					cells: make([]cell, 1),
@@ -618,7 +618,7 @@ func Test_compiler_newRow(t *testing.T) {
 			name: "takes a row from cell storage",
 			fields: fields{
 				input: configResult{
-					columns: make([]column, 2),
+					columns: make([]columnConfig, 2),
 				},
 				state: compilerState{
 					cells: func() []cell {

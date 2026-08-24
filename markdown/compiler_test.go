@@ -38,7 +38,7 @@ func Test_compiler_prepare(t *testing.T) {
 				input: configResult{
 					option:   &option{},
 					bodyRows: 2,
-					columns: []column{
+					columns: []columnConfig{
 						{
 							rowspan: true,
 						},
@@ -71,7 +71,7 @@ func Test_compiler_prepare(t *testing.T) {
 				input: configResult{
 					option:   &option{},
 					bodyRows: 1,
-					columns:  make([]column, 2),
+					columns:  make([]columnConfig, 2),
 				},
 				state: compilerState{
 					rows:   make([]row, 2, 5),
@@ -134,7 +134,7 @@ func Test_compiler_compileHeader(t *testing.T) {
 			name: "compiles index labels and markup",
 			fields: fields{
 				input: func() configResult {
-					colored := column{}
+					colored := columnConfig{}
 					colored.transformer.colors.Set(ScopeHeader, ColorFgRed)
 					colored.transformer.decorations.Set(ScopeHeader, DecorationBold)
 					return configResult{
@@ -142,7 +142,7 @@ func Test_compiler_compileHeader(t *testing.T) {
 							indexOffset: 1,
 						},
 						header:  []string{"A", ""},
-						columns: []column{{}, colored, colored},
+						columns: []columnConfig{{}, colored, colored},
 					}
 				}(),
 				state: compilerState{
@@ -249,7 +249,7 @@ func Test_compiler_compileBody(t *testing.T) {
 						placeholder: "-",
 					},
 					bodyRows: 2,
-					columns: []column{
+					columns: []columnConfig{
 						{
 							rowspan: true,
 							colspan: true,
@@ -293,7 +293,7 @@ func Test_compiler_compileBody(t *testing.T) {
 				input: configResult{
 					option:   &option{},
 					bodyRows: 2,
-					columns:  []column{{}},
+					columns:  []columnConfig{{}},
 				},
 			},
 			args: args{
@@ -359,7 +359,7 @@ func Test_compiler_compileRow(t *testing.T) {
 						placeholder: "-",
 						indexOffset: 1,
 					},
-					columns: []column{
+					columns: []columnConfig{
 						{},
 						{
 							transformer: transformer{
@@ -426,7 +426,7 @@ func Test_compiler_compileRow(t *testing.T) {
 			fields: fields{
 				input: configResult{
 					option:  &option{},
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 				state: compilerState{
 					cells:  make([]cell, 0, 1),
@@ -489,7 +489,7 @@ func Test_compiler_newRow(t *testing.T) {
 			name: "reserves column cells",
 			fields: fields{
 				input: configResult{
-					columns: make([]column, 2),
+					columns: make([]columnConfig, 2),
 				},
 				state: compilerState{
 					cells: func() []cell {

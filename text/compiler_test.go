@@ -49,7 +49,7 @@ func Test_compiler_prepare(t *testing.T) {
 					header:   [][]string{{"header"}},
 					footer:   [][]string{{"footer"}},
 					bodyRows: 2,
-					columns: []column{
+					columns: []columnConfig{
 						{
 							rowspan: ScopeHeader | ScopeBody,
 							colspan: ScopeFooter,
@@ -84,7 +84,7 @@ func Test_compiler_prepare(t *testing.T) {
 				input: configResult{
 					option:   &option{},
 					bodyRows: 1,
-					columns:  []column{{}},
+					columns:  []columnConfig{{}},
 				},
 				state: func() compilerState {
 					var rowspans scope.Masks
@@ -217,7 +217,7 @@ func Test_compiler_compileHeader(t *testing.T) {
 							{"top"},
 							{"bottom"},
 						},
-						columns: []column{configured},
+						columns: []columnConfig{configured},
 					}
 				}(),
 				state: compilerState{
@@ -321,7 +321,7 @@ func Test_compiler_compileBody(t *testing.T) {
 					option: &option{
 						placeholder: "-",
 					},
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 				state: compilerState{
 					cells:      make([]cell, 0, 2),
@@ -351,7 +351,7 @@ func Test_compiler_compileBody(t *testing.T) {
 					option: &option{
 						placeholder: "-",
 					},
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 				state: compilerState{
 					cells:      make([]cell, 0, 3),
@@ -501,7 +501,7 @@ func Test_compiler_compileFooter(t *testing.T) {
 							{"top"},
 							{"bottom"},
 						},
-						columns:       []column{configured},
+						columns:       []columnConfig{configured},
 						footerColumns: 1,
 					}
 				}(),
@@ -559,7 +559,7 @@ func Test_compiler_compileFooter(t *testing.T) {
 				input: configResult{
 					option:        &option{},
 					footer:        [][]string{{"a", "b"}},
-					columns:       []column{defaultColumn()},
+					columns:       []columnConfig{defaultColumn()},
 					footerColumns: 2,
 				},
 			},
@@ -618,7 +618,7 @@ func Test_compiler_compileBand(t *testing.T) {
 			name: "header index and labels",
 			fields: fields{
 				input: func() configResult {
-					columns := make([]column, 3)
+					columns := make([]columnConfig, 3)
 					for i := range columns {
 						columns[i].transformer.attrs.Set(ScopeHeader|ScopeFooter, attr)
 					}
@@ -658,7 +658,7 @@ func Test_compiler_compileBand(t *testing.T) {
 			name: "footer labels omit index",
 			fields: fields{
 				input: func() configResult {
-					columns := make([]column, 3)
+					columns := make([]columnConfig, 3)
 					for i := range columns {
 						columns[i].transformer.attrs.Set(ScopeHeader|ScopeFooter, attr)
 					}
@@ -763,7 +763,7 @@ func Test_compiler_compileRow(t *testing.T) {
 							placeholder: "-",
 							indexOffset: 1,
 						},
-						columns: []column{
+						columns: []columnConfig{
 							defaultColumn(),
 							dynamicColumn,
 							emptyColumn,
@@ -811,7 +811,7 @@ func Test_compiler_compileRow(t *testing.T) {
 			fields: fields{
 				input: configResult{
 					option:  &option{},
-					columns: []column{{}},
+					columns: []columnConfig{{}},
 				},
 				bodyStart: -1,
 			},
@@ -897,7 +897,7 @@ func Test_compiler_compileCells(t *testing.T) {
 					}
 					return configResult{
 						option:  &option{},
-						columns: []column{configured},
+						columns: []columnConfig{configured},
 					}
 				}(),
 			},
@@ -931,7 +931,7 @@ func Test_compiler_compileCells(t *testing.T) {
 						option: &option{
 							plain: true,
 						},
-						columns: []column{configured},
+						columns: []columnConfig{configured},
 					}
 				}(),
 			},
@@ -961,7 +961,7 @@ func Test_compiler_compileCells(t *testing.T) {
 					}
 					return configResult{
 						option:  &option{},
-						columns: []column{configured},
+						columns: []columnConfig{configured},
 					}
 				}(),
 			},
@@ -994,7 +994,7 @@ func Test_compiler_compileCells(t *testing.T) {
 						option: &option{
 							placeholder: "-",
 						},
-						columns: []column{configured},
+						columns: []columnConfig{configured},
 					}
 				}(),
 			},
@@ -1021,7 +1021,7 @@ func Test_compiler_compileCells(t *testing.T) {
 						placeholder: "-",
 						indexOffset: 1,
 					},
-					columns: []column{
+					columns: []columnConfig{
 						defaultColumn(),
 						defaultColumn(),
 						defaultColumn(),
@@ -1095,7 +1095,7 @@ func Test_compiler_reserveBand(t *testing.T) {
 			name: "grows reusable storage",
 			fields: fields{
 				input: configResult{
-					columns: make([]column, 2),
+					columns: make([]columnConfig, 2),
 				},
 				state: compilerState{
 					cells: make([]cell, 1),
@@ -1166,7 +1166,7 @@ func Test_compiler_newRow(t *testing.T) {
 			name: "slices the next row from cell storage",
 			fields: fields{
 				input: configResult{
-					columns: make([]column, 3),
+					columns: make([]columnConfig, 3),
 				},
 				state: compilerState{
 					cells: make([]cell, 1, 4),

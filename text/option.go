@@ -1,8 +1,6 @@
 package text
 
-import (
-	"slices"
-)
+import "github.com/nekrassov01/table/internal/column"
 
 // Option configures a [Table] or [Stream] during construction. Column indexes
 // refer to positions in the input rows; a generated index column does not
@@ -105,7 +103,7 @@ func WithPlaceholder(s string) Option {
 // selected by scopes. [AlignDefault] restores the default for each part.
 func WithAlign(scopes Scope, columns ColumnSelector, align AlignSide) Option {
 	return func(o *option) {
-		o.columns.apply(columns, func(c *column) {
+		o.columns.apply(columns, func(c *columnConfig) {
 			c.aligns.Set(scopes, align)
 		})
 	}
@@ -119,7 +117,7 @@ func WithWidth(columns ColumnSelector, width int) Option {
 	// Do not mutate values captured by a reusable option.
 	limit := max(width, 0)
 	return func(o *option) {
-		o.columns.apply(columns, func(c *column) {
+		o.columns.apply(columns, func(c *columnConfig) {
 			c.limit = limit
 		})
 	}
@@ -130,7 +128,7 @@ func WithWidth(columns ColumnSelector, width int) Option {
 // Stream values that exceed the geometry fixed when output began.
 func WithTruncate(columns ColumnSelector) Option {
 	return func(o *option) {
-		o.columns.apply(columns, func(c *column) {
+		o.columns.apply(columns, func(c *columnConfig) {
 			c.truncate = true
 		})
 	}
@@ -142,7 +140,7 @@ func WithPadding(columns ColumnSelector, left, right int) Option {
 	// Do not mutate values captured by a reusable option.
 	lPad, rPad := max(left, 0), max(right, 0)
 	return func(o *option) {
-		o.columns.apply(columns, func(c *column) {
+		o.columns.apply(columns, func(c *columnConfig) {
 			c.lPad = lPad
 			c.rPad = rPad
 		})
@@ -155,7 +153,7 @@ func WithPadding(columns ColumnSelector, left, right int) Option {
 // limited to the first 64 rendered columns.
 func WithRowspan(scopes Scope, columns ColumnSelector) Option {
 	return func(o *option) {
-		o.columns.apply(columns, func(c *column) {
+		o.columns.apply(columns, func(c *columnConfig) {
 			c.rowspan |= scopes
 		})
 	}
@@ -166,7 +164,7 @@ func WithRowspan(scopes Scope, columns ColumnSelector) Option {
 // columns.
 func WithColspan(scopes Scope, columns ColumnSelector) Option {
 	return func(o *option) {
-		o.columns.apply(columns, func(c *column) {
+		o.columns.apply(columns, func(c *columnConfig) {
 			c.colspan |= scopes
 		})
 	}
@@ -177,7 +175,7 @@ func WithColspan(scopes Scope, columns ColumnSelector) Option {
 // [WithTransformer] overrides both.
 func WithAttr(scopes Scope, columns ColumnSelector, attr *Attr) Option {
 	return func(o *option) {
-		o.columns.apply(columns, func(c *column) {
+		o.columns.apply(columns, func(c *columnConfig) {
 			c.transformer.attrs.Set(scopes, attr)
 		})
 	}
@@ -190,7 +188,7 @@ func WithAttr(scopes Scope, columns ColumnSelector, attr *Attr) Option {
 // corresponding column setting.
 func WithTransformer(columns ColumnSelector, fn func(any) (string, *Attr)) Option {
 	return func(o *option) {
-		o.columns.apply(columns, func(c *column) {
+		o.columns.apply(columns, func(c *columnConfig) {
 			c.transformer.fn = fn
 		})
 	}
@@ -198,14 +196,13 @@ func WithTransformer(columns ColumnSelector, fn func(any) (string, *Attr)) Optio
 
 // ColumnSelector identifies input columns for a column option.
 type ColumnSelector struct {
-	indexes []int
-	all     bool
+	selector column.Selector
 }
 
 // Columns selects the input columns at indexes. Negative indexes are ignored.
 func Columns(indexes ...int) ColumnSelector {
 	return ColumnSelector{
-		indexes: slices.Clone(indexes),
+		selector: column.NewSelector(indexes...),
 	}
 }
 
@@ -213,6 +210,6 @@ func Columns(indexes ...int) ColumnSelector {
 // options are applied. A generated index column is excluded.
 func AllColumns() ColumnSelector {
 	return ColumnSelector{
-		all: true,
+		selector: column.All(),
 	}
 }

@@ -185,7 +185,7 @@ func Test_arena_resumeConfig(t *testing.T) {
 			name: "restores resolved columns",
 			fields: fields{
 				config: configState{
-					columns: []column{
+					columns: []columnConfig{
 						{
 							rowspan: ScopeBody,
 						},
@@ -209,7 +209,7 @@ func Test_arena_resumeConfig(t *testing.T) {
 					header:   [][]string{{"header"}},
 					footer:   [][]string{{"sum", "total"}},
 					bodyRows: 2,
-					columns: []column{
+					columns: []columnConfig{
 						{
 							rowspan: ScopeBody,
 						},
@@ -545,7 +545,7 @@ func Test_arena_release(t *testing.T) {
 	type want struct {
 		lineIsNil bool
 		lineCap   int
-		columns   []column
+		columns   []columnConfig
 		cells     []cell
 		values    []string
 		bodyReset bool
@@ -567,7 +567,7 @@ func Test_arena_release(t *testing.T) {
 			fields: fields{
 				arena: &arena{
 					config: configState{
-						columns: []column{{}},
+						columns: []columnConfig{{}},
 					},
 					compiler: compilerState{
 						cells: []cell{
@@ -596,7 +596,7 @@ func Test_arena_release(t *testing.T) {
 			want: want{
 				lineIsNil: true,
 				lineCap:   8,
-				columns:   []column{{}},
+				columns:   []columnConfig{{}},
 				cells:     []cell{{}},
 				values:    []string{""},
 				bodyReset: true,

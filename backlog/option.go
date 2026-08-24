@@ -1,6 +1,6 @@
 package backlog
 
-import "slices"
+import "github.com/nekrassov01/table/internal/column"
 
 // Option configures a [Table] or [Stream] during construction. Column indexes
 // refer to positions in the input rows; a generated index column does not
@@ -58,7 +58,7 @@ func WithPlaceholder(s string) Option {
 // cross a part boundary and are limited to the first 64 rendered columns.
 func WithRowspan(scopes Scope, columns ColumnSelector) Option {
 	return func(o *option) {
-		o.columns.apply(columns, func(c *column) {
+		o.columns.apply(columns, func(c *columnConfig) {
 			c.rowspan |= scopes
 		})
 	}
@@ -69,7 +69,7 @@ func WithRowspan(scopes Scope, columns ColumnSelector) Option {
 // the first 64 rendered columns.
 func WithColspan(scopes Scope, columns ColumnSelector) Option {
 	return func(o *option) {
-		o.columns.apply(columns, func(c *column) {
+		o.columns.apply(columns, func(c *columnConfig) {
 			c.colspan |= scopes
 		})
 	}
@@ -79,7 +79,7 @@ func WithColspan(scopes Scope, columns ColumnSelector) Option {
 // and table parts.
 func WithColor(scopes Scope, columns ColumnSelector, color *Color) Option {
 	return func(o *option) {
-		o.columns.apply(columns, func(c *column) {
+		o.columns.apply(columns, func(c *columnConfig) {
 			c.transformer.colors.Set(scopes, color)
 		})
 	}
@@ -89,7 +89,7 @@ func WithColor(scopes Scope, columns ColumnSelector, color *Color) Option {
 // table parts.
 func WithDecoration(scopes Scope, columns ColumnSelector, decoration *Decoration) Option {
 	return func(o *option) {
-		o.columns.apply(columns, func(c *column) {
+		o.columns.apply(columns, func(c *columnConfig) {
 			c.transformer.decorations.Set(scopes, decoration)
 		})
 	}
@@ -102,7 +102,7 @@ func WithDecoration(scopes Scope, columns ColumnSelector, decoration *Decoration
 // values keep the corresponding column settings.
 func WithTransformer(columns ColumnSelector, fn func(any) (string, *Color, *Decoration)) Option {
 	return func(o *option) {
-		o.columns.apply(columns, func(c *column) {
+		o.columns.apply(columns, func(c *columnConfig) {
 			c.transformer.fn = fn
 		})
 	}
@@ -110,14 +110,13 @@ func WithTransformer(columns ColumnSelector, fn func(any) (string, *Color, *Deco
 
 // ColumnSelector identifies input columns for a column option.
 type ColumnSelector struct {
-	indexes []int
-	all     bool
+	selector column.Selector
 }
 
 // Columns selects the input columns at indexes. Negative indexes are ignored.
 func Columns(indexes ...int) ColumnSelector {
 	return ColumnSelector{
-		indexes: slices.Clone(indexes),
+		selector: column.NewSelector(indexes...),
 	}
 }
 
@@ -125,6 +124,6 @@ func Columns(indexes ...int) ColumnSelector {
 // options are applied. A generated index column is excluded.
 func AllColumns() ColumnSelector {
 	return ColumnSelector{
-		all: true,
+		selector: column.All(),
 	}
 }
