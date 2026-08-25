@@ -540,6 +540,86 @@ func Test_compiler_compileRow(t *testing.T) {
 	}
 }
 
+func Test_compiler_compileCells(t *testing.T) {
+	type fields struct {
+		state compilerState
+	}
+	type args struct {
+		row row
+	}
+	type want struct {
+		cells []cell
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   want
+	}{
+		{
+			name: "escapes applies markup and clears spans",
+			fields: fields{
+				state: compilerState{
+					values: []string{"a|b&br;", "bold", "code", "rowspan", "colspan", "color"},
+				},
+			},
+			args: args{
+				row: row{
+					cells: []cell{
+						{},
+						{decoration: DecorationBold},
+						{color: ColorFgRed, decoration: DecorationCode},
+						{color: ColorFgBlue},
+						{decoration: DecorationItalic},
+						{color: ColorFgRed},
+					},
+					rowspans: 0b001000,
+					colspans: 0b010000,
+				},
+			},
+			want: want{
+				cells: []cell{
+					{value: `a\\|b\\&br;`, width: 11, size: 11},
+					{
+						value:      "bold",
+						width:      4 + len(DecorationBold.Prefix) + len(DecorationBold.Suffix),
+						size:       4 + len(DecorationBold.Prefix) + len(DecorationBold.Suffix),
+						decoration: DecorationBold,
+					},
+					{
+						value:      "code",
+						width:      4 + len(DecorationCode.Prefix) + len(DecorationCode.Suffix),
+						size:       4 + len(DecorationCode.Prefix) + len(DecorationCode.Suffix),
+						decoration: DecorationCode,
+					},
+					{},
+					{},
+					{
+						value: "color",
+						width: 5 + len(ColorFgRed.Prefix) + len(ColorFgRed.Suffix),
+						size:  5 + len(ColorFgRed.Prefix) + len(ColorFgRed.Suffix),
+						color: ColorFgRed,
+					},
+				},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			state := test.fields.state
+			o := &compiler{
+				state: &state,
+			}
+			r := test.args.row
+			o.compileCells(r)
+			got := want{
+				cells: r.cells,
+			}
+			testutil.AssertValue(t, got, test.want, "compileCells")
+		})
+	}
+}
+
 func Test_compiler_reserveBand(t *testing.T) {
 	type fields struct {
 		input configResult
@@ -754,86 +834,6 @@ func Test_compiler_setSpans(t *testing.T) {
 				colspans: r.colspans,
 			}
 			testutil.AssertValue(t, got, test.want, "setSpans")
-		})
-	}
-}
-
-func Test_compiler_compileCells(t *testing.T) {
-	type fields struct {
-		state compilerState
-	}
-	type args struct {
-		row row
-	}
-	type want struct {
-		cells []cell
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   want
-	}{
-		{
-			name: "escapes applies markup and clears spans",
-			fields: fields{
-				state: compilerState{
-					values: []string{"a|b&br;", "bold", "code", "rowspan", "colspan", "color"},
-				},
-			},
-			args: args{
-				row: row{
-					cells: []cell{
-						{},
-						{decoration: DecorationBold},
-						{color: ColorFgRed, decoration: DecorationCode},
-						{color: ColorFgBlue},
-						{decoration: DecorationItalic},
-						{color: ColorFgRed},
-					},
-					rowspans: 0b001000,
-					colspans: 0b010000,
-				},
-			},
-			want: want{
-				cells: []cell{
-					{value: `a\\|b\\&br;`, width: 11, size: 11},
-					{
-						value:      "bold",
-						width:      4 + len(DecorationBold.Prefix) + len(DecorationBold.Suffix),
-						size:       4 + len(DecorationBold.Prefix) + len(DecorationBold.Suffix),
-						decoration: DecorationBold,
-					},
-					{
-						value:      "code",
-						width:      4 + len(DecorationCode.Prefix) + len(DecorationCode.Suffix),
-						size:       4 + len(DecorationCode.Prefix) + len(DecorationCode.Suffix),
-						decoration: DecorationCode,
-					},
-					{},
-					{},
-					{
-						value: "color",
-						width: 5 + len(ColorFgRed.Prefix) + len(ColorFgRed.Suffix),
-						size:  5 + len(ColorFgRed.Prefix) + len(ColorFgRed.Suffix),
-						color: ColorFgRed,
-					},
-				},
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			state := test.fields.state
-			o := &compiler{
-				state: &state,
-			}
-			r := test.args.row
-			o.compileCells(r)
-			got := want{
-				cells: r.cells,
-			}
-			testutil.AssertValue(t, got, test.want, "compileCells")
 		})
 	}
 }

@@ -84,6 +84,61 @@ func Test_solver_prepare(t *testing.T) {
 	}
 }
 
+func Test_solver_solve(t *testing.T) {
+	type fields struct {
+		input compilerResult
+		state solverState
+	}
+	type want struct {
+		metrics []columnMetric
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   want
+	}{
+		{
+			name: "measures header body and footer",
+			fields: fields{
+				input: compilerResult{
+					header: []row{{
+						cells: []cell{{width: 2}, {width: 5}},
+					}},
+					body: []row{{
+						cells: []cell{{width: 4}, {width: 2}},
+					}},
+					footer: []row{{
+						cells: []cell{{width: 3}, {width: 1}},
+					}},
+				},
+				state: solverState{
+					columnMetrics: []columnMetric{{}, {}},
+				},
+			},
+			want: want{
+				metrics: []columnMetric{
+					{box: box{width: 4}},
+					{box: box{width: 6}},
+				},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			state := test.fields.state
+			o := &solver{
+				input: test.fields.input,
+				state: &state,
+			}
+			o.solve()
+			got := want{
+				metrics: state.columnMetrics,
+			}
+			testutil.AssertValue(t, got, test.want, "solve")
+		})
+	}
+}
+
 func Test_solver_measureRows(t *testing.T) {
 	type fields struct {
 		state solverState
@@ -211,61 +266,6 @@ func Test_solver_measureRow(t *testing.T) {
 				metrics: state.columnMetrics,
 			}
 			testutil.AssertValue(t, got, test.want, "measureRow")
-		})
-	}
-}
-
-func Test_solver_solve(t *testing.T) {
-	type fields struct {
-		input compilerResult
-		state solverState
-	}
-	type want struct {
-		metrics []columnMetric
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   want
-	}{
-		{
-			name: "measures header body and footer",
-			fields: fields{
-				input: compilerResult{
-					header: []row{{
-						cells: []cell{{width: 2}, {width: 5}},
-					}},
-					body: []row{{
-						cells: []cell{{width: 4}, {width: 2}},
-					}},
-					footer: []row{{
-						cells: []cell{{width: 3}, {width: 1}},
-					}},
-				},
-				state: solverState{
-					columnMetrics: []columnMetric{{}, {}},
-				},
-			},
-			want: want{
-				metrics: []columnMetric{
-					{box: box{width: 4}},
-					{box: box{width: 6}},
-				},
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			state := test.fields.state
-			o := &solver{
-				input: test.fields.input,
-				state: &state,
-			}
-			o.solve()
-			got := want{
-				metrics: state.columnMetrics,
-			}
-			testutil.AssertValue(t, got, test.want, "solve")
 		})
 	}
 }

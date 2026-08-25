@@ -590,7 +590,7 @@ func Test_arena_release(t *testing.T) {
 	}
 }
 
-func TestAcquireArena(t *testing.T) {
+func Test_acquireArena(t *testing.T) {
 	type want struct {
 		nonNil     bool
 		stringMark int

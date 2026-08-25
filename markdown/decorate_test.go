@@ -49,7 +49,7 @@ func TestNewDecoration(t *testing.T) {
 	}
 }
 
-func TestResolveTicks(t *testing.T) {
+func Test_resolveTicks(t *testing.T) {
 	type args struct {
 		decoration *Decoration
 		value      string

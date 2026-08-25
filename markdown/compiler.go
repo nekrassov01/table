@@ -163,33 +163,6 @@ func (o *compiler) compileRow(source []any, rowIndex int) {
 	o.output.body = state.rows[o.bodyStart:]
 }
 
-// newRow reserves one logical row in reusable cell storage.
-func (o *compiler) newRow() row {
-	state := o.state
-	start := len(state.cells)
-	end := start + len(o.input.columns)
-	state.cells = state.cells[:end]
-	return row{
-		cells: state.cells[start:end],
-	}
-}
-
-// setSpans resolves vertical continuations and horizontal absorptions for one
-// body row.
-func (o *compiler) setSpans(r *row, previous *span.PreviousRow) {
-	state := o.state
-	if state.rowspans|state.colspans == 0 {
-		return
-	}
-	values := state.values[:len(r.cells)]
-	if state.rowspans != 0 {
-		r.rowspans = span.Rowspans(state.rowspans, values, previous)
-	}
-	if state.colspans != 0 {
-		r.colspans = span.Colspans(state.colspans, values, r.rowspans)
-	}
-}
-
 // compileCells escapes the current row values and applies its inner markup.
 func (o *compiler) compileCells(r row) {
 	state := o.state
@@ -226,6 +199,33 @@ func (o *compiler) compileCells(r row) {
 			compiled.width += markup
 			compiled.size += markup
 		}
+	}
+}
+
+// newRow reserves one logical row in reusable cell storage.
+func (o *compiler) newRow() row {
+	state := o.state
+	start := len(state.cells)
+	end := start + len(o.input.columns)
+	state.cells = state.cells[:end]
+	return row{
+		cells: state.cells[start:end],
+	}
+}
+
+// setSpans resolves vertical continuations and horizontal absorptions for one
+// body row.
+func (o *compiler) setSpans(r *row, previous *span.PreviousRow) {
+	state := o.state
+	if state.rowspans|state.colspans == 0 {
+		return
+	}
+	values := state.values[:len(r.cells)]
+	if state.rowspans != 0 {
+		r.rowspans = span.Rowspans(state.rowspans, values, previous)
+	}
+	if state.colspans != 0 {
+		r.colspans = span.Colspans(state.colspans, values, r.rowspans)
 	}
 }
 

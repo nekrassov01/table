@@ -458,6 +458,7 @@ func Test_solver_measureRow(t *testing.T) {
 	type want struct {
 		metrics          []columnMetric
 		spanRequirements []spanRequirement
+		cells            []cell
 	}
 	tests := []struct {
 		name   string
@@ -500,6 +501,18 @@ func Test_solver_measureRow(t *testing.T) {
 					{},
 					{},
 				},
+				cells: []cell{
+					{
+						value: "界",
+						width: 2,
+					},
+					{
+						value: "rowspan",
+					},
+					{
+						value: "colspan",
+					},
+				},
 			},
 		},
 		{
@@ -525,6 +538,11 @@ func Test_solver_measureRow(t *testing.T) {
 							width: 4,
 						},
 						overhead: 2,
+					},
+				},
+				cells: []cell{
+					{
+						value: "ab\n界界",
 					},
 				},
 			},
@@ -598,6 +616,23 @@ func Test_solver_measureRow(t *testing.T) {
 						width: 2,
 					},
 				},
+				cells: []cell{
+					{
+						value: "aaaaaa",
+						width: 6,
+					},
+					{},
+					{
+						value: "bbb",
+						width: 3,
+					},
+					{},
+					{
+						value: "cc",
+						width: 2,
+					},
+					{},
+				},
 			},
 		},
 	}
@@ -615,6 +650,7 @@ func Test_solver_measureRow(t *testing.T) {
 			got := want{
 				metrics:          state.columnMetrics,
 				spanRequirements: state.spanRequirements,
+				cells:            r.cells,
 			}
 			testutil.AssertValue(t, got, test.want, "measureRow")
 		})

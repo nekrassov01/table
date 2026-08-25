@@ -54,7 +54,7 @@ func Test_newWriteError(t *testing.T) {
 	}
 }
 
-func TestNewClosedError(t *testing.T) {
+func Test_newClosedError(t *testing.T) {
 	type want struct {
 		pkg      string
 		isClosed bool
@@ -83,7 +83,7 @@ func TestNewClosedError(t *testing.T) {
 	}
 }
 
-func TestNewColumnCountError(t *testing.T) {
+func Test_newColumnCountError(t *testing.T) {
 	type args struct {
 		got  int
 		want int
@@ -128,7 +128,7 @@ func TestNewColumnCountError(t *testing.T) {
 	}
 }
 
-func TestNewHeaderError(t *testing.T) {
+func Test_newHeaderError(t *testing.T) {
 	type want struct {
 		pkg      string
 		isHeader bool
@@ -157,7 +157,7 @@ func TestNewHeaderError(t *testing.T) {
 	}
 }
 
-func TestNewError(t *testing.T) {
+func Test_newError(t *testing.T) {
 	type args struct {
 		err error
 	}

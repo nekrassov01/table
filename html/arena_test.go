@@ -440,38 +440,12 @@ func Test_arena_newPainter(t *testing.T) {
 	}
 }
 
-func Test_arena_release_nil(t *testing.T) {
+func Test_arena_release(t *testing.T) {
 	type fields struct {
 		arena *arena
 	}
 	type want struct {
-		panics bool
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   want
-	}{
-		{
-			name: "nil arena",
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			got := want{}
-			test.fields.arena.release()
-			testutil.AssertValue(t, got, test.want, "release")
-		})
-	}
-}
-
-func Test_arena_release(t *testing.T) {
-	type fields struct {
-		config   configState
-		compiler compilerState
-		painter  painterState
-	}
-	type want struct {
+		nilArena    bool
 		lineNil     bool
 		lineBacking int
 		columnZero  bool
@@ -485,39 +459,47 @@ func Test_arena_release(t *testing.T) {
 		want   want
 	}{
 		{
+			name: "nil arena",
+			want: want{
+				nilArena: true,
+			},
+		},
+		{
 			name: "severs views and retains grown line backing",
 			fields: fields{
-				config: configState{
-					columns: []columnConfig{
-						{
-							transformer: transformer{
-								fn: func(any) (string, *Color, *Decoration) {
-									return "", nil, nil
+				arena: &arena{
+					config: configState{
+						columns: []columnConfig{
+							{
+								transformer: transformer{
+									fn: func(any) (string, *Color, *Decoration) {
+										return "", nil, nil
+									},
 								},
 							},
 						},
 					},
-				},
-				compiler: compilerState{
-					cells: []cell{
-						{
-							value: "value",
+					compiler: compilerState{
+						cells: []cell{
+							{
+								value: "value",
+							},
 						},
+						previousBody: func() span.PreviousRow {
+							var previous span.PreviousRow
+							span.Rowspans(1, []string{"value"}, &previous)
+							return previous
+						}(),
+						previousBand: func() span.PreviousRow {
+							var previous span.PreviousRow
+							span.Rowspans(1, []string{"value"}, &previous)
+							return previous
+						}(),
 					},
-					previousBody: func() span.PreviousRow {
-						var previous span.PreviousRow
-						span.Rowspans(1, []string{"value"}, &previous)
-						return previous
-					}(),
-					previousBand: func() span.PreviousRow {
-						var previous span.PreviousRow
-						span.Rowspans(1, []string{"value"}, &previous)
-						return previous
-					}(),
-				},
-				painter: painterState{
-					lineBacking: make([]byte, 0, 2),
-					line:        make([]byte, 0, 8),
+					painter: painterState{
+						lineBacking: make([]byte, 0, 2),
+						line:        make([]byte, 0, 8),
+					},
 				},
 			},
 			want: want{
@@ -532,22 +514,21 @@ func Test_arena_release(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			o := &arena{
-				config:   test.fields.config,
-				compiler: test.fields.compiler,
-				painter:  test.fields.painter,
-			}
+			o := test.fields.arena
 			o.release()
 			got := want{
-				lineNil:     o.painter.line == nil,
-				lineBacking: cap(o.painter.lineBacking),
-				columnZero:  o.config.columns[0].transformer.fn == nil,
-				cellZero:    o.compiler.cells[0].value == "",
-				bodyReset:   span.Rowspans(1, []string{"value"}, &o.compiler.previousBody) == 0,
-				bandReset:   span.Rowspans(1, []string{"value"}, &o.compiler.previousBand) == 0,
+				nilArena: o == nil,
 			}
-			o.compiler.previousBody.Clear()
-			o.compiler.previousBand.Clear()
+			if o != nil {
+				got.lineNil = o.painter.line == nil
+				got.lineBacking = cap(o.painter.lineBacking)
+				got.columnZero = o.config.columns[0].transformer.fn == nil
+				got.cellZero = o.compiler.cells[0].value == ""
+				got.bodyReset = span.Rowspans(1, []string{"value"}, &o.compiler.previousBody) == 0
+				got.bandReset = span.Rowspans(1, []string{"value"}, &o.compiler.previousBand) == 0
+				o.compiler.previousBody.Clear()
+				o.compiler.previousBand.Clear()
+			}
 			testutil.AssertValue(t, got, test.want, "release")
 		})
 	}
