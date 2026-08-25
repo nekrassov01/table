@@ -1798,7 +1798,7 @@ func Test_painter_layoutCell(t *testing.T) {
 		err     error
 	}
 	type args struct {
-		value    string
+		cell     cell
 		limit    int
 		truncate bool
 	}
@@ -1816,7 +1816,24 @@ func Test_painter_layoutCell(t *testing.T) {
 		{
 			name: "single line without limit",
 			args: args{
-				value: "界a",
+				cell: cell{
+					value: "界a",
+					width: 3,
+				},
+			},
+			want: want{
+				layout: layout{
+					value: "界a",
+					width: 3,
+				},
+			},
+		},
+		{
+			name: "unmeasured single line falls back to scanning",
+			args: args{
+				cell: cell{
+					value: "界a",
+				},
 			},
 			want: want{
 				layout: layout{
@@ -1828,7 +1845,10 @@ func Test_painter_layoutCell(t *testing.T) {
 		{
 			name: "single line truncates before layout",
 			args: args{
-				value:    "abcdef",
+				cell: cell{
+					value: "abcdef",
+					width: 6,
+				},
 				limit:    5,
 				truncate: true,
 			},
@@ -1853,7 +1873,9 @@ func Test_painter_layoutCell(t *testing.T) {
 				},
 			},
 			args: args{
-				value: "a\n界",
+				cell: cell{
+					value: "a\n界",
+				},
 			},
 			want: want{
 				layout: layout{
@@ -1889,7 +1911,9 @@ func Test_painter_layoutCell(t *testing.T) {
 		{
 			name: "long line wraps by display width",
 			args: args{
-				value: "a界b",
+				cell: cell{
+					value: "a界b",
+				},
 				limit: 2,
 			},
 			want: want{
@@ -1930,7 +1954,9 @@ func Test_painter_layoutCell(t *testing.T) {
 		{
 			name: "multiline truncates each physical line",
 			args: args{
-				value:    "abcdef\nxy",
+				cell: cell{
+					value: "abcdef\nxy",
+				},
 				limit:    4,
 				truncate: true,
 			},
@@ -1975,7 +2001,7 @@ func Test_painter_layoutCell(t *testing.T) {
 				err:     test.fields.err,
 			}
 			got := want{
-				layout:     o.layoutCell(test.args.value, test.args.limit, test.args.truncate),
+				layout:     o.layoutCell(test.args.cell, test.args.limit, test.args.truncate),
 				segments:   state.segments,
 				stringMark: store.Mark(),
 			}

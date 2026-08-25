@@ -308,8 +308,10 @@ type row struct {
 	bars     uint64 // The bitset of visible vertical boundaries.
 }
 
-// cell holds the resolved value and attribute of one logical cell.
+// cell holds the resolved value, attribute, and solved width of one logical
+// cell.
 type cell struct {
-	value string
-	attr  *Attr
+	value string // Resolved display value.
+	attr  *Attr  // Optional display attribute.
+	width int    // Solved display width for a non-empty single-line value.
 }

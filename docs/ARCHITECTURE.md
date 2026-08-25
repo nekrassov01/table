@@ -122,7 +122,7 @@ CSV has no `solver` because it has no column widths or span geometry to determin
 
 `solve` resolves format-specific information:
 
-- `text` measures cell display widths and span width requirements, then applies column settings, padding, and terminal width to determine each column's width and starting position.
+- `text` measures cell display widths and span width requirements, retains each measured single-line width on its cell, then applies column settings, padding, and terminal width to determine each column's width and starting position.
 - `html` counts span candidates and sets `rowspan` and `colspan` on their leading cells. It assigns `colspan == 0` to absorbed cells so they are omitted from output.
 - `markdown` and `backlog` measure the widest cell in each column and determine the padding width.
 
@@ -141,7 +141,7 @@ CSV has no `solver` because it has no column widths or span geometry to determin
 - `markdown` and `backlog` separate cells with vertical bars and pad rows to the required widths.
 - `csv` separates fields with the configured delimiter and terminates each record with the configured newline.
 
-`painter` does not call transformers, repeat escaping or quoting, or reconsider widths and spans. If the destination returns an error, it retains the first error and suppresses subsequent writes.
+`painter` does not call transformers, repeat escaping or quoting, or revise solved column widths and spans. If the destination returns an error, it retains the first error and suppresses subsequent writes.
 
 ## Pipelines
 

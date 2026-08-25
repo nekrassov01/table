@@ -88,8 +88,13 @@ func (o *solver) measureRow(r *row) {
 			continue
 		}
 		metric := &metrics[i]
-		value := r.cells[i].value
+		cell := &r.cells[i]
+		value := cell.value
 		cellWidth, hasBreak := measureLine(value)
+		cell.width = 0
+		if !hasBreak {
+			cell.width = cellWidth
+		}
 		overhead := len(value) - cellWidth
 		if hasBreak {
 			overhead = 0

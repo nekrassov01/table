@@ -342,16 +342,13 @@ func (o *painter) layoutRow(r *row, sc Scope) int {
 			limit = cellBox.width
 			truncate = false
 		}
-		logical := &r.cells[columnIndex]
-		value := logical.value
-		attr := logical.attr
+		compiled := r.cells[columnIndex]
 		bit := uint64(1) << uint(columnIndex)
 		if bit != 0 && (r.rowspans&bit != 0 || r.colspans&bit != 0) {
-			value = ""
-			attr = nil
+			compiled = cell{}
 		}
-		layout := o.layoutCell(value, limit, truncate)
-		layout.attr = attr
+		layout := o.layoutCell(compiled, limit, truncate)
+		layout.attr = compiled.attr
 		layout.box = cellBox
 		layout.align = col.aligns.Resolve(sc)
 		if layout.align == AlignDefault && sc == ScopeHeader {
@@ -367,9 +364,15 @@ func (o *painter) layoutRow(r *row, sc Scope) int {
 	return height
 }
 
-// layoutCell splits one value into the physical lines required by its limit.
-func (o *painter) layoutCell(value string, limit int, truncate bool) layout {
-	cellWidth, hasBreak := measureLine(value)
+// layoutCell splits one logical cell into the physical lines required by its
+// limit.
+func (o *painter) layoutCell(cell cell, limit int, truncate bool) layout {
+	value := cell.value
+	cellWidth := cell.width
+	hasBreak := false
+	if cellWidth == 0 && value != "" {
+		cellWidth, hasBreak = measureLine(value)
+	}
 	if !hasBreak && truncate && limit > 0 && cellWidth > limit {
 		value, cellWidth = o.truncateLine(value, cellWidth, limit)
 	}
