@@ -605,6 +605,106 @@ func Test_compiler_compileRow(t *testing.T) {
 	}
 }
 
+func Test_compiler_compileCells(t *testing.T) {
+	type fields struct {
+		state compilerState
+	}
+	type args struct {
+		row row
+	}
+	type want struct {
+		values      []string
+		sizes       []int
+		colors      []*Color
+		decorations []*Decoration
+		columnSizes []int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   want
+	}{
+		{
+			name: "escapes values and omits vertical continuations",
+			fields: fields{
+				state: compilerState{
+					values:      []string{"same", "<x>"},
+					columnSizes: make([]int, 2),
+				},
+			},
+			args: args{
+				row: row{
+					cells: []cell{
+						{
+							colspan: 1,
+						},
+						{
+							color:      &Color{},
+							decoration: &Decoration{},
+							colspan:    1,
+						},
+					},
+					rowspans: 0b01,
+				},
+			},
+			want: want{
+				values:      []string{"", "&lt;x&gt;"},
+				sizes:       []int{0, 9},
+				colors:      []*Color{nil, nil},
+				decorations: []*Decoration{nil, nil},
+				columnSizes: []int{0, 9},
+			},
+		},
+		{
+			name: "stores value and markup size",
+			fields: fields{
+				state: compilerState{
+					values:      []string{"x"},
+					columnSizes: make([]int, 1),
+				},
+			},
+			args: args{
+				row: row{
+					cells: []cell{
+						{
+							color:      ColorFgRed,
+							decoration: DecorationBold,
+							colspan:    1,
+						},
+					},
+				},
+			},
+			want: want{
+				values:      []string{"x"},
+				sizes:       []int{49},
+				colors:      []*Color{ColorFgRed},
+				decorations: []*Decoration{DecorationBold},
+				columnSizes: []int{49},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			state := test.fields.state
+			o := &compiler{
+				state: &state,
+			}
+			o.compileCells(test.args.row)
+			got := want{
+				columnSizes: state.columnSizes,
+			}
+			for _, compiled := range test.args.row.cells {
+				got.values = append(got.values, compiled.value)
+				got.sizes = append(got.sizes, compiled.size)
+				got.colors = append(got.colors, compiled.color)
+				got.decorations = append(got.decorations, compiled.decoration)
+			}
+			testutil.AssertValue(t, got, test.want, "compileCells")
+		})
+	}
+}
+
 func Test_compiler_reserveBand(t *testing.T) {
 	type fields struct {
 		input configResult
@@ -819,106 +919,6 @@ func Test_compiler_setSpans(t *testing.T) {
 				colspans: r.colspans,
 			}
 			testutil.AssertValue(t, got, test.want, "setSpans")
-		})
-	}
-}
-
-func Test_compiler_compileCells(t *testing.T) {
-	type fields struct {
-		state compilerState
-	}
-	type args struct {
-		row row
-	}
-	type want struct {
-		values      []string
-		sizes       []int
-		colors      []*Color
-		decorations []*Decoration
-		columnSizes []int
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   want
-	}{
-		{
-			name: "escapes values and omits vertical continuations",
-			fields: fields{
-				state: compilerState{
-					values:      []string{"same", "<x>"},
-					columnSizes: make([]int, 2),
-				},
-			},
-			args: args{
-				row: row{
-					cells: []cell{
-						{
-							colspan: 1,
-						},
-						{
-							color:      &Color{},
-							decoration: &Decoration{},
-							colspan:    1,
-						},
-					},
-					rowspans: 0b01,
-				},
-			},
-			want: want{
-				values:      []string{"", "&lt;x&gt;"},
-				sizes:       []int{0, 9},
-				colors:      []*Color{nil, nil},
-				decorations: []*Decoration{nil, nil},
-				columnSizes: []int{0, 9},
-			},
-		},
-		{
-			name: "stores value and markup size",
-			fields: fields{
-				state: compilerState{
-					values:      []string{"x"},
-					columnSizes: make([]int, 1),
-				},
-			},
-			args: args{
-				row: row{
-					cells: []cell{
-						{
-							color:      ColorFgRed,
-							decoration: DecorationBold,
-							colspan:    1,
-						},
-					},
-				},
-			},
-			want: want{
-				values:      []string{"x"},
-				sizes:       []int{49},
-				colors:      []*Color{ColorFgRed},
-				decorations: []*Decoration{DecorationBold},
-				columnSizes: []int{49},
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			state := test.fields.state
-			o := &compiler{
-				state: &state,
-			}
-			o.compileCells(test.args.row)
-			got := want{
-				columnSizes: state.columnSizes,
-			}
-			for _, compiled := range test.args.row.cells {
-				got.values = append(got.values, compiled.value)
-				got.sizes = append(got.sizes, compiled.size)
-				got.colors = append(got.colors, compiled.color)
-				got.decorations = append(got.decorations, compiled.decoration)
-			}
-			testutil.AssertValue(t, got, test.want, "compileCells")
 		})
 	}
 }

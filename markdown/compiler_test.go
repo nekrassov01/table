@@ -467,6 +467,126 @@ func Test_compiler_compileRow(t *testing.T) {
 	}
 }
 
+func Test_compiler_compileCells(t *testing.T) {
+	type fields struct {
+		state compilerState
+	}
+	type args struct {
+		row row
+	}
+	type want struct {
+		row row
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   want
+	}{
+		{
+			name: "omits horizontal absorption",
+			fields: fields{
+				state: compilerState{
+					values: []string{"x", "x"},
+				},
+			},
+			args: args{
+				row: row{
+					cells:    []cell{{}, {}},
+					colspans: 0b10,
+				},
+			},
+			want: want{
+				row: row{
+					cells: []cell{
+						{
+							value: "x",
+							width: 1,
+							size:  1,
+						},
+						{},
+					},
+					colspans: 0b10,
+				},
+			},
+		},
+		{
+			name: "escapes decorated colored value",
+			fields: fields{
+				state: compilerState{
+					values: []string{"x|"},
+				},
+			},
+			args: args{
+				row: row{
+					cells: []cell{
+						{
+							color:      ColorFgRed,
+							decoration: DecorationBold,
+						},
+					},
+				},
+			},
+			want: want{
+				row: row{
+					cells: []cell{
+						{
+							value:      `x\|`,
+							width:      38,
+							size:       38,
+							color:      ColorFgRed,
+							decoration: DecorationBold,
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "grows code fence",
+			fields: fields{
+				state: compilerState{
+					values: []string{"a`b"},
+				},
+			},
+			args: args{
+				row: row{
+					cells: []cell{
+						{
+							decoration: DecorationCode,
+						},
+					},
+				},
+			},
+			want: want{
+				row: row{
+					cells: []cell{
+						{
+							value: "a`b",
+							width: 7,
+							size:  7,
+							ticks: 2,
+						},
+					},
+				},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			state := test.fields.state
+			o := &compiler{
+				state: &state,
+			}
+			r := test.args.row
+			o.compileCells(r)
+			got := want{
+				row: r,
+			}
+			testutil.AssertValue(t, got, test.want, "compileCells")
+		})
+	}
+}
+
 func Test_compiler_newRow(t *testing.T) {
 	type fields struct {
 		input configResult
@@ -629,126 +749,6 @@ func Test_compiler_setSpans(t *testing.T) {
 				colspans: r.colspans,
 			}
 			testutil.AssertValue(t, got, test.want, "setSpans")
-		})
-	}
-}
-
-func Test_compiler_compileCells(t *testing.T) {
-	type fields struct {
-		state compilerState
-	}
-	type args struct {
-		row row
-	}
-	type want struct {
-		row row
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   want
-	}{
-		{
-			name: "omits horizontal absorption",
-			fields: fields{
-				state: compilerState{
-					values: []string{"x", "x"},
-				},
-			},
-			args: args{
-				row: row{
-					cells:    []cell{{}, {}},
-					colspans: 0b10,
-				},
-			},
-			want: want{
-				row: row{
-					cells: []cell{
-						{
-							value: "x",
-							width: 1,
-							size:  1,
-						},
-						{},
-					},
-					colspans: 0b10,
-				},
-			},
-		},
-		{
-			name: "escapes decorated colored value",
-			fields: fields{
-				state: compilerState{
-					values: []string{"x|"},
-				},
-			},
-			args: args{
-				row: row{
-					cells: []cell{
-						{
-							color:      ColorFgRed,
-							decoration: DecorationBold,
-						},
-					},
-				},
-			},
-			want: want{
-				row: row{
-					cells: []cell{
-						{
-							value:      `x\|`,
-							width:      38,
-							size:       38,
-							color:      ColorFgRed,
-							decoration: DecorationBold,
-						},
-					},
-				},
-			},
-		},
-		{
-			name: "grows code fence",
-			fields: fields{
-				state: compilerState{
-					values: []string{"a`b"},
-				},
-			},
-			args: args{
-				row: row{
-					cells: []cell{
-						{
-							decoration: DecorationCode,
-						},
-					},
-				},
-			},
-			want: want{
-				row: row{
-					cells: []cell{
-						{
-							value: "a`b",
-							width: 7,
-							size:  7,
-							ticks: 2,
-						},
-					},
-				},
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			state := test.fields.state
-			o := &compiler{
-				state: &state,
-			}
-			r := test.args.row
-			o.compileCells(r)
-			got := want{
-				row: r,
-			}
-			testutil.AssertValue(t, got, test.want, "compileCells")
 		})
 	}
 }

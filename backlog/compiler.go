@@ -204,6 +204,43 @@ func (o *compiler) compileRow(source []any, rowIndex int) {
 	o.output.body = state.rows[o.bodyStart:]
 }
 
+// compileCells escapes the current row values and applies its markup.
+func (o *compiler) compileCells(r row) {
+	state := o.state
+	values := state.values[:len(r.cells)]
+	for index := range r.cells {
+		bit := uint64(1) << uint(index)
+		if r.rowspans&bit != 0 || r.colspans&bit != 0 {
+			r.cells[index] = cell{}
+			continue
+		}
+		compiled := &r.cells[index]
+		value := values[index]
+		value, state.escapes = escapeValue(state.escapes, value)
+		color := compiled.color
+		decoration := compiled.decoration
+		*compiled = cell{
+			value: value,
+		}
+		markup := 0
+		if !decoration.IsZero() {
+			compiled.decoration = decoration
+			markup = len(decoration.Prefix) + len(decoration.Suffix)
+		}
+		compiled.width = width.StringWidth(value) + markup
+		compiled.size = len(value) + markup
+		isCode := !decoration.IsZero() &&
+			decoration.Prefix == DecorationCode.Prefix &&
+			decoration.Suffix == DecorationCode.Suffix
+		if !color.IsZero() && !isCode {
+			markup = len(color.Prefix) + len(color.Suffix)
+			compiled.color = color
+			compiled.width += markup
+			compiled.size += markup
+		}
+	}
+}
+
 // reserveBand reserves storage for n header or footer rows and returns them.
 // A stream resolves its footer after initial storage has been prepared.
 func (o *compiler) reserveBand(n int) []row {
@@ -239,43 +276,6 @@ func (o *compiler) setSpans(r *row, sc Scope, previous *span.PreviousRow) {
 	}
 	if colspan != 0 {
 		r.colspans = span.Colspans(colspan, values, r.rowspans)
-	}
-}
-
-// compileCells escapes the current row values and applies its markup.
-func (o *compiler) compileCells(r row) {
-	state := o.state
-	values := state.values[:len(r.cells)]
-	for index := range r.cells {
-		bit := uint64(1) << uint(index)
-		if r.rowspans&bit != 0 || r.colspans&bit != 0 {
-			r.cells[index] = cell{}
-			continue
-		}
-		compiled := &r.cells[index]
-		value := values[index]
-		value, state.escapes = escapeValue(state.escapes, value)
-		color := compiled.color
-		decoration := compiled.decoration
-		*compiled = cell{
-			value: value,
-		}
-		markup := 0
-		if !decoration.IsZero() {
-			compiled.decoration = decoration
-			markup = len(decoration.Prefix) + len(decoration.Suffix)
-		}
-		compiled.width = width.StringWidth(value) + markup
-		compiled.size = len(value) + markup
-		isCode := !decoration.IsZero() &&
-			decoration.Prefix == DecorationCode.Prefix &&
-			decoration.Suffix == DecorationCode.Suffix
-		if !color.IsZero() && !isCode {
-			markup = len(color.Prefix) + len(color.Suffix)
-			compiled.color = color
-			compiled.width += markup
-			compiled.size += markup
-		}
 	}
 }
 

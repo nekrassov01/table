@@ -8,8 +8,41 @@ import (
 	"github.com/nekrassov01/table/internal/unsafe"
 )
 
-// needsQuote reports whether s requires encoding/csv-compatible quoting.
-func (o *compiler) needsQuote(s string) bool {
+// quoteValue wraps s in double quotes when it contains the field delimiter, a
+// double quote, a line break, or leading Unicode whitespace. Embedded double
+// quotes are doubled. CRLF mode normalizes line breaks like
+// encoding/csv.Writer.
+func (o *compiler) quoteValue(s string) string {
+	if !o.needsQuoteValue(s) {
+		return s
+	}
+	state := o.state
+	start := len(state.quotes)
+	state.quotes = append(state.quotes, '"')
+	crlf := o.input.option.crlf
+	for index := 0; index < len(s); index++ {
+		switch s[index] {
+		case '"':
+			state.quotes = append(state.quotes, '"', '"')
+		case '\r':
+			if !crlf {
+				state.quotes = append(state.quotes, '\r')
+			}
+		case '\n':
+			if crlf {
+				state.quotes = append(state.quotes, '\r')
+			}
+			state.quotes = append(state.quotes, '\n')
+		default:
+			state.quotes = append(state.quotes, s[index])
+		}
+	}
+	state.quotes = append(state.quotes, '"')
+	return unsafe.View(state.quotes[start:])
+}
+
+// needsQuoteValue reports whether s requires encoding/csv-compatible quoting.
+func (o *compiler) needsQuoteValue(s string) bool {
 	if s == "" {
 		return false
 	}
@@ -37,37 +70,4 @@ func (o *compiler) needsQuote(s string) bool {
 		return false
 	}
 	return strings.ContainsRune(s, delimiter) || strings.ContainsAny(s, "\"\r\n")
-}
-
-// quoteValue wraps s in double quotes when it contains the field delimiter, a
-// double quote, a line break, or leading Unicode whitespace. Embedded double
-// quotes are doubled. CRLF mode normalizes line breaks like
-// encoding/csv.Writer.
-func (o *compiler) quoteValue(s string) string {
-	if !o.needsQuote(s) {
-		return s
-	}
-	state := o.state
-	start := len(state.quotes)
-	state.quotes = append(state.quotes, '"')
-	crlf := o.input.option.crlf
-	for index := 0; index < len(s); index++ {
-		switch s[index] {
-		case '"':
-			state.quotes = append(state.quotes, '"', '"')
-		case '\r':
-			if !crlf {
-				state.quotes = append(state.quotes, '\r')
-			}
-		case '\n':
-			if crlf {
-				state.quotes = append(state.quotes, '\r')
-			}
-			state.quotes = append(state.quotes, '\n')
-		default:
-			state.quotes = append(state.quotes, s[index])
-		}
-	}
-	state.quotes = append(state.quotes, '"')
-	return unsafe.View(state.quotes[start:])
 }
