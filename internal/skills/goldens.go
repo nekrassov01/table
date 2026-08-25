@@ -3,6 +3,8 @@ package skills
 import (
 	"context"
 	"crypto/sha256"
+	"errors"
+	"flag"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -16,20 +18,25 @@ import (
 	"strings"
 )
 
-var defaultMedia = []string{"text", "html", "markdown", "backlog", "csv"}
+var defaultPackages = [...]string{"text", "html", "markdown", "backlog", "csv"}
 
-type goldenTest struct {
-	function string
-	name     string
-	options  []string
-}
-
-type duplicate struct {
-	names []string
+// RunGoldens audits golden tests and their output files.
+func RunGoldens(ctx context.Context, args []string, stdout, stderr io.Writer) int {
+	pkgs, err := parseGoldensOptions(args)
+	if errors.Is(err, flag.ErrHelp) {
+		newGoldensFlags(stdout).Usage()
+		return 0
+	}
+	if err != nil {
+		_, _ = fmt.Fprintln(stderr, err)
+		newGoldensFlags(stderr).Usage()
+		return 2
+	}
+	return runGoldens(ctx, pkgs, stdout, stderr)
 }
 
 type audit struct {
-	medium         string
+	pkg            string
 	tests          []goldenTest
 	files          []string
 	missingFiles   []string
@@ -38,17 +45,6 @@ type audit struct {
 	duplicates     []duplicate
 	options        []string
 	uncoveredPairs []string
-}
-
-func (o audit) write(w io.Writer) {
-	_, _ = fmt.Fprintf(w, "%s: tests=%d calls=%d files=%d options=%d uncovered_pairs=%d\n", o.medium, len(o.tests), countCalls(o.tests), len(o.files), len(o.options), len(o.uncoveredPairs))
-	writeItems(w, "  missing files", o.missingFiles)
-	writeItems(w, "  orphaned files", o.orphanedFiles)
-	writeItems(w, "  invalid references", o.badReferences)
-	for _, item := range o.duplicates {
-		_, _ = fmt.Fprintf(w, "  identical bytes: %s\n", strings.Join(item.names, ", "))
-	}
-	writeItems(w, "  uncovered option pairs", o.uncoveredPairs)
 }
 
 func (o *audit) reconcile() {
@@ -89,20 +85,79 @@ func (o *audit) reconcile() {
 	slices.Sort(o.badReferences)
 }
 
-// RunGoldens audits golden tests and their output files.
-func RunGoldens(ctx context.Context, media []string, stdout, stderr io.Writer) int {
-	if len(media) == 0 {
-		media = defaultMedia
+func (o audit) write(w io.Writer) {
+	_, _ = fmt.Fprintf(w, "%s: tests=%d calls=%d files=%d options=%d uncovered_pairs=%d\n", o.pkg, len(o.tests), countCalls(o.tests), len(o.files), len(o.options), len(o.uncoveredPairs))
+	writeItems(w, "  missing files", o.missingFiles)
+	writeItems(w, "  orphaned files", o.orphanedFiles)
+	writeItems(w, "  invalid references", o.badReferences)
+	for _, item := range o.duplicates {
+		_, _ = fmt.Fprintf(w, "  identical bytes: %s\n", strings.Join(item.names, ", "))
 	}
+	writeItems(w, "  uncovered option pairs", o.uncoveredPairs)
+}
+
+type goldenTest struct {
+	function string
+	name     string
+	options  []string
+}
+
+type duplicate struct {
+	names []string
+}
+
+func countCalls(tests []goldenTest) int {
+	count := 0
+	for _, test := range tests {
+		if test.name != "" {
+			count++
+		}
+	}
+	return count
+}
+
+func writeItems(w io.Writer, label string, items []string) {
+	for _, item := range items {
+		_, _ = fmt.Fprintf(w, "%s: %s\n", label, item)
+	}
+}
+
+func parseGoldensOptions(args []string) ([]string, error) {
+	flags := newGoldensFlags(io.Discard)
+	if err := flags.Parse(args); err != nil {
+		return nil, err
+	}
+	pkgs := flags.Args()
+	if len(pkgs) == 0 {
+		return defaultPackages[:], nil
+	}
+	for _, pkg := range pkgs {
+		if !slices.Contains(defaultPackages[:], pkg) {
+			return nil, fmt.Errorf("unknown package %q", pkg)
+		}
+	}
+	return pkgs, nil
+}
+
+func newGoldensFlags(output io.Writer) *flag.FlagSet {
+	flags := flag.NewFlagSet("goldens", flag.ContinueOnError)
+	flags.SetOutput(output)
+	flags.Usage = func() {
+		_, _ = fmt.Fprintf(flags.Output(), "Usage of goldens:\n  goldens [%s]...\n", strings.Join(defaultPackages[:], "|"))
+	}
+	return flags
+}
+
+func runGoldens(ctx context.Context, pkgs []string, stdout, stderr io.Writer) int {
 	failed := false
-	for _, medium := range media {
+	for _, pkg := range pkgs {
 		if err := ctx.Err(); err != nil {
 			_, _ = fmt.Fprintln(stderr, err)
 			return 1
 		}
-		result, err := auditMedium(medium)
+		result, err := auditPackage(pkg)
 		if err != nil {
-			_, _ = fmt.Fprintf(stderr, "%s: %v\n", medium, err)
+			_, _ = fmt.Fprintf(stderr, "%s: %v\n", pkg, err)
 			failed = true
 			continue
 		}
@@ -117,21 +172,21 @@ func RunGoldens(ctx context.Context, media []string, stdout, stderr io.Writer) i
 	return 0
 }
 
-func auditMedium(medium string) (audit, error) {
-	tests, err := parseGoldenTests(filepath.Join(medium, "golden_test.go"))
+func auditPackage(pkg string) (audit, error) {
+	tests, err := parseGoldenTests(filepath.Join(pkg, "golden_test.go"))
 	if err != nil {
 		return audit{}, err
 	}
-	files, hashes, err := readGoldenFiles(filepath.Join(medium, "testdata"))
+	files, hashes, err := readGoldenFiles(filepath.Join(pkg, "testdata"))
 	if err != nil {
 		return audit{}, err
 	}
-	options, err := parseGoldenOptions(filepath.Join(medium, "option.go"))
+	options, err := parseOptionNames(filepath.Join(pkg, "option.go"))
 	if err != nil {
 		return audit{}, err
 	}
 	result := audit{
-		medium:         medium,
+		pkg:            pkg,
 		tests:          tests,
 		files:          files,
 		duplicates:     resolveDuplicates(hashes),
@@ -219,7 +274,7 @@ func readGoldenFiles(directory string) ([]string, map[[sha256.Size]byte][]string
 	names := make([]string, 0, len(paths))
 	hashes := make(map[[sha256.Size]byte][]string)
 	for _, path := range paths {
-		// #nosec G304,G703 -- paths come from the requested medium's testdata glob.
+		// #nosec G304,G703 -- paths come from the requested package's testdata glob.
 		contents, err := os.ReadFile(path)
 		if err != nil {
 			return nil, nil, err
@@ -233,7 +288,7 @@ func readGoldenFiles(directory string) ([]string, map[[sha256.Size]byte][]string
 	return names, hashes, nil
 }
 
-func parseGoldenOptions(path string) ([]string, error) {
+func parseOptionNames(path string) ([]string, error) {
 	set := token.NewFileSet()
 	file, err := parser.ParseFile(set, path, nil, 0)
 	if err != nil {
@@ -275,7 +330,7 @@ func resolveUncoveredPairs(options []string, tests []goldenTest) []string {
 		}
 	}
 	uncovered := make([]string, 0)
-	for left := 0; left < len(options); left++ {
+	for left := range options {
 		for right := left + 1; right < len(options); right++ {
 			pair := options[left] + " + " + options[right]
 			if _, ok := covered[pair]; !ok {
@@ -284,20 +339,4 @@ func resolveUncoveredPairs(options []string, tests []goldenTest) []string {
 		}
 	}
 	return uncovered
-}
-
-func countCalls(tests []goldenTest) int {
-	count := 0
-	for _, test := range tests {
-		if test.name != "" {
-			count++
-		}
-	}
-	return count
-}
-
-func writeItems(w io.Writer, label string, items []string) {
-	for _, item := range items {
-		_, _ = fmt.Fprintf(w, "%s: %s\n", label, item)
-	}
 }

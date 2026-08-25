@@ -24,7 +24,7 @@ After code changes and validation are complete, use the `sync-docs` skill to upd
 - Use the established vocabulary for an existing responsibility. Do not rename an existing concept merely to introduce a new term. If a name does not fit the vocabulary, reconsider the responsibility boundary.
 - Name receivers `o`. Do not use a `get*` prefix; use `resolve*` for derived values.
 - Row means a logical row, Line means a physical line, segment means a cell fragment, span/rowspan/colspan mean cell spanning, element means an HTML element, and box means output geometry. Do not introduce merge, group, unit, or renderer into identifiers.
-- Within a file, order declarations as constants, types with their constructors and receiver methods, and other package functions. Put each constructor immediately below the type it constructs, followed by that type's receiver methods. Order other package functions by call order, and declare local variables with individual `:=` statements.
+- In repository command implementations, place the exported command entry point first, then order internal type groups and functions from upstream to downstream. In other files, order declarations as constants, types with their constructors and receiver methods, and other package functions. Put each constructor immediately below the type it constructs, followed by that type's receiver methods. Order other package functions by call order, and declare local variables with individual `:=` statements.
 - Preserve changes that the user is editing. Do not format, move, or restore out-of-scope differences.
 
 ## Tests

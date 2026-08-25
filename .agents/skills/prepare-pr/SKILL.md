@@ -18,17 +18,19 @@ Create a reviewer-ready pull request draft from the complete branch diff. Treat 
    - Run `git status --short` and distinguish committed changes from staged, unstaged, and untracked work.
    - Review `git log --reverse <base>..HEAD`, `git diff --stat <base>...HEAD`, and `git diff --name-status <base>...HEAD`.
    - Read the substantive source, tests, documentation, and generated assets needed to explain behavior and intent accurately.
+   - Audit PR granularity without redefining it. If the history or diff contains concerns that can be reviewed and reverted independently, report the possible split before drafting and request direction. Treat implementation, tests, and documentation for one behavior as one concern.
    - Include every in-scope branch change. Do not make the newest commit stand in for the branch.
 4. Read `.github/PULL_REQUEST_TEMPLATE.md` from the current repository. Preserve its section order and checklist structure; do not maintain a copied template in this skill.
 5. Draft the pull request in English.
    - Put the proposed title in an H1 above the template body when the template has no title field.
    - Make the title concise and outcome-oriented. Follow the repository's title convention when one is evident.
    - Use `Summary` for what changed and why, `Changes` for reviewer-oriented implementation groups, `Verification` for commands actually run and their results, and `Notes` only for material constraints, deferred work, or review context.
+   - Normalize verification commands to the repository's documented entry points. Omit environment-manager wrappers, cache variables, absolute temporary paths, and other author-specific setup unless they are required to reproduce the result.
    - Check only the applicable `Type` entries.
    - Do not invent validation. Run the relevant documented commands when authorized; otherwise state precisely what was not run.
 6. Save the draft under `docs/pr/`.
-   - Prefer `docs/pr/YYYY-MM-DD.md` using the repository's local date.
-   - If that path already contains a different draft, preserve it and use `docs/pr/YYYY-MM-DD-<short-slug>.md`.
+   - Use `docs/pr/YYYY-MM-DD-<short-slug>.md` with the repository's local date and a concise slug derived from the PR title or scope. Never use a date-only filename.
+   - If that path already contains a different draft, preserve it and choose a more specific slug.
    - Do not alter the repository pull request template.
 7. Verify every claim against the diff and test output. Check the completed Markdown for placeholders, stale comments, unchecked applicable types, and formatting errors.
 8. Report the proposed title, output path, base branch, compared commit range, validation results, and any uncommitted work excluded from the draft.

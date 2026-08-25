@@ -13,7 +13,60 @@ import (
 	"github.com/nekrassov01/table/internal/testutil"
 )
 
-func TestNewExecution(t *testing.T) {
+func TestRunBaseline(t *testing.T) {
+	type args struct {
+		arguments []string
+	}
+	type want struct {
+		code     int
+		stdout   bool
+		stderr   bool
+		baseline bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "invalid arguments",
+			args: args{
+				arguments: []string{"-count", "0"},
+			},
+			want: want{
+				code:     2,
+				stderr:   true,
+				baseline: true,
+			},
+		},
+		{
+			name: "help",
+			args: args{
+				arguments: []string{"--help"},
+			},
+			want: want{
+				stdout:   true,
+				baseline: true,
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var stdout bytes.Buffer
+			var stderr bytes.Buffer
+			code := RunBaseline(t.Context(), test.args.arguments, &stdout, &stderr)
+			got := want{
+				code:     code,
+				stdout:   stdout.Len() > 0,
+				stderr:   stderr.Len() > 0,
+				baseline: strings.Contains(stdout.String()+stderr.String(), "Usage of baseline:"),
+			}
+			testutil.AssertValue(t, got, test.want, "RunBaseline")
+		})
+	}
+}
+
+func Test_newExecution(t *testing.T) {
 	type args struct {
 		command command
 	}
@@ -107,32 +160,7 @@ func TestExecution_output(t *testing.T) {
 	}
 }
 
-func TestRunBaseline(t *testing.T) {
-	type args struct {
-		arguments []string
-	}
-	tests := []struct {
-		name string
-		args args
-		want int
-	}{
-		{
-			name: "invalid arguments",
-			args: args{
-				arguments: []string{"-count", "0"},
-			},
-			want: 2,
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			got := RunBaseline(t.Context(), test.args.arguments, &bytes.Buffer{}, &bytes.Buffer{})
-			testutil.AssertValue(t, got, test.want, "RunBaseline")
-		})
-	}
-}
-
-func TestRunBaselineWithExecution(t *testing.T) {
+func Test_runBaseline(t *testing.T) {
 	type args struct {
 		arguments []string
 		failure   string
@@ -195,7 +223,7 @@ func TestRunBaselineWithExecution(t *testing.T) {
 	}
 }
 
-func TestParseBaselineOptions(t *testing.T) {
+func Test_parseBaselineOptions(t *testing.T) {
 	type args struct {
 		arguments []string
 	}
@@ -214,8 +242,8 @@ func TestParseBaselineOptions(t *testing.T) {
 				opts: options{
 					base:      "HEAD",
 					target:    "all",
-					benchtime: "10000x",
-					count:     5,
+					benchtime: "1s",
+					count:     10,
 				},
 			},
 		},
@@ -275,7 +303,7 @@ func TestParseBaselineOptions(t *testing.T) {
 	}
 }
 
-func TestCompareBaseline(t *testing.T) {
+func Test_compareBaseline(t *testing.T) {
 	type args struct {
 		opts    options
 		failure string
@@ -286,6 +314,7 @@ func TestCompareBaseline(t *testing.T) {
 		target          bool
 		medians         bool
 		artifacts       bool
+		interleaved     bool
 		benchmarks      int
 		comparisons     int
 		worktreeAdds    int
@@ -309,7 +338,8 @@ func TestCompareBaseline(t *testing.T) {
 			want: want{
 				benchmark:       true,
 				medians:         true,
-				benchmarks:      2,
+				interleaved:     true,
+				benchmarks:      6,
 				comparisons:     1,
 				worktreeAdds:    1,
 				worktreeRemoves: 1,
@@ -328,7 +358,8 @@ func TestCompareBaseline(t *testing.T) {
 			want: want{
 				target:          true,
 				medians:         true,
-				benchmarks:      2,
+				interleaved:     true,
+				benchmarks:      6,
 				comparisons:     1,
 				worktreeAdds:    1,
 				worktreeRemoves: 1,
@@ -487,7 +518,8 @@ func TestCompareBaseline(t *testing.T) {
 			want: want{
 				failed:          true,
 				benchmark:       true,
-				benchmarks:      2,
+				interleaved:     true,
+				benchmarks:      6,
 				comparisons:     1,
 				worktreeAdds:    1,
 				worktreeRemoves: 1,
@@ -507,7 +539,8 @@ func TestCompareBaseline(t *testing.T) {
 			want: want{
 				failed:          true,
 				benchmark:       true,
-				benchmarks:      2,
+				interleaved:     true,
+				benchmarks:      6,
 				comparisons:     1,
 				worktreeAdds:    1,
 				worktreeRemoves: 1,
@@ -528,7 +561,8 @@ func TestCompareBaseline(t *testing.T) {
 				failed:          true,
 				benchmark:       true,
 				medians:         true,
-				benchmarks:      2,
+				interleaved:     true,
+				benchmarks:      6,
 				comparisons:     1,
 				worktreeAdds:    1,
 				worktreeRemoves: 1,
@@ -549,7 +583,8 @@ func TestCompareBaseline(t *testing.T) {
 				failed:          true,
 				benchmark:       true,
 				medians:         true,
-				benchmarks:      2,
+				interleaved:     true,
+				benchmarks:      6,
 				comparisons:     1,
 				worktreeAdds:    1,
 				worktreeRemoves: 1,
@@ -570,7 +605,8 @@ func TestCompareBaseline(t *testing.T) {
 				benchmark:       true,
 				medians:         true,
 				artifacts:       true,
-				benchmarks:      2,
+				interleaved:     true,
+				benchmarks:      6,
 				comparisons:     1,
 				worktreeAdds:    1,
 				worktreeRemoves: 1,
@@ -590,6 +626,7 @@ func TestCompareBaseline(t *testing.T) {
 				target:          strings.Contains(stdout.String(), "target: "),
 				medians:         strings.Contains(stdout.String(), "Medians"),
 				artifacts:       strings.Contains(stdout.String(), "artifacts: "),
+				interleaved:     slices.Equal(state.labels, []string{"before", "after", "after", "before", "before", "after"}),
 				benchmarks:      state.benchmarks,
 				comparisons:     state.comparisons,
 				worktreeAdds:    state.worktreeAdds,
@@ -600,15 +637,18 @@ func TestCompareBaseline(t *testing.T) {
 	}
 }
 
-func TestRunBenchmark(t *testing.T) {
+func Test_runBenchmark(t *testing.T) {
 	type args struct {
 		opts    options
 		failure string
+		initial string
 	}
 	type want struct {
 		name      string
 		bench     bool
 		target    bool
+		count     bool
+		profile   bool
 		directory string
 		contents  string
 		failed    bool
@@ -626,11 +666,13 @@ func TestRunBenchmark(t *testing.T) {
 					benchtime: "10x",
 					count:     2,
 				},
+				initial: "existing\n",
 			},
 			want: want{
 				name:     "go",
 				bench:    true,
-				contents: benchmarkOutput,
+				count:    true,
+				contents: "existing\n" + benchmarkOutput,
 			},
 		},
 		{
@@ -645,6 +687,7 @@ func TestRunBenchmark(t *testing.T) {
 			want: want{
 				name:     "make",
 				target:   true,
+				count:    true,
 				contents: benchmarkOutput,
 			},
 		},
@@ -671,6 +714,7 @@ func TestRunBenchmark(t *testing.T) {
 			want: want{
 				name:     "go",
 				bench:    true,
+				count:    true,
 				contents: benchmarkOutput,
 				failed:   true,
 			},
@@ -686,6 +730,7 @@ func TestRunBenchmark(t *testing.T) {
 			want: want{
 				name:   "go",
 				bench:  true,
+				count:  true,
 				failed: true,
 			},
 		},
@@ -694,14 +739,18 @@ func TestRunBenchmark(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			directory := t.TempDir()
 			results := t.TempDir()
+			outputPath := filepath.Join(results, "before.txt")
+			if err := os.WriteFile(outputPath, []byte(test.args.initial), 0o600); err != nil {
+				t.Fatal(err)
+			}
 			var observed command
 			o := execution{
-				create: func(path string) (*os.File, error) {
+				openFile: func(path string, flag int, permissions os.FileMode) (*os.File, error) {
 					if test.args.failure == "create" {
 						return nil, testutil.NewError()
 					}
 					// #nosec G304 -- path is built from this test's temporary result directory.
-					file, err := os.Create(path)
+					file, err := os.OpenFile(path, flag, permissions)
 					if err == nil && test.args.failure == "close" {
 						_ = file.Close()
 					}
@@ -718,11 +767,15 @@ func TestRunBenchmark(t *testing.T) {
 			}
 			err := runBenchmark(t.Context(), o, test.args.opts, directory, results, "before", &bytes.Buffer{})
 			// #nosec G304 -- the path is inside this test's temporary result directory.
-			contents, _ := os.ReadFile(filepath.Join(results, "before.txt"))
+			contents, _ := os.ReadFile(outputPath)
 			got := want{
-				name:      observed.name,
-				bench:     slices.Contains(observed.args, "-bench"),
-				target:    slices.Contains(observed.args, "target=text"),
+				name:   observed.name,
+				bench:  slices.Contains(observed.args, "-bench"),
+				target: slices.Contains(observed.args, "target=text"),
+				count:  slices.Contains(observed.args, "1") || slices.Contains(observed.args, "count=1"),
+				profile: slices.ContainsFunc(observed.args, func(argument string) bool {
+					return argument == "-cpuprofile" || argument == "-memprofile" || strings.HasPrefix(argument, "cpuprofile=") && argument != "cpuprofile=" || strings.HasPrefix(argument, "memprofile=") && argument != "memprofile="
+				}),
 				directory: observed.directory,
 				contents:  string(contents),
 				failed:    err != nil,
@@ -738,7 +791,7 @@ func TestRunBenchmark(t *testing.T) {
 	}
 }
 
-func TestPrintMedians(t *testing.T) {
+func Test_printMedians(t *testing.T) {
 	type args struct {
 		before string
 		after  string
@@ -755,13 +808,13 @@ func TestPrintMedians(t *testing.T) {
 		{
 			name: "prints sorted medians",
 			args: args{
-				before: benchmarkLine("BenchmarkB-8", 20, 200, 2) + benchmarkLine("BenchmarkA-8", 10, 100, 1),
-				after:  benchmarkLine("BenchmarkA-8", 11, 101, 2) + benchmarkLine("BenchmarkB-8", 21, 201, 3),
+				before: benchmarkLine("BenchmarkB-8", 20, 200, 2) + benchmarkLine("BenchmarkA-8", 10.5, 100, 1),
+				after:  benchmarkLine("BenchmarkA-8", 11.5, 101, 2) + benchmarkLine("BenchmarkB-8", 21, 201, 3),
 			},
 			want: want{
 				output: "\nMedians\n" +
 					"benchmark\tbefore ns/op\tafter ns/op\tbefore B/op\tafter B/op\tbefore allocs/op\tafter allocs/op\n" +
-					"BenchmarkA\t10\t11\t100\t101\t1\t2\n" +
+					"BenchmarkA\t10.5\t11.5\t100\t101\t1\t2\n" +
 					"BenchmarkB\t20\t21\t200\t201\t2\t3\n",
 			},
 		},
@@ -822,7 +875,7 @@ func TestPrintMedians(t *testing.T) {
 	}
 }
 
-func TestReadMedians(t *testing.T) {
+func Test_readMedians(t *testing.T) {
 	type args struct {
 		path func(*testing.T) string
 	}
@@ -841,15 +894,27 @@ func TestReadMedians(t *testing.T) {
 				path: func(t *testing.T) string {
 					return writeBenchmarkFile(t, benchmarkLine("BenchmarkRender-8", 30, 300, 3)+
 						benchmarkLine("BenchmarkRender-8", 10, 100, 1)+
-						benchmarkLine("BenchmarkRender-8", 20, 200, 2))
+						benchmarkLine("BenchmarkRender-8", 20, 200, 2)+
+						benchmarkLine("BenchmarkPlain", 40, 400, 4)+
+						benchmarkLine("BenchmarkVariant-arm64", 50, 500, 5))
 				},
 			},
 			want: want{
 				metrics: map[string]metric{
+					"BenchmarkPlain": {
+						ns:     40,
+						bytes:  400,
+						allocs: 4,
+					},
 					"BenchmarkRender": {
 						ns:     20,
 						bytes:  200,
 						allocs: 2,
+					},
+					"BenchmarkVariant-arm64": {
+						ns:     50,
+						bytes:  500,
+						allocs: 5,
 					},
 				},
 			},
@@ -933,7 +998,7 @@ func TestReadMedians(t *testing.T) {
 	}
 }
 
-func TestMedian(t *testing.T) {
+func Test_median(t *testing.T) {
 	type args struct {
 		values []float64
 	}
@@ -965,82 +1030,12 @@ func TestMedian(t *testing.T) {
 	}
 }
 
-func TestTrimCPUSuffix(t *testing.T) {
-	type args struct {
-		name string
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{
-			name: "CPU suffix",
-			args: args{
-				name: "BenchmarkRender-8",
-			},
-			want: "BenchmarkRender",
-		},
-		{
-			name: "no suffix",
-			args: args{
-				name: "BenchmarkRender",
-			},
-			want: "BenchmarkRender",
-		},
-		{
-			name: "non-numeric suffix",
-			args: args{
-				name: "BenchmarkRender-arm64",
-			},
-			want: "BenchmarkRender-arm64",
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			got := trimCPUSuffix(test.args.name)
-			testutil.AssertValue(t, got, test.want, "trimCPUSuffix")
-		})
-	}
-}
-
-func TestFormatMetric(t *testing.T) {
-	type args struct {
-		value float64
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{
-			name: "integer",
-			args: args{
-				value: 10,
-			},
-			want: "10",
-		},
-		{
-			name: "fraction",
-			args: args{
-				value: 2.5,
-			},
-			want: "2.5",
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			got := formatMetric(test.args.value)
-			testutil.AssertValue(t, got, test.want, "formatMetric")
-		})
-	}
-}
-
 const benchmarkOutput = "BenchmarkRender-8 100 10 ns/op 100 B/op 1 allocs/op\n"
 
 type executionState struct {
 	root            string
 	failure         string
+	labels          []string
 	benchmarks      int
 	comparisons     int
 	worktreeAdds    int
@@ -1111,6 +1106,9 @@ func (o *executionState) executeGo(arguments string, input command) error {
 
 func (o *executionState) executeBenchmark(input command) error {
 	o.benchmarks++
+	if output, ok := input.stdout.(*os.File); ok {
+		o.labels = append(o.labels, strings.TrimSuffix(filepath.Base(output.Name()), ".txt"))
+	}
 	if o.failure == "benchmark" || o.failure == "after" && o.benchmarks == 2 {
 		return testutil.NewError()
 	}
@@ -1161,7 +1159,7 @@ func newTestExecution(t *testing.T, state *executionState, failure string) execu
 			}
 			return os.RemoveAll(path)
 		},
-		create: os.Create,
+		openFile: os.OpenFile,
 		lookPath: func(string) (string, error) {
 			if state.failure == "lookpath" {
 				return "", testutil.NewError()
@@ -1172,8 +1170,8 @@ func newTestExecution(t *testing.T, state *executionState, failure string) execu
 	}
 }
 
-func benchmarkLine(name string, ns, bytes, allocs int) string {
-	return fmt.Sprintf("%s 100 %d ns/op %d B/op %d allocs/op\n", name, ns, bytes, allocs)
+func benchmarkLine(name string, ns float64, bytes, allocs int) string {
+	return fmt.Sprintf("%s 100 %g ns/op %d B/op %d allocs/op\n", name, ns, bytes, allocs)
 }
 
 func writeBenchmarkFile(t *testing.T, contents string) string {

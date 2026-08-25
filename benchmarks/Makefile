@@ -3,7 +3,8 @@ count      ?= 5
 cpuprofile ?= cpu.prof
 memprofile ?= mem.prof
 
-CMD     = go test -benchmem -count $(count) -benchtime $(benchtime) -cpuprofile $(cpuprofile) -memprofile $(memprofile) .
+PROFILE = $(if $(cpuprofile),-cpuprofile $(cpuprofile)) $(if $(memprofile),-memprofile $(memprofile))
+CMD     = go test -benchmem -count $(count) -benchtime $(benchtime) $(PROFILE) .
 TARGETS = all text html markdown backlog csv comparison cold
 TARGET  = $(if $(target),$(target),all)
 

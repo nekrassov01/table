@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -17,6 +18,11 @@ import (
 	"time"
 )
 
+// RunBaseline compares benchmark results with a baseline revision.
+func RunBaseline(ctx context.Context, args []string, stdout, stderr io.Writer) int {
+	return runBaseline(ctx, newExecution(), args, stdout, stderr)
+}
+
 type options struct {
 	base      string
 	target    string
@@ -24,12 +30,6 @@ type options struct {
 	benchtime string
 	count     int
 	keep      bool
-}
-
-type metric struct {
-	ns     float64
-	bytes  float64
-	allocs float64
 }
 
 type command struct {
@@ -46,7 +46,7 @@ type execution struct {
 	mkdirTemp func(string, string) (string, error)
 	mkdir     func(string, os.FileMode) error
 	removeAll func(string) error
-	create    func(string) (*os.File, error)
+	openFile  func(string, int, os.FileMode) (*os.File, error)
 }
 
 func newExecution() execution {
@@ -55,7 +55,7 @@ func newExecution() execution {
 		mkdirTemp: os.MkdirTemp,
 		mkdir:     os.Mkdir,
 		removeAll: os.RemoveAll,
-		create:    os.Create,
+		openFile:  os.OpenFile,
 		execute: func(ctx context.Context, input command) error {
 			// #nosec G204 -- command names are selected internally and no shell is invoked.
 			cmd := exec.CommandContext(ctx, input.name, input.args...)
@@ -78,15 +78,21 @@ func (o execution) output(ctx context.Context, input command) (string, error) {
 	return strings.TrimSpace(contents.String()), nil
 }
 
-// RunBaseline compares benchmark results with a baseline revision.
-func RunBaseline(ctx context.Context, arguments []string, stdout, stderr io.Writer) int {
-	return runBaseline(ctx, newExecution(), arguments, stdout, stderr)
+type metric struct {
+	ns     float64
+	bytes  float64
+	allocs float64
 }
 
-func runBaseline(ctx context.Context, commands execution, arguments []string, stdout, stderr io.Writer) int {
-	opts, err := parseBaselineOptions(arguments)
+func runBaseline(ctx context.Context, commands execution, args []string, stdout, stderr io.Writer) int {
+	opts, err := parseBaselineOptions(args)
+	if errors.Is(err, flag.ErrHelp) {
+		newBaselineFlags(&options{}, stdout).Usage()
+		return 0
+	}
 	if err != nil {
 		_, _ = fmt.Fprintln(stderr, err)
+		newBaselineFlags(&options{}, stderr).Usage()
 		return 2
 	}
 	if err := compareBaseline(ctx, commands, opts, stdout, stderr); err != nil {
@@ -96,26 +102,31 @@ func runBaseline(ctx context.Context, commands execution, arguments []string, st
 	return 0
 }
 
-func parseBaselineOptions(arguments []string) (options, error) {
+func parseBaselineOptions(args []string) (options, error) {
 	var opts options
-	flags := flag.NewFlagSet("compare", flag.ContinueOnError)
-	flags.SetOutput(io.Discard)
-	flags.StringVar(&opts.base, "base", "HEAD", "revision immediately preceding the change")
-	flags.StringVar(&opts.target, "target", "all", "Makefile benchmark target")
-	flags.StringVar(&opts.bench, "bench", "", "focused go test benchmark regular expression")
-	flags.StringVar(&opts.benchtime, "benchtime", "10000x", "Go benchmark benchtime")
-	flags.IntVar(&opts.count, "count", 5, "number of benchmark samples")
-	flags.BoolVar(&opts.keep, "keep", false, "keep output and profiles after a successful comparison")
-	if err := flags.Parse(arguments); err != nil {
+	flags := newBaselineFlags(&opts, io.Discard)
+	if err := flags.Parse(args); err != nil {
 		return options{}, err
 	}
 	if flags.NArg() != 0 {
-		return options{}, fmt.Errorf("unexpected arguments: %s", strings.Join(flags.Args(), " "))
+		return options{}, fmt.Errorf("unexpected args: %s", strings.Join(flags.Args(), " "))
 	}
 	if opts.count < 1 {
 		return options{}, fmt.Errorf("count must be positive")
 	}
 	return opts, nil
+}
+
+func newBaselineFlags(opts *options, output io.Writer) *flag.FlagSet {
+	flags := flag.NewFlagSet("baseline", flag.ContinueOnError)
+	flags.SetOutput(output)
+	flags.StringVar(&opts.base, "base", "HEAD", "revision immediately preceding the change")
+	flags.StringVar(&opts.target, "target", "all", "Makefile benchmark target")
+	flags.StringVar(&opts.bench, "bench", "", "focused go test benchmark regular expression")
+	flags.StringVar(&opts.benchtime, "benchtime", "1s", "Go benchmark benchtime")
+	flags.IntVar(&opts.count, "count", 10, "number of benchmark samples")
+	flags.BoolVar(&opts.keep, "keep", false, "keep benchmark output after a successful comparison")
+	return flags
 }
 
 func compareBaseline(ctx context.Context, commands execution, opts options, stdout, stderr io.Writer) (err error) {
@@ -167,7 +178,6 @@ func compareBaseline(ctx context.Context, commands execution, opts options, stdo
 	if err := commands.mkdir(results, 0o755); err != nil {
 		return err
 	}
-
 	worktree := command{
 		name:   "git",
 		args:   []string{"-C", root, "worktree", "add", "--detach", baselineWorktree, baseCommit},
@@ -178,7 +188,6 @@ func compareBaseline(ctx context.Context, commands execution, opts options, stdo
 		return fmt.Errorf("add baseline worktree: %w", err)
 	}
 	worktreeAdded = true
-
 	goVersion, err := commands.output(ctx, command{
 		name: "go",
 		args: []string{"version"},
@@ -203,16 +212,22 @@ func compareBaseline(ctx context.Context, commands execution, opts options, stdo
 	}
 	_, _ = fmt.Fprintf(stdout, "benchtime: %s\n", opts.benchtime)
 	_, _ = fmt.Fprintf(stdout, "count: %d\n\n", opts.count)
-
 	before := filepath.Join(results, "before.txt")
 	after := filepath.Join(results, "after.txt")
-	if err := runBenchmark(ctx, commands, opts, baselineWorktree, results, "before", stderr); err != nil {
-		return err
+	for sample := range opts.count {
+		firstDirectory, firstLabel := baselineWorktree, "before"
+		secondDirectory, secondLabel := root, "after"
+		if sample%2 != 0 {
+			firstDirectory, firstLabel = secondDirectory, secondLabel
+			secondDirectory, secondLabel = baselineWorktree, "before"
+		}
+		if err := runBenchmark(ctx, commands, opts, firstDirectory, results, firstLabel, stderr); err != nil {
+			return err
+		}
+		if err := runBenchmark(ctx, commands, opts, secondDirectory, results, secondLabel, stderr); err != nil {
+			return err
+		}
 	}
-	if err := runBenchmark(ctx, commands, opts, root, results, "after", stderr); err != nil {
-		return err
-	}
-
 	comparison := command{
 		name:      benchstat,
 		args:      []string{"before.txt", "after.txt"},
@@ -226,7 +241,6 @@ func compareBaseline(ctx context.Context, commands execution, opts options, stdo
 	if err := printMedians(stdout, before, after); err != nil {
 		return err
 	}
-
 	completed = true
 	if opts.keep {
 		_, _ = fmt.Fprintf(stdout, "\nartifacts: %s\n", temporary)
@@ -236,22 +250,18 @@ func compareBaseline(ctx context.Context, commands execution, opts options, stdo
 
 func runBenchmark(ctx context.Context, commands execution, opts options, directory, results, label string, stderr io.Writer) error {
 	outputPath := filepath.Join(results, label+".txt")
-	outputFile, err := commands.create(outputPath)
+	outputFile, err := commands.openFile(outputPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
 	if err != nil {
 		return err
 	}
-	cpuProfile := filepath.Join(results, label+".cpu")
-	memoryProfile := filepath.Join(results, label+".mem")
 	var benchmark command
 	if opts.bench != "" {
 		benchmark = command{
 			name: "go",
 			args: []string{"test",
 				"-benchmem",
-				"-count", strconv.Itoa(opts.count),
+				"-count", "1",
 				"-benchtime", opts.benchtime,
-				"-cpuprofile", cpuProfile,
-				"-memprofile", memoryProfile,
 				".",
 				"-bench", opts.bench,
 			},
@@ -263,9 +273,9 @@ func runBenchmark(ctx context.Context, commands execution, opts options, directo
 			args: []string{"bench",
 				"target=" + opts.target,
 				"benchtime=" + opts.benchtime,
-				"count=" + strconv.Itoa(opts.count),
-				"cpuprofile=" + cpuProfile,
-				"memprofile=" + memoryProfile,
+				"count=1",
+				"cpuprofile=",
+				"memprofile=",
 			},
 			directory: directory,
 		}
@@ -312,20 +322,19 @@ func printMedians(w io.Writer, beforePath, afterPath string) error {
 		}
 		_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
 			name,
-			formatMetric(beforeMetric.ns),
-			formatMetric(afterMetric.ns),
-			formatMetric(beforeMetric.bytes),
-			formatMetric(afterMetric.bytes),
-			formatMetric(beforeMetric.allocs),
-			formatMetric(afterMetric.allocs),
+			strconv.FormatFloat(beforeMetric.ns, 'f', -1, 64),
+			strconv.FormatFloat(afterMetric.ns, 'f', -1, 64),
+			strconv.FormatFloat(beforeMetric.bytes, 'f', -1, 64),
+			strconv.FormatFloat(afterMetric.bytes, 'f', -1, 64),
+			strconv.FormatFloat(beforeMetric.allocs, 'f', -1, 64),
+			strconv.FormatFloat(afterMetric.allocs, 'f', -1, 64),
 		)
 	}
 	return nil
 }
 
 func readMedians(path string) (map[string]metric, error) {
-	// #nosec G304 -- path is an internally generated benchmark result path.
-	file, err := os.Open(path)
+	file, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		return nil, err
 	}
@@ -339,7 +348,12 @@ func readMedians(path string) (map[string]metric, error) {
 		if len(fields) < 8 || !strings.HasPrefix(fields[0], "Benchmark") || fields[3] != "ns/op" || fields[5] != "B/op" || fields[7] != "allocs/op" {
 			continue
 		}
-		name := trimCPUSuffix(fields[0])
+		name := fields[0]
+		if index := strings.LastIndexByte(name, '-'); index >= 0 {
+			if _, err := strconv.Atoi(name[index+1:]); err == nil {
+				name = name[:index]
+			}
+		}
 		ns, err := strconv.ParseFloat(fields[2], 64)
 		if err != nil {
 			return nil, fmt.Errorf("parse ns/op for %s: %w", name, err)
@@ -390,19 +404,4 @@ func median(values []float64) float64 {
 		return values[middle]
 	}
 	return (values[middle-1] + values[middle]) / 2
-}
-
-func trimCPUSuffix(name string) string {
-	index := strings.LastIndexByte(name, '-')
-	if index < 0 {
-		return name
-	}
-	if _, err := strconv.Atoi(name[index+1:]); err != nil {
-		return name
-	}
-	return name[:index]
-}
-
-func formatMetric(value float64) string {
-	return strconv.FormatFloat(value, 'f', -1, 64)
 }
