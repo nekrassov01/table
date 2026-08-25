@@ -98,7 +98,7 @@ flowchart TD
 
 `newConfig` builds `config` from a reference to `option`, its headers, and the number of body rows. In `text`, `html`, `backlog`, and `csv`, it also receives footer rows returned by the footer function and the body column count. It does not retain body values.
 
-`prepare` combines this data with `configState` to determine logical columns. Markdown requires one header row and therefore uses its header width. Other formats use the widest non-empty header row when a header has at least one column. Without a header, they use the greater of the body column count and the widest footer row. The stage then adds an index column when enabled and expands `AllColumns` and `Columns` settings into the configuration for each logical column. It also detects configuration errors such as Markdown's `ErrHeaderRequired` and CSV's `ErrDelimiter`.
+`prepare` combines this data with `configState` to determine logical columns. Markdown requires one header row and therefore uses its header width. Other formats use the widest non-empty header row when a header has at least one column. Without a header, they use the greater of the body column count and the widest footer row. The stage then adds an index column when enabled and applies `AllColumns` and `Columns` settings only to the resolved input columns. A selected index cannot expand the column count. The stage also detects configuration errors such as Markdown's `ErrHeaderRequired` and CSV's `ErrDelimiter`.
 
 `configResult` retains the `option` reference, headers, body row count, and resolved column settings. In `text`, `html`, `backlog`, and `csv`, it also retains the current pass's footer and `footerColumns`. `compiler` uses that count to ensure the footer does not exceed the resolved column count.
 
@@ -230,7 +230,7 @@ The following internal packages support output formats and repository maintenanc
 | ---------- | ------------------------------------------------------------------------------------- |
 | `align`    | Define horizontal alignment shared by formats.                                        |
 | `caption`  | Define caption positions shared by formats.                                           |
-| `column`   | Derive maximum column counts and apply selections to format-specific column settings. |
+| `column`   | Retain and resolve column selections, and derive maximum column counts.               |
 | `color`    | Hold format-specific color markup surrounding a cell value.                           |
 | `decorate` | Hold format-specific decoration markup surrounding a cell value.                      |
 | `param`    | Define shared constants independent of an output format.                              |

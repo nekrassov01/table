@@ -5,6 +5,7 @@ import (
 	"io"
 	"testing"
 
+	"github.com/nekrassov01/table/internal/column"
 	"github.com/nekrassov01/table/internal/testutil"
 )
 
@@ -35,16 +36,16 @@ func Test_config_prepare(t *testing.T) {
 					}
 					return configResult{
 						option: &option{
-							columns: columnSet{
-								Values: []columnConfig{
+							columns: columnSetOf(
+								[]columnConfig{
 									{
 										limit: 7,
 										lPad:  4,
 										rPad:  5,
 									},
 								},
-								Defaults: &defaults,
-							},
+								&defaults,
+							),
 							indexOffset: 1,
 						},
 						header:   [][]string{{"a", "b"}},
@@ -219,9 +220,7 @@ func Test_option_apply(t *testing.T) {
 					attr := NewAttr(CodeUnderline)
 					configured := defaultColumn()
 					configured.transformer.attrs.Set(ScopeBody, attr)
-					return columnSet{
-						Defaults: &configured,
-					}
+					return columnSetOf(nil, &configured)
 				}(),
 				indexOffset: 1,
 				indexWidth:  3,
@@ -247,12 +246,7 @@ func Test_option_apply(t *testing.T) {
 				placeholder: placeholder,
 				columns: func() columnSet {
 					plainDefault := defaultColumn()
-					return columnSet{
-						Values: []columnConfig{
-							defaultColumn(),
-						},
-						Defaults: &plainDefault,
-					}
+					return columnSetOf([]columnConfig{defaultColumn()}, &plainDefault)
 				}(),
 				plain: true,
 			},
@@ -272,9 +266,7 @@ func Test_option_apply(t *testing.T) {
 				columns: func() columnSet {
 					configured := defaultColumn()
 					configured.limit = 4
-					return columnSet{
-						Defaults: &configured,
-					}
+					return columnSetOf(nil, &configured)
 				}(),
 			},
 		},
@@ -293,9 +285,7 @@ func Test_option_apply(t *testing.T) {
 				columns: func() columnSet {
 					configured := defaultColumn()
 					configured.truncate = true
-					return columnSet{
-						Defaults: &configured,
-					}
+					return columnSetOf(nil, &configured)
 				}(),
 			},
 		},
@@ -468,7 +458,7 @@ func Test_columnSet_apply(t *testing.T) {
 					},
 					defaultColumn(),
 					{
-						limit: 2,
+						limit: 1,
 						lPad:  1,
 						rPad:  1,
 					},
@@ -526,14 +516,11 @@ func Test_columnSet_apply(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			o := &columnSet{
-				Values:   test.fields.values,
-				Defaults: test.fields.defaults,
-			}
+			o := columnSetOf(test.fields.values, test.fields.defaults)
 			o.apply(test.args.selector, test.args.fn)
 			got := want{
-				values:   o.Values,
-				defaults: o.Defaults,
+				values:   o.resolve(nil, len(test.want.values), 0),
+				defaults: (*column.Set[columnConfig])(&o).Default(),
 			}
 			testutil.AssertValue(t, got, test.want, "apply")
 		})
@@ -564,4 +551,15 @@ func Test_defaultColumn(t *testing.T) {
 			testutil.AssertValue(t, got, test.want.val, "defaultColumn")
 		})
 	}
+}
+
+func columnSetOf(values []columnConfig, defaults *columnConfig) columnSet {
+	set := columnSet{}
+	if defaults != nil {
+		(*column.Set[columnConfig])(&set).Apply(column.All(), defaultColumn, func(config *columnConfig) {
+			*config = *defaults
+		})
+	}
+	set.Values = values
+	return set
 }

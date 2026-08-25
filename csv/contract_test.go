@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"math"
 	"slices"
 	"strings"
 	"sync"
@@ -612,6 +613,12 @@ func TestContract_ColumnSelectors(t *testing.T) {
 		}),
 		WithTransformer(selector, func(any) string {
 			return "explicit"
+		}),
+		WithTransformer(Columns(math.MaxInt/2), func(any) string {
+			return "large"
+		}),
+		WithTransformer(Columns(math.MaxInt), func(any) string {
+			return "missing"
 		}),
 	)
 	if err := tb.Render([][]any{{"a", "b", "c"}}); err != nil {

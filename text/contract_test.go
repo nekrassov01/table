@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"math"
 	"slices"
 	"strings"
 	"sync"
@@ -615,6 +616,8 @@ func TestContract_ColumnSelectors(t *testing.T) {
 		WithPadding(Columns(2), 5, 6),
 		WithPadding(AllColumns(), 1, 2),
 		WithPadding(Columns(2), 3, 4),
+		WithWidth(Columns(math.MaxInt/2), 98),
+		WithWidth(Columns(math.MaxInt), 99),
 	)
 	cases := []struct {
 		name  string

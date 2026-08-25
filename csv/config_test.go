@@ -6,6 +6,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/nekrassov01/table"
+	"github.com/nekrassov01/table/internal/column"
 	"github.com/nekrassov01/table/internal/testutil"
 )
 
@@ -48,8 +49,8 @@ func Test_config_prepare(t *testing.T) {
 					option: &option{
 						delimiter:   ',',
 						indexOffset: 1,
-						columns: columnSet{
-							Values: []columnConfig{
+						columns: columnSetOf(
+							[]columnConfig{
 								{},
 								{
 									transformer: func(any) string {
@@ -57,12 +58,12 @@ func Test_config_prepare(t *testing.T) {
 									},
 								},
 							},
-							Defaults: &columnConfig{
+							&columnConfig{
 								transformer: func(any) string {
 									return "default"
 								},
 							},
-						},
+						),
 					},
 					header: []string{"A", "B", "C"},
 					footer: [][]string{{"x", "y", "z", "ignored"}},
@@ -269,15 +270,14 @@ func Test_columnSet_apply(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			set := columnSet{
-				Values: test.fields.values,
-			}
+			set := columnSetOf(test.fields.values, nil)
 			if test.fields.defaultValue != "" {
-				set.Defaults = &columnConfig{
+				defaults := columnConfig{
 					transformer: func(any) string {
 						return test.fields.defaultValue
 					},
 				}
+				set = columnSetOf(test.fields.values, &defaults)
 			}
 			set.apply(test.args.selector, func(c *columnConfig) {
 				value := test.args.value
@@ -285,18 +285,19 @@ func Test_columnSet_apply(t *testing.T) {
 					return value
 				}
 			})
-			values := make([]string, len(set.Values))
-			for index := range set.Values {
-				if fn := set.Values[index].transformer; fn != nil {
-					values[index] = fn(nil)
+			configs := set.resolve(nil, len(test.want.values), 0)
+			gotValues := make([]string, len(configs))
+			for index := range configs {
+				if fn := configs[index].transformer; fn != nil {
+					gotValues[index] = fn(nil)
 				}
 			}
 			defaultValue := ""
-			if set.Defaults != nil && set.Defaults.transformer != nil {
-				defaultValue = set.Defaults.transformer(nil)
+			if defaults := (*column.Set[columnConfig])(&set).Default(); defaults != nil && defaults.transformer != nil {
+				defaultValue = defaults.transformer(nil)
 			}
 			got := want{
-				values:       values,
+				values:       gotValues,
 				defaultValue: defaultValue,
 			}
 			testutil.AssertValue(t, got, test.want, "apply")
@@ -415,4 +416,15 @@ func Test_validDelimiter(t *testing.T) {
 			testutil.AssertValue(t, got, test.want, "validDelimiter")
 		})
 	}
+}
+
+func columnSetOf(values []columnConfig, defaults *columnConfig) columnSet {
+	set := columnSet{}
+	if defaults != nil {
+		(*column.Set[columnConfig])(&set).Apply(column.All(), nil, func(config *columnConfig) {
+			*config = *defaults
+		})
+	}
+	set.Values = values
+	return set
 }

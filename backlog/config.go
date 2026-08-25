@@ -29,25 +29,7 @@ func (o *config) prepare() {
 	if columnCount > 0 {
 		columnCount += option.indexOffset
 	}
-	columns := o.state.columns
-	if cap(columns) < columnCount {
-		columns = make([]columnConfig, columnCount)
-	} else {
-		columns = columns[:columnCount]
-	}
-	for index := 0; index < min(option.indexOffset, columnCount); index++ {
-		columns[index] = columnConfig{}
-	}
-	defaults := columnConfig{}
-	if option.columns.Defaults != nil {
-		defaults = *option.columns.Defaults
-	}
-	for index := option.indexOffset; index < columnCount; index++ {
-		columns[index] = defaults
-	}
-	if option.indexOffset < columnCount {
-		copy(columns[option.indexOffset:], option.columns.Values)
-	}
+	columns := option.columns.resolve(o.state.columns, columnCount, option.indexOffset)
 	o.state.columns = columns
 	result.columns = columns
 	result.footerColumns = footerColumns
@@ -86,6 +68,11 @@ type columnSet column.Set[columnConfig]
 // apply updates every input column selected by selector.
 func (o *columnSet) apply(selector ColumnSelector, fn func(*columnConfig)) {
 	(*column.Set[columnConfig])(o).Apply(selector.selector, nil, fn)
+}
+
+// resolve applies input settings to logical columns.
+func (o *columnSet) resolve(columns []columnConfig, columnCount, indexOffset int) []columnConfig {
+	return (*column.Set[columnConfig])(o).Resolve(columns, columnCount, indexOffset, columnConfig{})
 }
 
 // columnConfig holds Backlog settings for one logical column.

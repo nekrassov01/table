@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"math"
 	"slices"
 	"strings"
 	"sync"
@@ -631,6 +632,8 @@ func TestContract_ColumnSelectors(t *testing.T) {
 		WithAlign(ScopeBody, selector, AlignCenter),
 		WithRowspan(ScopeHeader, AllColumns()),
 		WithRowspan(ScopeFooter, Columns(2)),
+		WithAlign(ScopeBody, Columns(math.MaxInt/2), AlignCenter),
+		WithAlign(ScopeBody, Columns(math.MaxInt), AlignLeft),
 	)
 	a := arena{}
 	config := a.newConfig(&configured, nil, 0, 5)
