@@ -26,8 +26,9 @@ func Number(st *Store, x int64) string {
 
 // Format converts v to display text. Missing values include nil, a typed
 // nil, and an empty string, slice, or array. They yield the empty string.
-// A byte slice yields its text. Text appended to st is returned as a view that
-// remains valid until the store is reset.
+// A byte slice yields its text. A cyclic pointer chain uses the repeated
+// pointer's default representation. Text appended to st is returned as a view
+// that remains valid until the store is reset.
 func Format(st *Store, v any) string {
 	if v == nil {
 		return ""
@@ -151,16 +152,69 @@ func formatPrimitives(st *Store, rv reflect.Value) (string, bool) {
 	return st.Since(mark), true
 }
 
-// resolveReference dereferences interface and pointer chains and tries
-// resolveStringer at each level. A nil reference resolves to an empty string.
+// resolveReference dereferences an interface or pointer chain and resolves
+// fmt.Stringer or error at each reference. A nil reference resolves to an
+// empty string, while a cyclic chain returns its repeated pointer unresolved.
 func resolveReference(rv reflect.Value) (reflect.Value, string, bool) {
+	if rv.Kind() == reflect.Interface || rv.Kind() == reflect.Pointer {
+		if rv.IsNil() {
+			return rv, "", true
+		}
+		if s, ok := resolveStringerOrError(rv); ok {
+			return rv, s, true
+		}
+		rv = rv.Elem()
+		if rv.Kind() == reflect.Interface || rv.Kind() == reflect.Pointer {
+			return resolveReferenceChain(rv)
+		}
+	}
+	switch rv.Kind() {
+	case reflect.Map, reflect.Slice, reflect.Chan, reflect.Func:
+		if rv.IsNil() {
+			return rv, "", true
+		}
+	}
+	if s, ok := resolveStringerOrError(rv); ok {
+		return rv, s, true
+	}
+	return rv, "", false
+}
+
+// resolveReferenceChain continues a chain of two or more references. A nil
+// reference resolves to an empty string, while a cyclic chain returns its
+// repeated pointer unresolved.
+func resolveReferenceChain(rv reflect.Value) (reflect.Value, string, bool) {
+	var anchor reflect.Value
+	limit := 1
+	distance := 0
 	for rv.Kind() == reflect.Interface || rv.Kind() == reflect.Pointer {
 		if rv.IsNil() {
 			return rv, "", true
 		}
-		if s, ok := resolveStringer(rv); ok {
+		if s, ok := resolveStringerOrError(rv); ok {
 			return rv, s, true
 		}
+		if rv.Kind() != reflect.Pointer {
+			rv = rv.Elem()
+			continue
+		}
+		if !anchor.IsValid() {
+			anchor = rv
+			distance = 1
+			rv = rv.Elem()
+			continue
+		}
+		if anchor.Type() == rv.Type() && anchor.Pointer() == rv.Pointer() {
+			return rv, "", false
+		}
+		// Brent's algorithm moves the anchor after 1, 2, 4, ... pointer
+		// steps to detect cycles without retaining the chain.
+		if distance == limit {
+			anchor = rv
+			limit *= 2
+			distance = 0
+		}
+		distance++
 		rv = rv.Elem()
 	}
 	switch rv.Kind() {
@@ -169,14 +223,14 @@ func resolveReference(rv reflect.Value) (reflect.Value, string, bool) {
 			return rv, "", true
 		}
 	}
-	if s, ok := resolveStringer(rv); ok {
+	if s, ok := resolveStringerOrError(rv); ok {
 		return rv, s, true
 	}
 	return rv, "", false
 }
 
-// resolveStringer formats rv through fmt.Stringer or error when possible.
-func resolveStringer(rv reflect.Value) (string, bool) {
+// resolveStringerOrError formats rv through fmt.Stringer or error when possible.
+func resolveStringerOrError(rv reflect.Value) (string, bool) {
 	if !rv.CanInterface() {
 		return "", false
 	}

@@ -9,6 +9,8 @@ import (
 	"github.com/nekrassov01/table/internal/testutil"
 )
 
+type cyclicPointer *cyclicPointer
+
 func TestNumber(t *testing.T) {
 	type args struct {
 		x int64
@@ -577,11 +579,25 @@ func Test_formatReflect(t *testing.T) {
 			},
 		},
 		{
-			name: "reference resolves",
+			name: "pointer stringer resolves",
 			args: args{
 				value: &testutil.PtrStringer{
 					Value: "stringer",
 				},
+			},
+			want: want{
+				text: "stringer",
+			},
+		},
+		{
+			name: "value stringer resolves after unwrapping",
+			args: args{
+				value: func() any {
+					var value any = testutil.Stringer{
+						Value: "stringer",
+					}
+					return &value
+				}(),
 			},
 			want: want{
 				text: "stringer",
@@ -916,7 +932,7 @@ func Test_resolveReference(t *testing.T) {
 			},
 		},
 		{
-			name: "value stringer resolves after unwrapping",
+			name: "terminal stringer resolves",
 			args: args{
 				value: func() reflect.Value {
 					return reflect.ValueOf(testutil.Stringer{
@@ -931,14 +947,44 @@ func Test_resolveReference(t *testing.T) {
 			},
 		},
 		{
-			name: "ordinary value remains unresolved",
+			name: "self-referential pointer remains unresolved",
 			args: args{
 				value: func() reflect.Value {
-					return reflect.ValueOf(42)
+					var value cyclicPointer
+					value = cyclicPointer(&value)
+					return reflect.ValueOf(value)
 				},
 			},
 			want: want{
-				kind: reflect.Int,
+				kind: reflect.Pointer,
+			},
+		},
+		{
+			name: "pointer pair remains unresolved",
+			args: args{
+				value: func() reflect.Value {
+					var first cyclicPointer
+					var second cyclicPointer
+					first = cyclicPointer(&second)
+					second = cyclicPointer(&first)
+					return reflect.ValueOf(first)
+				},
+			},
+			want: want{
+				kind: reflect.Pointer,
+			},
+		},
+		{
+			name: "interface cycle remains unresolved",
+			args: args{
+				value: func() reflect.Value {
+					var value any
+					value = &value
+					return reflect.ValueOf(value)
+				},
+			},
+			want: want{
+				kind: reflect.Pointer,
 			},
 		},
 	}
@@ -955,7 +1001,124 @@ func Test_resolveReference(t *testing.T) {
 	}
 }
 
-func Test_resolveStringer(t *testing.T) {
+func Test_resolveReferenceChain(t *testing.T) {
+	type args struct {
+		value func() reflect.Value
+	}
+	type want struct {
+		kind     reflect.Kind
+		text     string
+		resolved bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "nil reference is missing",
+			args: args{
+				value: func() reflect.Value {
+					return reflect.ValueOf((*int)(nil))
+				},
+			},
+			want: want{
+				kind:     reflect.Pointer,
+				resolved: true,
+			},
+		},
+		{
+			name: "reference stringer resolves",
+			args: args{
+				value: func() reflect.Value {
+					return reflect.ValueOf(&testutil.PtrStringer{
+						Value: "stringer",
+					})
+				},
+			},
+			want: want{
+				kind:     reflect.Pointer,
+				text:     "stringer",
+				resolved: true,
+			},
+		},
+		{
+			name: "terminal nil map is missing",
+			args: args{
+				value: func() reflect.Value {
+					value := map[string]int(nil)
+					return reflect.ValueOf(&value)
+				},
+			},
+			want: want{
+				kind:     reflect.Map,
+				resolved: true,
+			},
+		},
+		{
+			name: "terminal stringer resolves",
+			args: args{
+				value: func() reflect.Value {
+					var value any = testutil.Stringer{
+						Value: "stringer",
+					}
+					return reflect.ValueOf(&value)
+				},
+			},
+			want: want{
+				kind:     reflect.Struct,
+				text:     "stringer",
+				resolved: true,
+			},
+		},
+		{
+			name: "deep chain unwraps",
+			args: args{
+				value: func() reflect.Value {
+					value := reflect.ValueOf(42)
+					for range 12 {
+						pointer := reflect.New(value.Type())
+						pointer.Elem().Set(value)
+						value = pointer
+					}
+					return value
+				},
+			},
+			want: want{
+				kind: reflect.Int,
+			},
+		},
+		{
+			name: "long cycle remains unresolved",
+			args: args{
+				value: func() reflect.Value {
+					values := make([]cyclicPointer, 12)
+					for index := range len(values) - 1 {
+						values[index] = cyclicPointer(&values[index+1])
+					}
+					values[len(values)-1] = cyclicPointer(&values[4])
+					return reflect.ValueOf(values[0])
+				},
+			},
+			want: want{
+				kind: reflect.Pointer,
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			gotValue, gotText, gotResolved := resolveReferenceChain(test.args.value())
+			got := want{
+				kind:     gotValue.Kind(),
+				text:     gotText,
+				resolved: gotResolved,
+			}
+			testutil.AssertValue(t, got, test.want, "resolveReferenceChain")
+		})
+	}
+}
+
+func Test_resolveStringerOrError(t *testing.T) {
 	type args struct {
 		value func() reflect.Value
 	}
@@ -1019,12 +1182,12 @@ func Test_resolveStringer(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			gotText, gotResolved := resolveStringer(test.args.value())
+			gotText, gotResolved := resolveStringerOrError(test.args.value())
 			got := want{
 				text:     gotText,
 				resolved: gotResolved,
 			}
-			testutil.AssertValue(t, got, test.want, "resolveStringer")
+			testutil.AssertValue(t, got, test.want, "resolveStringerOrError")
 		})
 	}
 }
