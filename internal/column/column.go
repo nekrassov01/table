@@ -222,6 +222,14 @@ func (o *Set[T]) Any(fn func(*T) bool) bool {
 // Resolve applies defaults and explicit settings to logical columns.
 // indexOffset reserves leading synthetic columns that selectors cannot target.
 func (o *Set[T]) Resolve(columns []T, columnCount, indexOffset int, defaults T) []T {
+	if o.state == nil {
+		return o.resolveValues(columns, columnCount, indexOffset, defaults)
+	}
+	return o.resolveState(columns, columnCount, indexOffset, defaults)
+}
+
+// resolveValues applies defaults and contiguous explicit settings.
+func (o *Set[T]) resolveValues(columns []T, columnCount, indexOffset int, defaults T) []T {
 	if cap(columns) < columnCount {
 		columns = make([]T, columnCount)
 	} else {
@@ -231,21 +239,27 @@ func (o *Set[T]) Resolve(columns []T, columnCount, indexOffset int, defaults T) 
 	for index := range offset {
 		columns[index] = defaults
 	}
-	state := o.state
-	if state == nil {
-		for index := offset; index < columnCount; index++ {
-			columns[index] = defaults
-		}
-		copy(columns[offset:], o.Values)
-		return columns
-	}
-	if state.hasDefaults {
-		defaults = state.defaults
-	}
 	for index := offset; index < columnCount; index++ {
 		columns[index] = defaults
 	}
 	copy(columns[offset:], o.Values)
+	return columns
+}
+
+// resolveState resolves Values using state defaults when present, then applies sparse settings.
+func (o *Set[T]) resolveState(columns []T, columnCount, indexOffset int, defaults T) []T {
+	state := o.state
+	inputDefaults := defaults
+	if state.hasDefaults {
+		inputDefaults = state.defaults
+	}
+	columns = o.resolveValues(columns, columnCount, indexOffset, inputDefaults)
+	offset := min(indexOffset, columnCount)
+	if state.hasDefaults {
+		for index := range offset {
+			columns[index] = defaults
+		}
+	}
 	inputColumns := columns[offset:]
 	for _, value := range state.values {
 		if value.index >= len(inputColumns) {

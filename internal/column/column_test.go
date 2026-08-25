@@ -188,10 +188,10 @@ func TestSet_Default(t *testing.T) {
 		{
 			name: "configured defaults",
 			fields: fields{
-				state: setStateOf(intPointer(3)),
+				state: setStateOf(new(3)),
 			},
 			want: want{
-				defaults: intPointer(3),
+				defaults: new(3),
 			},
 		},
 	}
@@ -248,7 +248,7 @@ func TestSet_Apply(t *testing.T) {
 			},
 			want: want{
 				values:       []int{3},
-				defaults:     intPointer(4),
+				defaults:     new(4),
 				defaultCalls: 1,
 			},
 		},
@@ -256,7 +256,7 @@ func TestSet_Apply(t *testing.T) {
 			name: "all columns updates existing defaults",
 			fields: fields{
 				values:   []int{2},
-				defaults: intPointer(5),
+				defaults: new(5),
 			},
 			args: args{
 				selector: All(),
@@ -264,14 +264,14 @@ func TestSet_Apply(t *testing.T) {
 			},
 			want: want{
 				values:   []int{3},
-				defaults: intPointer(6),
+				defaults: new(6),
 			},
 		},
 		{
 			name: "selected columns inherit defaults",
 			fields: fields{
 				values:   []int{2},
-				defaults: intPointer(5),
+				defaults: new(5),
 			},
 			args: args{
 				selector:      NewSelector(-1, 2),
@@ -281,14 +281,14 @@ func TestSet_Apply(t *testing.T) {
 			},
 			want: want{
 				values:   []int{2, 5, 6},
-				defaults: intPointer(5),
+				defaults: new(5),
 			},
 		},
 		{
 			name: "distant columns inherit defaults",
 			fields: fields{
 				values:   []int{2},
-				defaults: intPointer(5),
+				defaults: new(5),
 			},
 			args: args{
 				selector: NewSelector(12),
@@ -296,7 +296,7 @@ func TestSet_Apply(t *testing.T) {
 			},
 			want: want{
 				values:   []int{2},
-				defaults: intPointer(5),
+				defaults: new(5),
 				sparse:   []value[int]{{index: 12, config: 6}},
 			},
 		},
@@ -494,7 +494,7 @@ func TestSet_applyAll(t *testing.T) {
 			},
 			want: want{
 				values:   []int{2},
-				defaults: intPointer(3),
+				defaults: new(3),
 			},
 		},
 	}
@@ -791,7 +791,7 @@ func TestSet_Resolve(t *testing.T) {
 			name: "resolves index defaults and explicit input settings",
 			fields: fields{
 				values:   []int{7},
-				defaults: intPointer(5),
+				defaults: new(5),
 				sparse:   setStateOf(nil, value[int]{index: 2, config: 8}),
 			},
 			args: args{
@@ -820,7 +820,7 @@ func TestSet_Resolve(t *testing.T) {
 		{
 			name: "configured defaults override supplied input defaults",
 			fields: fields{
-				defaults: intPointer(5),
+				defaults: new(5),
 			},
 			args: args{
 				columnCount: 2,
@@ -855,7 +855,105 @@ func TestSet_Resolve(t *testing.T) {
 	}
 }
 
-func TestFindValue(t *testing.T) {
+func TestSet_resolveValues(t *testing.T) {
+	type fields struct {
+		values []int
+	}
+	type args struct {
+		columns     []int
+		columnCount int
+		indexOffset int
+		defaults    int
+	}
+	type want struct {
+		columns []int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   want
+	}{
+		{
+			name: "resolves contiguous settings",
+			fields: fields{
+				values: []int{7},
+			},
+			args: args{
+				columns:     make([]int, 1, 3),
+				columnCount: 3,
+				indexOffset: 1,
+				defaults:    3,
+			},
+			want: want{
+				columns: []int{3, 7, 3},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			o := Set[int]{
+				Values: test.fields.values,
+			}
+			got := want{
+				columns: o.resolveValues(test.args.columns, test.args.columnCount, test.args.indexOffset, test.args.defaults),
+			}
+			testutil.AssertValue(t, got, test.want, "resolveValues")
+		})
+	}
+}
+
+func TestSet_resolveState(t *testing.T) {
+	type fields struct {
+		values []int
+		state  *setState[int]
+	}
+	type args struct {
+		columns     []int
+		columnCount int
+		indexOffset int
+		defaults    int
+	}
+	type want struct {
+		columns []int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   want
+	}{
+		{
+			name: "resolves defaults and sparse settings",
+			fields: fields{
+				values: []int{7},
+				state:  setStateOf(new(5), value[int]{index: 2, config: 8}),
+			},
+			args: args{
+				columnCount: 4,
+				indexOffset: 1,
+				defaults:    3,
+			},
+			want: want{
+				columns: []int{3, 7, 5, 8},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			o := Set[int]{
+				Values: test.fields.values,
+				state:  test.fields.state,
+			}
+			got := want{
+				columns: o.resolveState(test.args.columns, test.args.columnCount, test.args.indexOffset, test.args.defaults),
+			}
+			testutil.AssertValue(t, got, test.want, "resolveState")
+		})
+	}
+}
+
+func Test_findValue(t *testing.T) {
 	type args struct {
 		values []value[int]
 		index  int
@@ -952,10 +1050,6 @@ func TestMaxColumns(t *testing.T) {
 			testutil.AssertValue(t, got, test.want, "MaxColumns")
 		})
 	}
-}
-
-func intPointer(value int) *int {
-	return &value
 }
 
 func setStateOf(defaults *int, values ...value[int]) *setState[int] {
