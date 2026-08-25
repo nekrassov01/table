@@ -116,6 +116,120 @@ func Test_solver_prepare(t *testing.T) {
 	}
 }
 
+func Test_solver_solve(t *testing.T) {
+	type fields struct {
+		input compilerResult
+		state solverState
+	}
+	type want struct {
+		metrics []columnMetric
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   want
+	}{
+		{
+			name: "raises widths to content and delimiter minima",
+			fields: fields{
+				input: compilerResult{
+					header: row{
+						cells: []cell{
+							{width: 2},
+							{width: 6},
+							{width: 1},
+						},
+					},
+					body: []row{
+						{
+							cells: []cell{
+								{width: 1},
+								{width: 7},
+								{width: 1},
+							},
+						},
+					},
+				},
+				state: solverState{
+					columnMetrics: []columnMetric{
+						{
+							separator: separator{
+								width: 3,
+							},
+						},
+						{
+							box: box{
+								align: AlignCenter,
+							},
+							separator: separator{
+								width: 5,
+								lead:  true,
+								trail: true,
+							},
+						},
+						{
+							box: box{
+								align: AlignRight,
+							},
+							separator: separator{
+								width: 4,
+								trail: true,
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				metrics: []columnMetric{
+					{
+						box: box{
+							width: 3,
+						},
+						separator: separator{
+							width: 3,
+						},
+					},
+					{
+						box: box{
+							width: 7,
+							align: AlignCenter,
+						},
+						separator: separator{
+							width: 5,
+							lead:  true,
+							trail: true,
+						},
+					},
+					{
+						box: box{
+							width: 4,
+							align: AlignRight,
+						},
+						separator: separator{
+							width: 4,
+							trail: true,
+						},
+					},
+				},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			state := test.fields.state
+			o := &solver{
+				input: test.fields.input,
+				state: &state,
+			}
+			o.solve()
+			got := want{
+				metrics: state.columnMetrics,
+			}
+			testutil.AssertValue(t, got, test.want, "solve")
+		})
+	}
+}
+
 func Test_solver_measureRows(t *testing.T) {
 	type fields struct {
 		state solverState
@@ -271,121 +385,7 @@ func Test_solver_measureRow(t *testing.T) {
 	}
 }
 
-func Test_solver_solve(t *testing.T) {
-	type fields struct {
-		input compilerResult
-		state solverState
-	}
-	type want struct {
-		metrics []columnMetric
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   want
-	}{
-		{
-			name: "raises widths to content and delimiter minima",
-			fields: fields{
-				input: compilerResult{
-					header: row{
-						cells: []cell{
-							{width: 2},
-							{width: 6},
-							{width: 1},
-						},
-					},
-					body: []row{
-						{
-							cells: []cell{
-								{width: 1},
-								{width: 7},
-								{width: 1},
-							},
-						},
-					},
-				},
-				state: solverState{
-					columnMetrics: []columnMetric{
-						{
-							separator: separator{
-								width: 3,
-							},
-						},
-						{
-							box: box{
-								align: AlignCenter,
-							},
-							separator: separator{
-								width: 5,
-								lead:  true,
-								trail: true,
-							},
-						},
-						{
-							box: box{
-								align: AlignRight,
-							},
-							separator: separator{
-								width: 4,
-								trail: true,
-							},
-						},
-					},
-				},
-			},
-			want: want{
-				metrics: []columnMetric{
-					{
-						box: box{
-							width: 3,
-						},
-						separator: separator{
-							width: 3,
-						},
-					},
-					{
-						box: box{
-							width: 7,
-							align: AlignCenter,
-						},
-						separator: separator{
-							width: 5,
-							lead:  true,
-							trail: true,
-						},
-					},
-					{
-						box: box{
-							width: 4,
-							align: AlignRight,
-						},
-						separator: separator{
-							width: 4,
-							trail: true,
-						},
-					},
-				},
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			state := test.fields.state
-			o := &solver{
-				input: test.fields.input,
-				state: &state,
-			}
-			o.solve()
-			got := want{
-				metrics: state.columnMetrics,
-			}
-			testutil.AssertValue(t, got, test.want, "solve")
-		})
-	}
-}
-
-func TestResolveSeparator(t *testing.T) {
+func Test_resolveSeparator(t *testing.T) {
 	type args struct {
 		side AlignSide
 	}
