@@ -1,6 +1,7 @@
 package column
 
 import (
+	"math"
 	"testing"
 
 	"github.com/nekrassov01/table/internal/testutil"
@@ -12,8 +13,8 @@ func TestNewSelector(t *testing.T) {
 		mutate  []int
 	}
 	type want struct {
-		indexes     []int
-		columnCount int
+		indexes []int
+		all     bool
 	}
 	tests := []struct {
 		name string
@@ -30,8 +31,25 @@ func TestNewSelector(t *testing.T) {
 				mutate:  []int{3, 4, 5},
 			},
 			want: want{
-				indexes:     []int{0, -1, 2},
-				columnCount: 3,
+				indexes: []int{0, 2},
+			},
+		},
+		{
+			name: "sorts unique indexes without deriving storage",
+			args: args{
+				indexes: []int{math.MaxInt, 2, math.MaxInt, 1},
+			},
+			want: want{
+				indexes: []int{1, 2, math.MaxInt},
+			},
+		},
+		{
+			name: "compacts sorted duplicate indexes",
+			args: args{
+				indexes: []int{1, 1, 2},
+			},
+			want: want{
+				indexes: []int{1, 2},
 			},
 		},
 	}
@@ -40,8 +58,8 @@ func TestNewSelector(t *testing.T) {
 			selector := NewSelector(test.args.indexes...)
 			copy(test.args.indexes, test.args.mutate)
 			got := want{
-				indexes:     selector.indexes,
-				columnCount: selector.columnCount,
+				indexes: selector.indexes,
+				all:     selector.all,
 			}
 			testutil.AssertValue(t, got, test.want, "NewSelector")
 		})
@@ -50,8 +68,8 @@ func TestNewSelector(t *testing.T) {
 
 func TestAll(t *testing.T) {
 	type want struct {
-		indexes     []int
-		columnCount int
+		indexes []int
+		all     bool
 	}
 	tests := []struct {
 		name string
@@ -60,7 +78,7 @@ func TestAll(t *testing.T) {
 		{
 			name: "selects every column",
 			want: want{
-				columnCount: allColumnCount,
+				all: true,
 			},
 		},
 	}
@@ -68,10 +86,124 @@ func TestAll(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			selector := All()
 			got := want{
-				indexes:     selector.indexes,
-				columnCount: selector.columnCount,
+				indexes: selector.indexes,
+				all:     selector.all,
 			}
 			testutil.AssertValue(t, got, test.want, "All")
+		})
+	}
+}
+
+func TestSelector_denseEnd(t *testing.T) {
+	type fields struct {
+		indexes []int
+	}
+	type args struct {
+		columnCount int
+	}
+	type want struct {
+		end int
+		ok  bool
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   want
+	}{
+		{
+			name: "existing columns",
+			fields: fields{
+				indexes: []int{0, 1},
+			},
+			args: args{
+				columnCount: 2,
+			},
+			want: want{
+				end: 2,
+				ok:  true,
+			},
+		},
+		{
+			name: "bounded gaps",
+			fields: fields{
+				indexes: []int{2, 4},
+			},
+			args: args{
+				columnCount: 2,
+			},
+			want: want{
+				end: 5,
+				ok:  true,
+			},
+		},
+		{
+			name: "unbounded gaps",
+			fields: fields{
+				indexes: []int{20},
+			},
+			want: want{},
+		},
+		{
+			name: "maximum index",
+			fields: fields{
+				indexes: []int{math.MaxInt},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			selector := Selector{indexes: test.fields.indexes}
+			end, ok := selector.denseEnd(test.args.columnCount)
+			got := want{
+				end: end,
+				ok:  ok,
+			}
+			testutil.AssertValue(t, got, test.want, "denseEnd")
+		})
+	}
+}
+
+func TestSet_Default(t *testing.T) {
+	type fields struct {
+		state *setState[int]
+	}
+	type want struct {
+		defaults *int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   want
+	}{
+		{
+			name: "unset defaults",
+		},
+		{
+			name: "sparse settings without defaults",
+			fields: fields{
+				state: setStateOf(nil, value[int]{index: 3, config: 4}),
+			},
+		},
+		{
+			name: "configured defaults",
+			fields: fields{
+				state: setStateOf(intPointer(3)),
+			},
+			want: want{
+				defaults: intPointer(3),
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			o := Set[int]{
+				state: test.fields.state,
+			}
+			got := want{
+				defaults: o.Default(),
+			}
+			testutil.AssertValue(t, got, test.want, "Default")
 		})
 	}
 }
@@ -80,15 +212,19 @@ func TestSet_Apply(t *testing.T) {
 	type fields struct {
 		values   []int
 		defaults *int
+		sparse   *setState[int]
 	}
 	type args struct {
-		selector   Selector
-		newDefault func() int
-		fn         func(*int)
+		selector      Selector
+		defaultValue  int
+		hasNewDefault bool
+		fn            func(*int)
 	}
 	type want struct {
-		values   []int
-		defaults *int
+		values       []int
+		defaults     *int
+		sparse       []value[int]
+		defaultCalls int
 	}
 	increment := func(value *int) {
 		(*value)++
@@ -105,15 +241,15 @@ func TestSet_Apply(t *testing.T) {
 				values: []int{2},
 			},
 			args: args{
-				selector: All(),
-				newDefault: func() int {
-					return 3
-				},
-				fn: increment,
+				selector:      All(),
+				defaultValue:  3,
+				hasNewDefault: true,
+				fn:            increment,
 			},
 			want: want{
-				values:   []int{3},
-				defaults: intPointer(4),
+				values:       []int{3},
+				defaults:     intPointer(4),
+				defaultCalls: 1,
 			},
 		},
 		{
@@ -138,8 +274,10 @@ func TestSet_Apply(t *testing.T) {
 				defaults: intPointer(5),
 			},
 			args: args{
-				selector: NewSelector(-1, 2),
-				fn:       increment,
+				selector:      NewSelector(-1, 2),
+				defaultValue:  9,
+				hasNewDefault: true,
+				fn:            increment,
 			},
 			want: want{
 				values:   []int{2, 5, 6},
@@ -147,16 +285,143 @@ func TestSet_Apply(t *testing.T) {
 			},
 		},
 		{
-			name: "selected columns use supplied defaults",
+			name: "distant columns inherit defaults",
+			fields: fields{
+				values:   []int{2},
+				defaults: intPointer(5),
+			},
 			args: args{
-				selector: NewSelector(1),
-				newDefault: func() int {
-					return 3
-				},
-				fn: increment,
+				selector: NewSelector(12),
+				fn:       increment,
 			},
 			want: want{
-				values: []int{3, 4},
+				values:   []int{2},
+				defaults: intPointer(5),
+				sparse:   []value[int]{{index: 12, config: 6}},
+			},
+		},
+		{
+			name: "selected columns use supplied defaults",
+			args: args{
+				selector:      NewSelector(1),
+				defaultValue:  3,
+				hasNewDefault: true,
+				fn:            increment,
+			},
+			want: want{
+				values:       []int{3, 4},
+				defaultCalls: 1,
+			},
+		},
+		{
+			name: "selected columns remain sparse and ordered",
+			args: args{
+				selector:      NewSelector(math.MaxInt, 1, math.MaxInt),
+				defaultValue:  3,
+				hasNewDefault: true,
+				fn:            increment,
+			},
+			want: want{
+				sparse: []value[int]{
+					{index: 1, config: 4},
+					{index: math.MaxInt, config: 4},
+				},
+				defaultCalls: 1,
+			},
+		},
+		{
+			name: "selected columns fill a dense prefix",
+			args: args{
+				selector:      NewSelector(2, 0, 1),
+				defaultValue:  3,
+				hasNewDefault: true,
+				fn:            increment,
+			},
+			want: want{
+				values:       []int{4, 4, 4},
+				defaultCalls: 1,
+			},
+		},
+		{
+			name: "selected columns retain a sparse value after extending prefix",
+			args: args{
+				selector:      NewSelector(0, 20),
+				defaultValue:  3,
+				hasNewDefault: true,
+				fn:            increment,
+			},
+			want: want{
+				sparse: []value[int]{
+					{index: 0, config: 4},
+					{index: 20, config: 4},
+				},
+				defaultCalls: 1,
+			},
+		},
+		{
+			name: "selected columns extend through an existing sparse value",
+			fields: fields{
+				sparse: setStateOf(nil, value[int]{index: 1, config: 5}),
+			},
+			args: args{
+				selector:      NewSelector(0),
+				defaultValue:  3,
+				hasNewDefault: true,
+				fn:            increment,
+			},
+			want: want{
+				sparse: []value[int]{
+					{index: 0, config: 4},
+					{index: 1, config: 5},
+				},
+				defaultCalls: 1,
+			},
+		},
+		{
+			name: "selected columns update existing dense and sparse values",
+			fields: fields{
+				values: []int{2},
+				sparse: setStateOf(nil, value[int]{index: 2, config: 5}),
+			},
+			args: args{
+				selector: NewSelector(0, 2),
+				fn:       increment,
+			},
+			want: want{
+				values: []int{3},
+				sparse: []value[int]{{index: 2, config: 6}},
+			},
+		},
+		{
+			name: "selected columns add to existing sparse values",
+			fields: fields{
+				sparse: setStateOf(nil, value[int]{index: 1, config: 5}),
+			},
+			args: args{
+				selector:      NewSelector(3),
+				defaultValue:  3,
+				hasNewDefault: true,
+				fn:            increment,
+			},
+			want: want{
+				sparse: []value[int]{
+					{index: 1, config: 5},
+					{index: 3, config: 4},
+				},
+				defaultCalls: 1,
+			},
+		},
+		{
+			name: "selected columns update an existing distant value",
+			fields: fields{
+				sparse: setStateOf(nil, value[int]{index: 3, config: 5}),
+			},
+			args: args{
+				selector: NewSelector(3),
+				fn:       increment,
+			},
+			want: want{
+				sparse: []value[int]{{index: 3, config: 6}},
 			},
 		},
 		{
@@ -169,16 +434,334 @@ func TestSet_Apply(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			o := Set[int]{
-				Values:   test.fields.values,
-				Defaults: test.fields.defaults,
+			defaultCalls := 0
+			var newDefault func() int
+			if test.args.hasNewDefault {
+				newDefault = func() int {
+					defaultCalls++
+					return test.args.defaultValue
+				}
 			}
-			o.Apply(test.args.selector, test.args.newDefault, test.args.fn)
+			o := Set[int]{
+				Values: test.fields.values,
+				state:  mergeSetState(test.fields.defaults, test.fields.sparse),
+			}
+			o.Apply(test.args.selector, newDefault, test.args.fn)
+			var sparse []value[int]
+			if o.state != nil {
+				sparse = o.state.values
+			}
 			got := want{
-				values:   o.Values,
-				defaults: o.Defaults,
+				values:       o.Values,
+				defaults:     setDefaults(o.state),
+				sparse:       sparse,
+				defaultCalls: defaultCalls,
 			}
 			testutil.AssertValue(t, got, test.want, "Apply")
+		})
+	}
+}
+
+func TestSet_applyAll(t *testing.T) {
+	type fields struct {
+		values   []int
+		defaults *int
+	}
+	type args struct {
+		defaultValue int
+		fn           func(*int)
+	}
+	type want struct {
+		values   []int
+		defaults *int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   want
+	}{
+		{
+			name: "creates defaults and updates every value",
+			fields: fields{
+				values: []int{1},
+			},
+			args: args{
+				defaultValue: 2,
+				fn: func(value *int) {
+					(*value)++
+				},
+			},
+			want: want{
+				values:   []int{2},
+				defaults: intPointer(3),
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			o := Set[int]{
+				Values: test.fields.values,
+				state:  mergeSetState(test.fields.defaults, nil),
+			}
+			o.applyAll(func() int {
+				return test.args.defaultValue
+			}, test.args.fn)
+			got := want{
+				values:   o.Values,
+				defaults: setDefaults(o.state),
+			}
+			testutil.AssertValue(t, got, test.want, "applyAll")
+		})
+	}
+}
+
+func TestSet_applyDense(t *testing.T) {
+	type fields struct {
+		values   []int
+		defaults *int
+	}
+	type args struct {
+		selector     Selector
+		denseEnd     int
+		defaultValue int
+		fn           func(*int)
+	}
+	type want struct {
+		values []int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   want
+	}{
+		{
+			name: "extends defaults and updates selected values",
+			fields: fields{
+				values: []int{1},
+			},
+			args: args{
+				selector:     NewSelector(2),
+				denseEnd:     3,
+				defaultValue: 2,
+				fn: func(value *int) {
+					(*value)++
+				},
+			},
+			want: want{
+				values: []int{1, 2, 3},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			o := Set[int]{
+				Values: test.fields.values,
+				state:  mergeSetState(test.fields.defaults, nil),
+			}
+			o.applyDense(test.args.selector, test.args.denseEnd, func() int {
+				return test.args.defaultValue
+			}, test.args.fn)
+			got := want{
+				values: o.Values,
+			}
+			testutil.AssertValue(t, got, test.want, "applyDense")
+		})
+	}
+}
+
+func TestSet_applySparse(t *testing.T) {
+	type fields struct {
+		values   []int
+		defaults *int
+		sparse   *setState[int]
+	}
+	type args struct {
+		selector     Selector
+		defaultValue int
+		fn           func(*int)
+	}
+	type want struct {
+		values []int
+		sparse []value[int]
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   want
+	}{
+		{
+			name: "updates dense and sparse values",
+			fields: fields{
+				values: []int{1},
+				sparse: setStateOf(nil, value[int]{index: 3, config: 3}),
+			},
+			args: args{
+				selector:     NewSelector(0, 3, 5),
+				defaultValue: 2,
+				fn: func(value *int) {
+					(*value)++
+				},
+			},
+			want: want{
+				values: []int{2},
+				sparse: []value[int]{
+					{index: 3, config: 4},
+					{index: 5, config: 3},
+				},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			o := Set[int]{
+				Values: test.fields.values,
+				state:  mergeSetState(test.fields.defaults, test.fields.sparse),
+			}
+			o.applySparse(test.args.selector, func() int {
+				return test.args.defaultValue
+			}, test.args.fn)
+			var sparse []value[int]
+			if o.state != nil {
+				sparse = o.state.values
+			}
+			got := want{
+				values: o.Values,
+				sparse: sparse,
+			}
+			testutil.AssertValue(t, got, test.want, "applySparse")
+		})
+	}
+}
+
+func TestSet_Range(t *testing.T) {
+	type fields struct {
+		values []int
+		sparse *setState[int]
+	}
+	type want struct {
+		values []int
+		sparse []value[int]
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   want
+	}{
+		{
+			name: "no values",
+		},
+		{
+			name: "dense and sparse values",
+			fields: fields{
+				values: []int{1, 2},
+				sparse: setStateOf(nil, value[int]{index: 4, config: 3}),
+			},
+			want: want{
+				values: []int{2, 3},
+				sparse: []value[int]{{index: 4, config: 4}},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			o := Set[int]{
+				Values: test.fields.values,
+				state:  test.fields.sparse,
+			}
+			o.Range(func(value *int) {
+				(*value)++
+			})
+			var sparse []value[int]
+			if o.state != nil {
+				sparse = o.state.values
+			}
+			got := want{
+				values: o.Values,
+				sparse: sparse,
+			}
+			testutil.AssertValue(t, got, test.want, "Range")
+		})
+	}
+}
+
+func TestSet_Any(t *testing.T) {
+	type fields struct {
+		values []int
+		sparse *setState[int]
+	}
+	type args struct {
+		value int
+	}
+	type want struct {
+		matched bool
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   want
+	}{
+		{
+			name: "no match",
+			fields: fields{
+				values: []int{1},
+			},
+			args: args{
+				value: 2,
+			},
+		},
+		{
+			name: "dense match",
+			fields: fields{
+				values: []int{1, 2},
+				sparse: setStateOf(nil, value[int]{index: 4, config: 3}),
+			},
+			args: args{
+				value: 2,
+			},
+			want: want{
+				matched: true,
+			},
+		},
+		{
+			name: "sparse match",
+			fields: fields{
+				values: []int{1},
+				sparse: setStateOf(nil, value[int]{index: 4, config: 3}),
+			},
+			args: args{
+				value: 3,
+			},
+			want: want{
+				matched: true,
+			},
+		},
+		{
+			name: "sparse miss",
+			fields: fields{
+				values: []int{1},
+				sparse: setStateOf(nil, value[int]{index: 4, config: 3}),
+			},
+			args: args{
+				value: 4,
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			o := Set[int]{
+				Values: test.fields.values,
+				state:  test.fields.sparse,
+			}
+			got := want{
+				matched: o.Any(func(value *int) bool {
+					return *value == test.args.value
+				}),
+			}
+			testutil.AssertValue(t, got, test.want, "Any")
 		})
 	}
 }
@@ -187,6 +770,7 @@ func TestSet_Resolve(t *testing.T) {
 	type fields struct {
 		values   []int
 		defaults *int
+		sparse   *setState[int]
 	}
 	type args struct {
 		columns     []int
@@ -204,46 +788,120 @@ func TestSet_Resolve(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "explicit and default settings",
+			name: "resolves index defaults and explicit input settings",
 			fields: fields{
-				values:   []int{2},
+				values:   []int{7},
 				defaults: intPointer(5),
+				sparse:   setStateOf(nil, value[int]{index: 2, config: 8}),
 			},
 			args: args{
+				columns:     make([]int, 1, 4),
 				columnCount: 4,
 				indexOffset: 1,
-				defaults:    7,
+				defaults:    3,
 			},
 			want: want{
-				columns: []int{7, 2, 5, 5},
+				columns: []int{3, 7, 5, 8},
 			},
 		},
 		{
-			name: "reuses storage",
+			name: "ignores settings beyond resolved input columns",
 			fields: fields{
-				values: []int{2, 3},
+				sparse: setStateOf(nil, value[int]{index: math.MaxInt, config: 9}),
 			},
 			args: args{
-				columns:     make([]int, 4),
-				columnCount: 3,
-				indexOffset: 1,
-				defaults:    7,
+				columnCount: 2,
+				defaults:    3,
 			},
 			want: want{
-				columns: []int{7, 2, 3},
+				columns: []int{3, 3},
+			},
+		},
+		{
+			name: "configured defaults override supplied input defaults",
+			fields: fields{
+				defaults: intPointer(5),
+			},
+			args: args{
+				columnCount: 2,
+				defaults:    3,
+			},
+			want: want{
+				columns: []int{5, 5},
+			},
+		},
+		{
+			name: "supplied defaults without settings",
+			args: args{
+				columnCount: 2,
+				defaults:    3,
+			},
+			want: want{
+				columns: []int{3, 3},
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			o := &Set[int]{
-				Values:   test.fields.values,
-				Defaults: test.fields.defaults,
+			o := Set[int]{
+				Values: test.fields.values,
+				state:  mergeSetState(test.fields.defaults, test.fields.sparse),
 			}
 			got := want{
 				columns: o.Resolve(test.args.columns, test.args.columnCount, test.args.indexOffset, test.args.defaults),
 			}
 			testutil.AssertValue(t, got, test.want, "Resolve")
+		})
+	}
+}
+
+func TestFindValue(t *testing.T) {
+	type args struct {
+		values []value[int]
+		index  int
+	}
+	type want struct {
+		position int
+		found    bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "empty values",
+		},
+		{
+			name: "existing value",
+			args: args{
+				values: []value[int]{{index: 1}, {index: 3}},
+				index:  3,
+			},
+			want: want{
+				position: 1,
+				found:    true,
+			},
+		},
+		{
+			name: "insertion position",
+			args: args{
+				values: []value[int]{{index: 1}, {index: 3}},
+				index:  2,
+			},
+			want: want{
+				position: 1,
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			position, found := findValue(test.args.values, test.args.index)
+			got := want{
+				position: position,
+				found:    found,
+			}
+			testutil.AssertValue(t, got, test.want, "findValue")
 		})
 	}
 }
@@ -298,4 +956,36 @@ func TestMaxColumns(t *testing.T) {
 
 func intPointer(value int) *int {
 	return &value
+}
+
+func setStateOf(defaults *int, values ...value[int]) *setState[int] {
+	state := &setState[int]{
+		values: values,
+	}
+	if defaults != nil {
+		state.defaults = *defaults
+		state.hasDefaults = true
+	}
+	return state
+}
+
+func mergeSetState(defaults *int, state *setState[int]) *setState[int] {
+	if state == nil && defaults == nil {
+		return nil
+	}
+	if state == nil {
+		state = &setState[int]{}
+	}
+	if defaults != nil {
+		state.defaults = *defaults
+		state.hasDefaults = true
+	}
+	return state
+}
+
+func setDefaults(state *setState[int]) *int {
+	if state == nil || !state.hasDefaults {
+		return nil
+	}
+	return &state.defaults
 }

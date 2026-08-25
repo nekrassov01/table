@@ -74,31 +74,29 @@ func (o *option) apply(w io.Writer, minIndexWidth int, opts ...Option) {
 	if o.indexOffset != 0 {
 		o.indexWidth = max(o.indexWidth, minIndexWidth)
 	}
-	columns := &o.columns
+	columns := (*column.Set[columnConfig])(&o.columns)
 	o.plain = !isTerminal(w)
 	if o.plain {
 		o.style.Border.Attr = nil
 		o.style.Content = ContentStyle{}
-		if columns.Defaults != nil {
-			columns.Defaults.transformer.attrs = scope.Scopes[*Attr]{}
+		if defaults := columns.Default(); defaults != nil {
+			defaults.transformer.attrs = scope.Scopes[*Attr]{}
 		}
-		for i := range columns.Values {
-			columns.Values[i].transformer.attrs = scope.Scopes[*Attr]{}
-		}
+		columns.Range(func(column *columnConfig) {
+			column.transformer.attrs = scope.Scopes[*Attr]{}
+		})
 	}
 	if !o.autoFit {
 		return
 	}
-	if defaults := columns.Defaults; defaults != nil && (defaults.limit > 0 || defaults.truncate) {
+	if defaults := columns.Default(); defaults != nil && (defaults.limit > 0 || defaults.truncate) {
 		o.autoFit = false
 		return
 	}
-	for i := range columns.Values {
-		col := &columns.Values[i]
-		if col.limit > 0 || col.truncate {
-			o.autoFit = false
-			return
-		}
+	if columns.Any(func(column *columnConfig) bool {
+		return column.limit > 0 || column.truncate
+	}) {
+		o.autoFit = false
 	}
 }
 

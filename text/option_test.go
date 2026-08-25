@@ -528,9 +528,10 @@ func TestWithAlign(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{}
 			WithAlign(test.args.scopes, test.args.columns, test.args.align)(o)
-			column := o.columns.Values[1]
+			columns := o.columns.resolve(nil, 2, 0)
+			column := columns[1]
 			got := want{
-				columns: len(o.columns.Values),
+				columns: len(columns),
 				header:  column.aligns.Resolve(ScopeHeader),
 				body:    column.aligns.Resolve(ScopeBody),
 				footer:  column.aligns.Resolve(ScopeFooter),

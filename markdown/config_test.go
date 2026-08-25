@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/nekrassov01/table"
+	"github.com/nekrassov01/table/internal/column"
 	"github.com/nekrassov01/table/internal/testutil"
 )
 
@@ -43,14 +44,14 @@ func Test_config_prepare(t *testing.T) {
 					}
 					return configResult{
 						option: &option{
-							columns: columnSet{
-								Values: []columnConfig{
+							columns: columnSetOf(
+								[]columnConfig{
 									{
 										align: AlignRight,
 									},
 								},
-								Defaults: &defaults,
-							},
+								&defaults,
+							),
 							indexOffset: 1,
 						},
 						header:   []string{"a", "b"},
@@ -239,16 +240,24 @@ func Test_columnSet_apply(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			o := &columnSet{
-				Values:   test.fields.values,
-				Defaults: test.fields.defaults,
-			}
+			o := columnSetOf(test.fields.values, test.fields.defaults)
 			o.apply(test.args.selector, test.args.fn)
 			got := want{
-				values:   o.Values,
-				defaults: o.Defaults,
+				values:   o.resolve(nil, len(test.want.values), 0),
+				defaults: (*column.Set[columnConfig])(&o).Default(),
 			}
 			testutil.AssertValue(t, got, test.want, "apply")
 		})
 	}
+}
+
+func columnSetOf(values []columnConfig, defaults *columnConfig) columnSet {
+	set := columnSet{}
+	if defaults != nil {
+		(*column.Set[columnConfig])(&set).Apply(column.All(), nil, func(config *columnConfig) {
+			*config = *defaults
+		})
+	}
+	set.Values = values
+	return set
 }

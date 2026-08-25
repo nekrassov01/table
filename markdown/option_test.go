@@ -205,7 +205,7 @@ func TestWithAlign(t *testing.T) {
 			}
 			WithAlign(test.args.columns, test.args.align)(o)
 			got := want{
-				columns: o.columns.Values,
+				columns: o.columns.resolve(nil, len(test.want.columns), 0),
 			}
 			testutil.AssertValue(t, got, test.want, "WithAlign")
 		})
@@ -252,7 +252,7 @@ func TestWithRowspan(t *testing.T) {
 			}
 			WithRowspan(test.args.columns)(o)
 			got := want{
-				columns: o.columns.Values,
+				columns: o.columns.resolve(nil, len(test.want.columns), 0),
 			}
 			testutil.AssertValue(t, got, test.want, "WithRowspan")
 		})
@@ -297,7 +297,7 @@ func TestWithColspan(t *testing.T) {
 			}
 			WithColspan(test.args.columns)(o)
 			got := want{
-				columns: o.columns.Values,
+				columns: o.columns.resolve(nil, len(test.want.columns), 0),
 			}
 			testutil.AssertValue(t, got, test.want, "WithColspan")
 		})

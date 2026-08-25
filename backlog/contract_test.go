@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"math"
 	"slices"
 	"strings"
 	"sync"
@@ -565,6 +566,8 @@ func TestContract_ColumnSelectors(t *testing.T) {
 		WithDecoration(ScopeBody, selector, DecorationBold),
 		WithRowspan(ScopeHeader, AllColumns()),
 		WithRowspan(ScopeFooter, Columns(2)),
+		WithColor(ScopeBody, Columns(math.MaxInt/2), ColorFgGreen),
+		WithColor(ScopeBody, Columns(math.MaxInt), ColorFgBlue),
 	)
 	a := arena{}
 	config := a.newConfig(&configured, nil, 0, 5)
