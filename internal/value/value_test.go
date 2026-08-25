@@ -932,6 +932,21 @@ func Test_resolveReference(t *testing.T) {
 			},
 		},
 		{
+			name: "terminal stringer resolves",
+			args: args{
+				value: func() reflect.Value {
+					return reflect.ValueOf(testutil.Stringer{
+						Value: "stringer",
+					})
+				},
+			},
+			want: want{
+				kind:     reflect.Struct,
+				text:     "stringer",
+				resolved: true,
+			},
+		},
+		{
 			name: "self-referential pointer remains unresolved",
 			args: args{
 				value: func() reflect.Value {
@@ -1103,7 +1118,7 @@ func Test_resolveReferenceChain(t *testing.T) {
 	}
 }
 
-func Test_resolveStringer(t *testing.T) {
+func Test_resolveStringerOrError(t *testing.T) {
 	type args struct {
 		value func() reflect.Value
 	}
@@ -1167,12 +1182,12 @@ func Test_resolveStringer(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			gotText, gotResolved := resolveStringer(test.args.value())
+			gotText, gotResolved := resolveStringerOrError(test.args.value())
 			got := want{
 				text:     gotText,
 				resolved: gotResolved,
 			}
-			testutil.AssertValue(t, got, test.want, "resolveStringer")
+			testutil.AssertValue(t, got, test.want, "resolveStringerOrError")
 		})
 	}
 }

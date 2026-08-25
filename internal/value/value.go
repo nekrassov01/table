@@ -152,15 +152,15 @@ func formatPrimitives(st *Store, rv reflect.Value) (string, bool) {
 	return st.Since(mark), true
 }
 
-// resolveReference dereferences an interface or pointer chain and tries
-// resolveStringer at each reference. A nil reference resolves to an empty
-// string, while a cyclic chain returns its repeated pointer unresolved.
+// resolveReference dereferences an interface or pointer chain and resolves
+// fmt.Stringer or error at each reference. A nil reference resolves to an
+// empty string, while a cyclic chain returns its repeated pointer unresolved.
 func resolveReference(rv reflect.Value) (reflect.Value, string, bool) {
 	if rv.Kind() == reflect.Interface || rv.Kind() == reflect.Pointer {
 		if rv.IsNil() {
 			return rv, "", true
 		}
-		if s, ok := resolveStringer(rv); ok {
+		if s, ok := resolveStringerOrError(rv); ok {
 			return rv, s, true
 		}
 		rv = rv.Elem()
@@ -174,7 +174,7 @@ func resolveReference(rv reflect.Value) (reflect.Value, string, bool) {
 			return rv, "", true
 		}
 	}
-	if s, ok := resolveStringer(rv); ok {
+	if s, ok := resolveStringerOrError(rv); ok {
 		return rv, s, true
 	}
 	return rv, "", false
@@ -191,7 +191,7 @@ func resolveReferenceChain(rv reflect.Value) (reflect.Value, string, bool) {
 		if rv.IsNil() {
 			return rv, "", true
 		}
-		if s, ok := resolveStringer(rv); ok {
+		if s, ok := resolveStringerOrError(rv); ok {
 			return rv, s, true
 		}
 		if rv.Kind() != reflect.Pointer {
@@ -223,14 +223,14 @@ func resolveReferenceChain(rv reflect.Value) (reflect.Value, string, bool) {
 			return rv, "", true
 		}
 	}
-	if s, ok := resolveStringer(rv); ok {
+	if s, ok := resolveStringerOrError(rv); ok {
 		return rv, s, true
 	}
 	return rv, "", false
 }
 
-// resolveStringer formats rv through fmt.Stringer or error when possible.
-func resolveStringer(rv reflect.Value) (string, bool) {
+// resolveStringerOrError formats rv through fmt.Stringer or error when possible.
+func resolveStringerOrError(rv reflect.Value) (string, bool) {
 	if !rv.CanInterface() {
 		return "", false
 	}
