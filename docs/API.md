@@ -455,7 +455,7 @@ When a transformer does not supply a displayed value, an `any` value is converte
 | Pointers and interfaces                                | `nil`, or recursively apply the same rule to the concrete value |
 | Other values                                           | `fmt.Sprint`                                                    |
 
-Floating-point values use the shortest representation produced by `strconv`. Slices, arrays, maps, and structs therefore include their contents by default. Use a transformer when the display requires a controlled representation such as JSON or redacted text.
+Floating-point values use the shortest representation produced by `strconv`. If a pointer chain is cyclic, conversion stops at a repeated pointer and uses `fmt.Sprint`. Slices, arrays, maps, and structs therefore include their contents by default. Use a transformer when the display requires a controlled representation such as JSON or redacted text.
 
 ### Transformers
 
