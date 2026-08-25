@@ -230,7 +230,7 @@ The following internal packages support output formats and repository maintenanc
 | ---------- | ------------------------------------------------------------------------------------- |
 | `align`    | Define horizontal alignment shared by formats.                                        |
 | `caption`  | Define caption positions shared by formats.                                           |
-| `column`   | Derive maximum column counts and apply selections to format-specific column settings. |
+| `column`   | Retain and resolve column selections, and derive maximum column counts.               |
 | `color`    | Hold format-specific color markup surrounding a cell value.                           |
 | `decorate` | Hold format-specific decoration markup surrounding a cell value.                      |
 | `param`    | Define shared constants independent of an output format.                              |

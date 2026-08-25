@@ -77,6 +77,28 @@ func (o *Set[T]) Apply(selector Selector, newDefault func() T, fn func(*T)) {
 	}
 }
 
+// Resolve applies defaults and explicit settings to logical columns.
+// indexOffset reserves leading synthetic columns that selectors cannot target.
+func (o *Set[T]) Resolve(columns []T, columnCount, indexOffset int, defaults T) []T {
+	if cap(columns) < columnCount {
+		columns = make([]T, columnCount)
+	} else {
+		columns = columns[:columnCount]
+	}
+	offset := min(indexOffset, columnCount)
+	for index := range offset {
+		columns[index] = defaults
+	}
+	if o.Defaults != nil {
+		defaults = *o.Defaults
+	}
+	for index := offset; index < columnCount; index++ {
+		columns[index] = defaults
+	}
+	copy(columns[offset:], o.Values)
+	return columns
+}
+
 // MaxColumns returns the greatest column count among rows.
 func MaxColumns(rows [][]string) int {
 	columnCount := 0

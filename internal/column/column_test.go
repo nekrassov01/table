@@ -183,6 +183,71 @@ func TestSet_Apply(t *testing.T) {
 	}
 }
 
+func TestSet_Resolve(t *testing.T) {
+	type fields struct {
+		values   []int
+		defaults *int
+	}
+	type args struct {
+		columns     []int
+		columnCount int
+		indexOffset int
+		defaults    int
+	}
+	type want struct {
+		columns []int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   want
+	}{
+		{
+			name: "explicit and default settings",
+			fields: fields{
+				values:   []int{2},
+				defaults: intPointer(5),
+			},
+			args: args{
+				columnCount: 4,
+				indexOffset: 1,
+				defaults:    7,
+			},
+			want: want{
+				columns: []int{7, 2, 5, 5},
+			},
+		},
+		{
+			name: "reuses storage",
+			fields: fields{
+				values: []int{2, 3},
+			},
+			args: args{
+				columns:     make([]int, 4),
+				columnCount: 3,
+				indexOffset: 1,
+				defaults:    7,
+			},
+			want: want{
+				columns: []int{7, 2, 3},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			o := &Set[int]{
+				Values:   test.fields.values,
+				Defaults: test.fields.defaults,
+			}
+			got := want{
+				columns: o.Resolve(test.args.columns, test.args.columnCount, test.args.indexOffset, test.args.defaults),
+			}
+			testutil.AssertValue(t, got, test.want, "Resolve")
+		})
+	}
+}
+
 func TestMaxColumns(t *testing.T) {
 	type args struct {
 		rows [][]string
