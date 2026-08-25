@@ -2,6 +2,7 @@
 
 ## [v0.1.1](https://github.com/nekrassov01/table/compare/v0.1.0...v0.1.1) - 2026-08-25
 
+- Centralize column configuration by @nekrassov01 in https://github.com/nekrassov01/table/pull/13
 - Resolve sparse column selectors safely by @nekrassov01 in https://github.com/nekrassov01/table/pull/15
 - Stop cyclic pointer resolution by @nekrassov01 in https://github.com/nekrassov01/table/pull/16
 - Stabilize repository maintenance workflows by @nekrassov01 in https://github.com/nekrassov01/table/pull/17
