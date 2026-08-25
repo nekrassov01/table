@@ -21,7 +21,7 @@ Use the following criteria in order. Absolute thresholds are not fixed because r
 | Priority | Metric    | Acceptance condition                                                                                                                                                                                                       |
 | -------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1        | allocs/op | The changed result must not exceed the baseline.<br/>A `Table` `Reuse` case whose caller-provided functions do not allocate must remain at 0.                                                                              |
-| 2        | ns/op     | The changed result must not exceed the baseline.<br/>Run multiple measurements with the same environment and input.<br/>Increase the iteration and sample counts if results do not converge.                               |
+| 2        | ns/op     | The changed result must show no statistically significant and reproducible regression.<br/>Treat a difference reported as insignificant by `benchstat` as measurement noise, even when the changed median is higher.       |
 | 3        | B/op      | If neither higher-priority metric regresses and at least one improves, obtain approval for an increase of 10% or more.<br/>If both higher-priority metrics are unchanged, the changed result must not exceed the baseline. |
 
 An intentional regression required by a feature must be approved with its reason, affected paths, and considered alternatives. An improvement in a lower-priority metric does not offset a regression in a higher-priority metric.
@@ -46,15 +46,15 @@ The `benchmarks` module uses shared sample data and the corresponding format-spe
 
 ## Comparing changes
 
-Save before-and-after results using the same machine, Go version, `benchtime`, and `count`. Compare the median of the repeated samples for each benchmark and metric.
+Use the baseline-checking command with the benchmark target or focused benchmark expression that reaches the changed path. It measures both revisions on the same machine and Go version. The default `benchtime` is one second and the default sample count is ten.
 
 ```sh
-make bench target=text count=10 cpuprofile=before.cpu memprofile=before.mem > before.txt
-make bench target=text count=10 cpuprofile=after.cpu memprofile=after.mem > after.txt
-benchstat before.txt after.txt
+go run ./.agents/skills/check-baseline/scripts -target=text
 ```
 
-The example selects `text`; replace it with the affected format. Use `benchstat` to inspect variance and the overall direction of the change. The baseline-checking script reports the explicit per-benchmark medians used for acceptance.
+The example selects `text`; replace it with the affected format. Use `-bench` for a focused benchmark expression. Measuring every benchmark with the precision defaults is intentionally expensive and is not a substitute for selecting the affected paths.
+
+The command runs one sample per process and alternates which revision runs first in each sample pair to reduce bias from temperature and CPU state. Profiling is disabled during acceptance measurements. It then runs `benchstat` and reports the per-benchmark medians used to interpret allocation counts and allocated bytes.
 
 When publishing measurements in `README.md` or another document, paste the complete console output from a run with at least five samples. Do not remove, reorder, or annotate sample lines inside the console block. Derive any summary from the same output and report the median for each benchmark and metric.
 
@@ -83,16 +83,18 @@ Interpret the results as follows:
 
 ## Checking execution time
 
-Compare ns/op after allocs/op. Background processes and CPU frequency affect execution time, so use the median from multiple measurements.
+Compare ns/op after allocs/op. Background processes, CPU frequency, and machine temperature affect execution time, so use `benchstat` to distinguish a measured difference from sample variance.
 
 Each pipeline stage passes forward results produced while transforming values, escaping text, or measuring display width. Later stages do not repeat value conversion or cell scans merely to derive the same result.
 
 - Keep the machine, Go version, input data, options, `benchtime`, and `count` identical before and after the change.
-- Select the median ns/op for each benchmark independently. Do not combine values from different benchmarks.
-- If the median regresses, increase `benchtime` and `count` and measure both versions again.
-- Use a CPU profile to locate the additional work and connect it to the affected implementation path.
+- Inspect each benchmark independently. Do not combine values from different benchmarks.
+- Treat an insignificant `benchstat` result as equivalent performance rather than comparing the raw medians.
+- Confirm a significant slowdown with an independent execution under the same conditions. Reject the change when the slowdown remains significant and points in the same direction.
+- Increase `benchtime` and `count` when the samples do not converge.
+- After confirming a regression, collect a separate CPU profile to locate the additional work. Do not use a profiled run as acceptance evidence.
 
-A change in only the mean or minimum is not sufficient evidence of a regression. If the median does not stabilize, discard the results and measure again in a controlled environment.
+A change in only the mean, median, or minimum is not sufficient evidence of a regression. If repeated measurements disagree, discard the result and measure again in a controlled environment.
 
 ## Checking allocated bytes
 
@@ -108,7 +110,7 @@ Verify all of the following:
 
 - Unit, contract, and golden tests pass with the race detector enabled.
 - allocs/op meets the evaluation criteria for every affected benchmark.
-- Repeated before-and-after measurements show no regression in the median ns/op.
+- `benchstat` and an independent confirmation show no statistically significant and reproducible regression in ns/op.
 - Any B/op difference can be explained by arena growth or values captured by closures.
 - A local optimization in one format does not unnecessarily break responsibility and vocabulary symmetry with other formats.
 

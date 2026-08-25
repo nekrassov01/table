@@ -46,7 +46,7 @@ type execution struct {
 	mkdirTemp func(string, string) (string, error)
 	mkdir     func(string, os.FileMode) error
 	removeAll func(string) error
-	create    func(string) (*os.File, error)
+	openFile  func(string, int, os.FileMode) (*os.File, error)
 }
 
 func newExecution() execution {
@@ -55,7 +55,7 @@ func newExecution() execution {
 		mkdirTemp: os.MkdirTemp,
 		mkdir:     os.Mkdir,
 		removeAll: os.RemoveAll,
-		create:    os.Create,
+		openFile:  os.OpenFile,
 		execute: func(ctx context.Context, input command) error {
 			// #nosec G204 -- command names are selected internally and no shell is invoked.
 			cmd := exec.CommandContext(ctx, input.name, input.args...)
@@ -123,9 +123,9 @@ func newBaselineFlags(opts *options, output io.Writer) *flag.FlagSet {
 	flags.StringVar(&opts.base, "base", "HEAD", "revision immediately preceding the change")
 	flags.StringVar(&opts.target, "target", "all", "Makefile benchmark target")
 	flags.StringVar(&opts.bench, "bench", "", "focused go test benchmark regular expression")
-	flags.StringVar(&opts.benchtime, "benchtime", "10000x", "Go benchmark benchtime")
-	flags.IntVar(&opts.count, "count", 5, "number of benchmark samples")
-	flags.BoolVar(&opts.keep, "keep", false, "keep output and profiles after a successful comparison")
+	flags.StringVar(&opts.benchtime, "benchtime", "1s", "Go benchmark benchtime")
+	flags.IntVar(&opts.count, "count", 10, "number of benchmark samples")
+	flags.BoolVar(&opts.keep, "keep", false, "keep benchmark output after a successful comparison")
 	return flags
 }
 
@@ -212,16 +212,22 @@ func compareBaseline(ctx context.Context, commands execution, opts options, stdo
 	}
 	_, _ = fmt.Fprintf(stdout, "benchtime: %s\n", opts.benchtime)
 	_, _ = fmt.Fprintf(stdout, "count: %d\n\n", opts.count)
-
 	before := filepath.Join(results, "before.txt")
 	after := filepath.Join(results, "after.txt")
-	if err := runBenchmark(ctx, commands, opts, baselineWorktree, results, "before", stderr); err != nil {
-		return err
+	for sample := range opts.count {
+		firstDirectory, firstLabel := baselineWorktree, "before"
+		secondDirectory, secondLabel := root, "after"
+		if sample%2 != 0 {
+			firstDirectory, firstLabel = secondDirectory, secondLabel
+			secondDirectory, secondLabel = baselineWorktree, "before"
+		}
+		if err := runBenchmark(ctx, commands, opts, firstDirectory, results, firstLabel, stderr); err != nil {
+			return err
+		}
+		if err := runBenchmark(ctx, commands, opts, secondDirectory, results, secondLabel, stderr); err != nil {
+			return err
+		}
 	}
-	if err := runBenchmark(ctx, commands, opts, root, results, "after", stderr); err != nil {
-		return err
-	}
-
 	comparison := command{
 		name:      benchstat,
 		args:      []string{"before.txt", "after.txt"},
@@ -244,22 +250,18 @@ func compareBaseline(ctx context.Context, commands execution, opts options, stdo
 
 func runBenchmark(ctx context.Context, commands execution, opts options, directory, results, label string, stderr io.Writer) error {
 	outputPath := filepath.Join(results, label+".txt")
-	outputFile, err := commands.create(outputPath)
+	outputFile, err := commands.openFile(outputPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
 	if err != nil {
 		return err
 	}
-	cpuProfile := filepath.Join(results, label+".cpu")
-	memoryProfile := filepath.Join(results, label+".mem")
 	var benchmark command
 	if opts.bench != "" {
 		benchmark = command{
 			name: "go",
 			args: []string{"test",
 				"-benchmem",
-				"-count", strconv.Itoa(opts.count),
+				"-count", "1",
 				"-benchtime", opts.benchtime,
-				"-cpuprofile", cpuProfile,
-				"-memprofile", memoryProfile,
 				".",
 				"-bench", opts.bench,
 			},
@@ -271,9 +273,9 @@ func runBenchmark(ctx context.Context, commands execution, opts options, directo
 			args: []string{"bench",
 				"target=" + opts.target,
 				"benchtime=" + opts.benchtime,
-				"count=" + strconv.Itoa(opts.count),
-				"cpuprofile=" + cpuProfile,
-				"memprofile=" + memoryProfile,
+				"count=1",
+				"cpuprofile=",
+				"memprofile=",
 			},
 			directory: directory,
 		}

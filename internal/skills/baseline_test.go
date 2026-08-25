@@ -242,8 +242,8 @@ func Test_parseBaselineOptions(t *testing.T) {
 				opts: options{
 					base:      "HEAD",
 					target:    "all",
-					benchtime: "10000x",
-					count:     5,
+					benchtime: "1s",
+					count:     10,
 				},
 			},
 		},
@@ -314,6 +314,7 @@ func Test_compareBaseline(t *testing.T) {
 		target          bool
 		medians         bool
 		artifacts       bool
+		interleaved     bool
 		benchmarks      int
 		comparisons     int
 		worktreeAdds    int
@@ -337,7 +338,8 @@ func Test_compareBaseline(t *testing.T) {
 			want: want{
 				benchmark:       true,
 				medians:         true,
-				benchmarks:      2,
+				interleaved:     true,
+				benchmarks:      6,
 				comparisons:     1,
 				worktreeAdds:    1,
 				worktreeRemoves: 1,
@@ -356,7 +358,8 @@ func Test_compareBaseline(t *testing.T) {
 			want: want{
 				target:          true,
 				medians:         true,
-				benchmarks:      2,
+				interleaved:     true,
+				benchmarks:      6,
 				comparisons:     1,
 				worktreeAdds:    1,
 				worktreeRemoves: 1,
@@ -515,7 +518,8 @@ func Test_compareBaseline(t *testing.T) {
 			want: want{
 				failed:          true,
 				benchmark:       true,
-				benchmarks:      2,
+				interleaved:     true,
+				benchmarks:      6,
 				comparisons:     1,
 				worktreeAdds:    1,
 				worktreeRemoves: 1,
@@ -535,7 +539,8 @@ func Test_compareBaseline(t *testing.T) {
 			want: want{
 				failed:          true,
 				benchmark:       true,
-				benchmarks:      2,
+				interleaved:     true,
+				benchmarks:      6,
 				comparisons:     1,
 				worktreeAdds:    1,
 				worktreeRemoves: 1,
@@ -556,7 +561,8 @@ func Test_compareBaseline(t *testing.T) {
 				failed:          true,
 				benchmark:       true,
 				medians:         true,
-				benchmarks:      2,
+				interleaved:     true,
+				benchmarks:      6,
 				comparisons:     1,
 				worktreeAdds:    1,
 				worktreeRemoves: 1,
@@ -577,7 +583,8 @@ func Test_compareBaseline(t *testing.T) {
 				failed:          true,
 				benchmark:       true,
 				medians:         true,
-				benchmarks:      2,
+				interleaved:     true,
+				benchmarks:      6,
 				comparisons:     1,
 				worktreeAdds:    1,
 				worktreeRemoves: 1,
@@ -598,7 +605,8 @@ func Test_compareBaseline(t *testing.T) {
 				benchmark:       true,
 				medians:         true,
 				artifacts:       true,
-				benchmarks:      2,
+				interleaved:     true,
+				benchmarks:      6,
 				comparisons:     1,
 				worktreeAdds:    1,
 				worktreeRemoves: 1,
@@ -618,6 +626,7 @@ func Test_compareBaseline(t *testing.T) {
 				target:          strings.Contains(stdout.String(), "target: "),
 				medians:         strings.Contains(stdout.String(), "Medians"),
 				artifacts:       strings.Contains(stdout.String(), "artifacts: "),
+				interleaved:     slices.Equal(state.labels, []string{"before", "after", "after", "before", "before", "after"}),
 				benchmarks:      state.benchmarks,
 				comparisons:     state.comparisons,
 				worktreeAdds:    state.worktreeAdds,
@@ -632,11 +641,14 @@ func Test_runBenchmark(t *testing.T) {
 	type args struct {
 		opts    options
 		failure string
+		initial string
 	}
 	type want struct {
 		name      string
 		bench     bool
 		target    bool
+		count     bool
+		profile   bool
 		directory string
 		contents  string
 		failed    bool
@@ -654,11 +666,13 @@ func Test_runBenchmark(t *testing.T) {
 					benchtime: "10x",
 					count:     2,
 				},
+				initial: "existing\n",
 			},
 			want: want{
 				name:     "go",
 				bench:    true,
-				contents: benchmarkOutput,
+				count:    true,
+				contents: "existing\n" + benchmarkOutput,
 			},
 		},
 		{
@@ -673,6 +687,7 @@ func Test_runBenchmark(t *testing.T) {
 			want: want{
 				name:     "make",
 				target:   true,
+				count:    true,
 				contents: benchmarkOutput,
 			},
 		},
@@ -699,6 +714,7 @@ func Test_runBenchmark(t *testing.T) {
 			want: want{
 				name:     "go",
 				bench:    true,
+				count:    true,
 				contents: benchmarkOutput,
 				failed:   true,
 			},
@@ -714,6 +730,7 @@ func Test_runBenchmark(t *testing.T) {
 			want: want{
 				name:   "go",
 				bench:  true,
+				count:  true,
 				failed: true,
 			},
 		},
@@ -722,14 +739,18 @@ func Test_runBenchmark(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			directory := t.TempDir()
 			results := t.TempDir()
+			outputPath := filepath.Join(results, "before.txt")
+			if err := os.WriteFile(outputPath, []byte(test.args.initial), 0o600); err != nil {
+				t.Fatal(err)
+			}
 			var observed command
 			o := execution{
-				create: func(path string) (*os.File, error) {
+				openFile: func(path string, flag int, permissions os.FileMode) (*os.File, error) {
 					if test.args.failure == "create" {
 						return nil, testutil.NewError()
 					}
 					// #nosec G304 -- path is built from this test's temporary result directory.
-					file, err := os.Create(path)
+					file, err := os.OpenFile(path, flag, permissions)
 					if err == nil && test.args.failure == "close" {
 						_ = file.Close()
 					}
@@ -746,11 +767,15 @@ func Test_runBenchmark(t *testing.T) {
 			}
 			err := runBenchmark(t.Context(), o, test.args.opts, directory, results, "before", &bytes.Buffer{})
 			// #nosec G304 -- the path is inside this test's temporary result directory.
-			contents, _ := os.ReadFile(filepath.Join(results, "before.txt"))
+			contents, _ := os.ReadFile(outputPath)
 			got := want{
-				name:      observed.name,
-				bench:     slices.Contains(observed.args, "-bench"),
-				target:    slices.Contains(observed.args, "target=text"),
+				name:   observed.name,
+				bench:  slices.Contains(observed.args, "-bench"),
+				target: slices.Contains(observed.args, "target=text"),
+				count:  slices.Contains(observed.args, "1") || slices.Contains(observed.args, "count=1"),
+				profile: slices.ContainsFunc(observed.args, func(argument string) bool {
+					return argument == "-cpuprofile" || argument == "-memprofile" || strings.HasPrefix(argument, "cpuprofile=") && argument != "cpuprofile=" || strings.HasPrefix(argument, "memprofile=") && argument != "memprofile="
+				}),
 				directory: observed.directory,
 				contents:  string(contents),
 				failed:    err != nil,
@@ -1010,6 +1035,7 @@ const benchmarkOutput = "BenchmarkRender-8 100 10 ns/op 100 B/op 1 allocs/op\n"
 type executionState struct {
 	root            string
 	failure         string
+	labels          []string
 	benchmarks      int
 	comparisons     int
 	worktreeAdds    int
@@ -1080,6 +1106,9 @@ func (o *executionState) executeGo(arguments string, input command) error {
 
 func (o *executionState) executeBenchmark(input command) error {
 	o.benchmarks++
+	if output, ok := input.stdout.(*os.File); ok {
+		o.labels = append(o.labels, strings.TrimSuffix(filepath.Base(output.Name()), ".txt"))
+	}
 	if o.failure == "benchmark" || o.failure == "after" && o.benchmarks == 2 {
 		return testutil.NewError()
 	}
@@ -1130,7 +1159,7 @@ func newTestExecution(t *testing.T, state *executionState, failure string) execu
 			}
 			return os.RemoveAll(path)
 		},
-		create: os.Create,
+		openFile: os.OpenFile,
 		lookPath: func(string) (string, error) {
 			if state.failure == "lookpath" {
 				return "", testutil.NewError()
