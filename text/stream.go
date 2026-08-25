@@ -15,7 +15,7 @@ const minIndexWidth = 3
 type Stream struct {
 	option   option    // Options fixed at construction.
 	w        io.Writer // Output destination.
-	err      error     // Sticky write error.
+	err      error     // Sticky output error.
 	arena    *arena    // State retained while the stream is active.
 	rendered int       // Body rows written so far; also the next index offset.
 	closed   bool      // Whether Close has been called.
