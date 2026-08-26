@@ -5,12 +5,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/nekrassov01/table/examples/internal/catalog"
+	"github.com/nekrassov01/table/internal/catalog"
 )
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Fprintln(os.Stderr, "usage: go run ./internal/catalog/cmd <repository-root>")
+		fmt.Fprintln(os.Stderr, "usage: go run ./examples/cmd/generate <repository-root>")
 		os.Exit(1)
 	}
 	root, err := filepath.Abs(os.Args[1])

@@ -27,7 +27,7 @@ func Test_newExampleCommand(t *testing.T) {
 		{
 			name: "command",
 			args: args{
-				root: filepath.Clean("../../.."),
+				root: filepath.Clean("../.."),
 			},
 			want: want{
 				command: true,
@@ -46,7 +46,7 @@ func Test_newExampleCommand(t *testing.T) {
 		{
 			name: "temporary directory error",
 			args: args{
-				root: filepath.Clean("../../.."),
+				root: filepath.Clean("../.."),
 				tempDir: func(t *testing.T) string {
 					filename := filepath.Join(t.TempDir(), "file")
 					if err := os.WriteFile(filename, nil, 0o600); err != nil {
@@ -121,7 +121,7 @@ func Test_exampleCommand_run(t *testing.T) {
 			},
 		},
 	}
-	command, err := newExampleCommand(filepath.Clean("../../.."))
+	command, err := newExampleCommand(filepath.Clean("../.."))
 	if err != nil {
 		t.Fatal(err)
 	}

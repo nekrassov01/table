@@ -31,7 +31,7 @@ const manifestExampleDataSource = `
 func exampleData(name string) (any, bool) {
 	switch name {
 	case dataSimple:
-		return examples.SimpleData, true
+		return SimpleData, true
 	default:
 		return nil, false
 	}
@@ -44,7 +44,7 @@ type runner struct{ data string }
 func (o runner) runText() {
 	switch o.data {
 	case dataSimple:
-		opts = examples.TextOptionSimple
+		opts = TextOptionSimple
 	}
 }
 `
@@ -412,9 +412,9 @@ func Test_sourceFile_dataByScenario(t *testing.T) {
 func exampleData(name string) (any, bool) {
 	switch name {
 	case dataSimple, "literal", dataUnknown:
-		return examples.SimpleData, true
+		return SimpleData, true
 	case dataScalar:
-		return value, true
+		return fixture.SimpleData, true
 	case dataMissing:
 		break
 	}
@@ -489,11 +489,11 @@ type runner struct{ data string }
 func (o runner) runText() {
 	switch o.data {
 	case dataSimple, "literal", dataUnknown:
-		opts = examples.TextOptionSimple
+		opts = TextOptionSimple
 	case dataMissing:
 		return
 	case dataScalar:
-		opts = value
+		opts = fixture.Option
 	}
 }
 `,
@@ -715,7 +715,7 @@ func Test_optionAssignment(t *testing.T) {
 			name: "option",
 			args: args{
 				statement: func(t *testing.T) ast.Stmt {
-					return resolveFixtureStatement(t, "opts = examples.Option")
+					return resolveFixtureStatement(t, "opts = Option")
 				},
 			},
 			want: "Option",
@@ -753,10 +753,10 @@ func Test_optionAssignment(t *testing.T) {
 			},
 		},
 		{
-			name: "non selector",
+			name: "selector",
 			args: args{
 				statement: func(t *testing.T) ast.Stmt {
-					return resolveFixtureStatement(t, "opts = value")
+					return resolveFixtureStatement(t, "opts = examples.Option")
 				},
 			},
 		},
@@ -939,12 +939,12 @@ func Test_declarationAndCall(t *testing.T) {
 func writeManifestSource(t *testing.T, source string) string {
 	t.Helper()
 	root := t.TempDir()
-	dir := filepath.Join(root, "examples", "cmd")
+	dir := filepath.Join(root, "examples")
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		t.Fatal(err)
 	}
 	// #nosec G703 -- dir is created beneath testing.T.TempDir.
-	if err := os.WriteFile(filepath.Join(dir, "main.go"), []byte(source), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "run.go"), []byte(source), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	return root

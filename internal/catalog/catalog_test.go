@@ -10,13 +10,11 @@ import (
 	"github.com/nekrassov01/table/internal/testutil"
 )
 
-const generatorCommandSource = `package main
+const generatorRunSource = `package examples
 
 import (
 	"fmt"
-	"os"
-
-	"fixture/examples"
+	"io"
 )
 
 var targetText = "text"
@@ -24,11 +22,12 @@ var dataSimple = "simple"
 
 type runner struct{ data string }
 
-func main() {
-	if len(os.Args) > 2 && os.Args[2] == "{{FAILURE}}" {
-		os.Exit(1)
+func Run(w io.Writer, args ...string) error {
+	if len(args) > 1 && args[1] == "{{FAILURE}}" {
+		return fmt.Errorf("failure")
 	}
-	fmt.Fprintln(os.Stdout, os.Args[2])
+	fmt.Fprintln(w, args[1])
+	return nil
 }
 
 func dataNames(target string) ([]string, bool) {
@@ -43,7 +42,7 @@ func dataNames(target string) ([]string, bool) {
 func exampleData(name string) (any, bool) {
 	switch name {
 	case dataSimple:
-		return examples.{{DATA}}, true
+		return {{DATA}}, true
 	default:
 		return nil, false
 	}
@@ -53,19 +52,36 @@ func (o runner) runText() {
 	var opts any
 	switch o.data {
 	case dataSimple:
-		opts = examples.TextOptionSimple
+		opts = TextOptionSimple
 	}
 	_ = opts
 }
 `
 
+const generatorPrintSource = `package main
+
+import (
+	"fmt"
+	"os"
+
+	"fixture/examples"
+)
+
+func main() {
+	if err := examples.Run(os.Stdout, os.Args[1:]...); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+`
+
 func TestGenerate(t *testing.T) {
-	root := filepath.Clean("../../..")
+	root := filepath.Clean("../..")
 	document, err := os.ReadFile(filepath.Join(root, "docs", "EXAMPLES.md"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	commandSource, err := os.ReadFile(filepath.Join(root, "examples", "cmd", "main.go"))
+	commandSource, err := os.ReadFile(filepath.Join(root, "examples", "run.go"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -215,7 +231,7 @@ func Test_inputSource(t *testing.T) {
 			name: "direct declaration",
 			args: args{
 				root: func(*testing.T) string {
-					return filepath.Clean("../../..")
+					return filepath.Clean("../..")
 				},
 				name: "SimpleData",
 			},
@@ -227,7 +243,7 @@ func Test_inputSource(t *testing.T) {
 			name: "declaration with helper",
 			args: args{
 				root: func(*testing.T) string {
-					return filepath.Clean("../../..")
+					return filepath.Clean("../..")
 				},
 				name: "FooterData",
 			},
@@ -240,7 +256,7 @@ func Test_inputSource(t *testing.T) {
 			name: "missing declaration",
 			args: args{
 				root: func(*testing.T) string {
-					return filepath.Clean("../../..")
+					return filepath.Clean("../..")
 				},
 				name: "MissingData",
 			},
@@ -304,10 +320,11 @@ var MissingData = struct{}{}
 
 var TextOptionSimple = []int{1}
 `,
-		"examples/cmd/main.go": strings.NewReplacer(
+		"examples/run.go": strings.NewReplacer(
 			"{{DATA}}", dataName,
 			"{{FAILURE}}", failure,
-		).Replace(generatorCommandSource),
+		).Replace(generatorRunSource),
+		"examples/cmd/print/main.go": generatorPrintSource,
 	}
 	for name, source := range files {
 		filename := filepath.Join(root, name)

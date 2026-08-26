@@ -8,4 +8,4 @@ ifndef mode
 	$(error mode is undefined)
 endif
 endif
-	@go run ./cmd '$(TARGET)'$(if $(mode), '$(mode)')$(if $(data), '$(data)')
+	@go run ./cmd/print '$(TARGET)'$(if $(mode), '$(mode)')$(if $(data), '$(data)')

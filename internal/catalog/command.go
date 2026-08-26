@@ -26,7 +26,7 @@ func newExampleCommand(root string) (*exampleCommand, error) {
 		path: filepath.Join(dir, exampleCommandName(runtime.GOOS)),
 	}
 	// #nosec G204 -- The executable and arguments are fixed by the generator.
-	build := exec.Command("go", "build", "-o", command.path, "./examples/cmd")
+	build := exec.Command("go", "build", "-o", command.path, "./examples/cmd/print")
 	build.Dir = root
 	var stderr bytes.Buffer
 	build.Stderr = &stderr

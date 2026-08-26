@@ -41,7 +41,7 @@ var targetSources = []targetSource{
 }
 
 func parseManifest(root string) (manifest, error) {
-	filename := filepath.Join(root, "examples", "cmd", "main.go")
+	filename := filepath.Join(root, "examples", "run.go")
 	source, err := parseSource(filename)
 	if err != nil {
 		return manifest{}, err
@@ -214,7 +214,7 @@ func (o sourceFile) dataByScenario(values map[string]string) (map[string]string,
 		if returned == nil || len(returned.Results) == 0 {
 			continue
 		}
-		selector, ok := returned.Results[0].(*ast.SelectorExpr)
+		data, ok := returned.Results[0].(*ast.Ident)
 		if !ok {
 			continue
 		}
@@ -225,7 +225,7 @@ func (o sourceFile) dataByScenario(values map[string]string) (map[string]string,
 			}
 			name, ok := values[identifier.Name]
 			if ok {
-				result[name] = selector.Sel.Name
+				result[name] = data.Name
 			}
 		}
 	}
@@ -314,9 +314,9 @@ func optionAssignment(statements []ast.Stmt) string {
 		if !ok || name.Name != "opts" {
 			continue
 		}
-		selector, ok := assignment.Rhs[0].(*ast.SelectorExpr)
+		option, ok := assignment.Rhs[0].(*ast.Ident)
 		if ok {
-			return selector.Sel.Name
+			return option.Name
 		}
 	}
 	return ""
