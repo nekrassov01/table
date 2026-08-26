@@ -18,6 +18,7 @@ Use `target`, `mode`, and `data` to select the output package, API, and data set
 
 | Purpose                                 | Command                                                   |
 | --------------------------------------- | --------------------------------------------------------- |
+| Regenerate the examples catalog         | `make generate`                                           |
 | Run every example                       | `make example`                                            |
 | Run every text example                  | `make example target=text`                                |
 | Run every text `Table` example          | `make example target=text mode=table`                     |

@@ -8,6 +8,7 @@ on:
       - "**/go.mod"
       - "**/go.sum"
       - "**/testdata/*.txt"
+      - "docs/EXAMPLES.md"
   pull_request:
     branches:
       - "*"
@@ -16,6 +17,7 @@ on:
       - "**/go.mod"
       - "**/go.sum"
       - "**/testdata/*.txt"
+      - "docs/EXAMPLES.md"
   workflow_dispatch:
 
 jobs:
@@ -31,7 +33,7 @@ jobs:
 
     steps:
       - name: Set git to use LF
-        if: matrix.os == 'windows-latest'
+        if: ${{ matrix.os == 'windows-latest' }}
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf

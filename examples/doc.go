@@ -1,3 +1,5 @@
+//go:generate go run ./cmd/generate ..
+
 // Package examples provides representative data sets for the example
 // commands and benchmarks in this module.
 //

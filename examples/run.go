@@ -1,16 +1,13 @@
-// Command cmd renders a selected table example.
-package main
+package examples
 
 import (
 	"fmt"
 	"io"
-	"os"
 	"slices"
 
 	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/backlog"
 	"github.com/nekrassov01/table/csv"
-	"github.com/nekrassov01/table/examples"
 	"github.com/nekrassov01/table/html"
 	"github.com/nekrassov01/table/markdown"
 	"github.com/nekrassov01/table/text"
@@ -43,16 +40,12 @@ var (
 	dataCommaIncluded = "comma-included"
 )
 
-func main() {
-	args := os.Args[1:]
+// Run renders the examples selected by args to w.
+func Run(w io.Writer, args ...string) error {
 	if len(args) < 1 || len(args) > 3 {
-		fmt.Fprintln(os.Stderr, "usage: go run ./examples/cmd <target> [mode] [data]")
-		os.Exit(1)
+		return fmt.Errorf("examples: expected <target> [mode] [data]")
 	}
-	if err := newRunner(os.Stdout, args...).run(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	return newRunner(w, args...).run()
 }
 
 type runner struct {
@@ -160,23 +153,23 @@ func (o runner) runText(rows [][]any) error {
 	var opts []text.Option
 	switch o.data {
 	case dataASCII:
-		opts = examples.TextOptionASCII
+		opts = TextOptionASCII
 	case dataSimple:
-		opts = examples.TextOptionSimple
+		opts = TextOptionSimple
 	case dataCompact:
-		opts = examples.TextOptionCompact
+		opts = TextOptionCompact
 	case dataRowspan:
-		opts = examples.TextOptionRowspan
+		opts = TextOptionRowspan
 	case dataColspan:
-		opts = examples.TextOptionColspan
+		opts = TextOptionColspan
 	case dataFooter:
-		opts = examples.TextOptionFooter
+		opts = TextOptionFooter
 	case dataTransformer:
-		opts = examples.TextOptionTransformer
+		opts = TextOptionTransformer
 	case dataComplex:
-		opts = examples.TextOptionComplex
+		opts = TextOptionComplex
 	case dataStackedHeader:
-		opts = examples.TextOptionStackedHeader
+		opts = TextOptionStackedHeader
 	default:
 		return newError(o.data, o.target)
 	}
@@ -193,19 +186,19 @@ func (o runner) runHTML(rows [][]any) error {
 	var opts []html.Option
 	switch o.data {
 	case dataSimple:
-		opts = examples.HTMLOptionSimple
+		opts = HTMLOptionSimple
 	case dataRowspan:
-		opts = examples.HTMLOptionRowspan
+		opts = HTMLOptionRowspan
 	case dataColspan:
-		opts = examples.HTMLOptionColspan
+		opts = HTMLOptionColspan
 	case dataFooter:
-		opts = examples.HTMLOptionFooter
+		opts = HTMLOptionFooter
 	case dataTransformer:
-		opts = examples.HTMLOptionTransformer
+		opts = HTMLOptionTransformer
 	case dataComplex:
-		opts = examples.HTMLOptionComplex
+		opts = HTMLOptionComplex
 	case dataStackedHeader:
-		opts = examples.HTMLOptionStackedHeader
+		opts = HTMLOptionStackedHeader
 	default:
 		return newError(o.data, o.target)
 	}
@@ -222,15 +215,15 @@ func (o runner) runMarkdown(rows [][]any) error {
 	var opts []markdown.Option
 	switch o.data {
 	case dataSimple:
-		opts = examples.MarkdownOptionSimple
+		opts = MarkdownOptionSimple
 	case dataRowspan:
-		opts = examples.MarkdownOptionRowspan
+		opts = MarkdownOptionRowspan
 	case dataColspan:
-		opts = examples.MarkdownOptionColspan
+		opts = MarkdownOptionColspan
 	case dataTransformer:
-		opts = examples.MarkdownOptionTransformer
+		opts = MarkdownOptionTransformer
 	case dataComplex:
-		opts = examples.MarkdownOptionComplex
+		opts = MarkdownOptionComplex
 	default:
 		return newError(o.data, o.target)
 	}
@@ -247,19 +240,19 @@ func (o runner) runBacklog(rows [][]any) error {
 	var opts []backlog.Option
 	switch o.data {
 	case dataSimple:
-		opts = examples.BacklogOptionSimple
+		opts = BacklogOptionSimple
 	case dataRowspan:
-		opts = examples.BacklogOptionRowspan
+		opts = BacklogOptionRowspan
 	case dataColspan:
-		opts = examples.BacklogOptionColspan
+		opts = BacklogOptionColspan
 	case dataFooter:
-		opts = examples.BacklogOptionFooter
+		opts = BacklogOptionFooter
 	case dataTransformer:
-		opts = examples.BacklogOptionTransformer
+		opts = BacklogOptionTransformer
 	case dataComplex:
-		opts = examples.BacklogOptionComplex
+		opts = BacklogOptionComplex
 	case dataStackedHeader:
-		opts = examples.BacklogOptionStackedHeader
+		opts = BacklogOptionStackedHeader
 	default:
 		return newError(o.data, o.target)
 	}
@@ -276,15 +269,15 @@ func (o runner) runCSV(rows [][]any) error {
 	var opts []csv.Option
 	switch o.data {
 	case dataSimple:
-		opts = examples.CSVOptionSimple
+		opts = CSVOptionSimple
 	case dataFooter:
-		opts = examples.CSVOptionFooter
+		opts = CSVOptionFooter
 	case dataTransformer:
-		opts = examples.CSVOptionTransformer
+		opts = CSVOptionTransformer
 	case dataComplex:
-		opts = examples.CSVOptionComplex
+		opts = CSVOptionComplex
 	case dataCommaIncluded:
-		opts = examples.CSVOptionCommaIncluded
+		opts = CSVOptionCommaIncluded
 	default:
 		return newError(o.data, o.target)
 	}
@@ -374,26 +367,26 @@ func dataNames(target string) ([]string, bool) {
 	}
 }
 
-func exampleData(name string) (examples.Data, bool) {
+func exampleData(name string) (Data, bool) {
 	switch name {
 	case dataASCII, dataSimple:
-		return examples.SimpleData, true
+		return SimpleData, true
 	case dataCompact:
-		return examples.CompactData, true
+		return CompactData, true
 	case dataRowspan:
-		return examples.RowspanData, true
+		return RowspanData, true
 	case dataColspan:
-		return examples.ColspanData, true
+		return ColspanData, true
 	case dataFooter, dataTransformer:
-		return examples.FooterData, true
+		return FooterData, true
 	case dataComplex:
-		return examples.ComplexData, true
+		return ComplexData, true
 	case dataStackedHeader:
-		return examples.StackedHeaderData, true
+		return StackedHeaderData, true
 	case dataCommaIncluded:
-		return examples.CommaIncludedData, true
+		return CommaIncludedData, true
 	default:
-		return examples.Data{}, false
+		return Data{}, false
 	}
 }
 
