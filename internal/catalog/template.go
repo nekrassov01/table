@@ -16,19 +16,15 @@ This catalog shows the input, configuration, and output of every runnable exampl
 
 Use ` + "`target`" + `, ` + "`mode`" + `, and ` + "`data`" + ` to select the output package, API, and scenario. All three variables are optional, but selecting ` + "`data`" + ` also requires ` + "`mode`" + `.
 
-` + "```sh" + `
-make example target=text mode=table data=stacked-header
-` + "```" + `
-
 Omitting ` + "`target`" + ` runs every output package, omitting ` + "`mode`" + ` runs both APIs, and omitting ` + "`data`" + ` runs every scenario available for the selected package. The catalog below shows the same combinations without requiring the command to be run.
 
-Each scenario contains its shared input declaration. Each output-package section then shows the exact Option declaration and the bytes produced by ` + "`Table`" + ` and ` + "`Stream`" + `. Identical results are shown once.
+Each scenario contains its shared input declaration. Each output-package section then shows the exact Option declaration, commands for its ` + "`Table`" + ` and ` + "`Stream`" + ` examples, and the bytes they produce. Identical results are shown once.
 
 ## Catalog
 
 {{range .Scenarios}}- [{{.Name}}](#{{.Name}})
 {{end}}
-{{range .Scenarios}}### {{.Name}}
+{{range .Scenarios}}{{$scenario := .Name}}### {{.Name}}
 
 Input:
 
@@ -39,6 +35,10 @@ Input:
 Configuration:
 
 {{code "go" .Option}}
+
+Example commands:
+
+{{commands .Name $scenario}}
 
 {{if .SameOutput}}` + "`Table`" + ` and ` + "`Stream`" + ` output:
 
@@ -54,8 +54,9 @@ Configuration:
 {{end}}{{end}}`
 
 var catalogTemplate = template.Must(template.New("examples").Funcs(template.FuncMap{
-	"code":   codeBlock,
-	"output": outputBlock,
+	"code":     codeBlock,
+	"commands": exampleCommands,
+	"output":   outputBlock,
 }).Parse(catalogTemplateText))
 
 func codeBlock(language, value string) string {
@@ -73,6 +74,17 @@ func codeBlock(language, value string) string {
 	}
 	fence := strings.Repeat("`", fenceLength)
 	return fmt.Sprintf("%s%s\n%s\n%s", fence, language, strings.TrimSuffix(value, "\n"), fence)
+}
+
+func exampleCommands(target, data string) string {
+	commands := fmt.Sprintf(
+		"make example target=%s mode=table data=%s\nmake example target=%s mode=stream data=%s",
+		target,
+		data,
+		target,
+		data,
+	)
+	return codeBlock("sh", commands)
 }
 
 func outputBlock(target, value string) string {

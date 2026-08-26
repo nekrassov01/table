@@ -8,13 +8,9 @@ This catalog shows the input, configuration, and output of every runnable exampl
 
 Use `target`, `mode`, and `data` to select the output package, API, and scenario. All three variables are optional, but selecting `data` also requires `mode`.
 
-```sh
-make example target=text mode=table data=stacked-header
-```
-
 Omitting `target` runs every output package, omitting `mode` runs both APIs, and omitting `data` runs every scenario available for the selected package. The catalog below shows the same combinations without requiring the command to be run.
 
-Each scenario contains its shared input declaration. Each output-package section then shows the exact Option declaration and the bytes produced by `Table` and `Stream`. Identical results are shown once.
+Each scenario contains its shared input declaration. Each output-package section then shows the exact Option declaration, commands for its `Table` and `Stream` examples, and the bytes they produce. Identical results are shown once.
 
 ## Catalog
 
@@ -88,6 +84,13 @@ var TextOptionASCII = []text.Option{
 	text.WithStyle(text.StyleASCII),
 	text.WithHeader(SimpleData.Header...),
 }
+````
+
+Example commands:
+
+````sh
+make example target=text mode=table data=ascii
+make example target=text mode=stream data=ascii
 ````
 
 `Table` and `Stream` output:
@@ -171,6 +174,13 @@ var TextOptionSimple = []text.Option{
 }
 ````
 
+Example commands:
+
+````sh
+make example target=text mode=table data=simple
+make example target=text mode=stream data=simple
+````
+
 `Table` and `Stream` output:
 
 ````text
@@ -200,6 +210,13 @@ Configuration:
 var HTMLOptionSimple = []html.Option{
 	html.WithHeader(SimpleData.Header...),
 }
+````
+
+Example commands:
+
+````sh
+make example target=html mode=table data=simple
+make example target=html mode=stream data=simple
 ````
 
 `Table` and `Stream` output:
@@ -259,6 +276,13 @@ var MarkdownOptionSimple = []markdown.Option{
 }
 ````
 
+Example commands:
+
+````sh
+make example target=markdown mode=table data=simple
+make example target=markdown mode=stream data=simple
+````
+
 `Table` output:
 
 ````markdown
@@ -296,6 +320,13 @@ var BacklogOptionSimple = []backlog.Option{
 }
 ````
 
+Example commands:
+
+````sh
+make example target=backlog mode=table data=simple
+make example target=backlog mode=stream data=simple
+````
+
 `Table` output:
 
 ````text
@@ -329,6 +360,13 @@ Configuration:
 var CSVOptionSimple = []csv.Option{
 	csv.WithHeader(SimpleData.Header[0]),
 }
+````
+
+Example commands:
+
+````sh
+make example target=csv mode=table data=simple
+make example target=csv mode=stream data=simple
 ````
 
 `Table` and `Stream` output:
@@ -422,6 +460,13 @@ var TextOptionCompact = []text.Option{
 	text.WithWidth(text.Columns(2), 36),
 	text.WithWidth(text.Columns(3), 6),
 }
+````
+
+Example commands:
+
+````sh
+make example target=text mode=table data=compact
+make example target=text mode=stream data=compact
 ````
 
 `Table` and `Stream` output:
@@ -572,6 +617,13 @@ var TextOptionRowspan = []text.Option{
 }
 ````
 
+Example commands:
+
+````sh
+make example target=text mode=table data=rowspan
+make example target=text mode=stream data=rowspan
+````
+
 `Table` output:
 
 ````text
@@ -637,6 +689,13 @@ var HTMLOptionRowspan = []html.Option{
 	html.WithRowspan(html.ScopeBody, html.Columns(0, 1, 2)),
 	html.WithAlign(html.ScopeBody, html.Columns(4, 5), html.AlignRight),
 }
+````
+
+Example commands:
+
+````sh
+make example target=html mode=table data=rowspan
+make example target=html mode=stream data=rowspan
 ````
 
 `Table` output:
@@ -862,6 +921,13 @@ var MarkdownOptionRowspan = []markdown.Option{
 }
 ````
 
+Example commands:
+
+````sh
+make example target=markdown mode=table data=rowspan
+make example target=markdown mode=stream data=rowspan
+````
+
 `Table` output:
 
 ````markdown
@@ -904,6 +970,13 @@ var BacklogOptionRowspan = []backlog.Option{
 	backlog.WithHeader(RowspanData.Header...),
 	backlog.WithRowspan(backlog.ScopeBody, backlog.Columns(0, 1, 2)),
 }
+````
+
+Example commands:
+
+````sh
+make example target=backlog mode=table data=rowspan
+make example target=backlog mode=stream data=rowspan
 ````
 
 `Table` output:
@@ -993,6 +1066,13 @@ var TextOptionColspan = []text.Option{
 }
 ````
 
+Example commands:
+
+````sh
+make example target=text mode=table data=colspan
+make example target=text mode=stream data=colspan
+````
+
 `Table` and `Stream` output:
 
 ````text
@@ -1019,6 +1099,13 @@ var HTMLOptionColspan = []html.Option{
 	html.WithHeader(ColspanData.Header...),
 	html.WithColspan(html.ScopeBody, html.Columns(0, 1, 2, 3)),
 }
+````
+
+Example commands:
+
+````sh
+make example target=html mode=table data=colspan
+make example target=html mode=stream data=colspan
 ````
 
 `Table` and `Stream` output:
@@ -1072,6 +1159,13 @@ var MarkdownOptionColspan = []markdown.Option{
 }
 ````
 
+Example commands:
+
+````sh
+make example target=markdown mode=table data=colspan
+make example target=markdown mode=stream data=colspan
+````
+
 `Table` output:
 
 ````markdown
@@ -1104,6 +1198,13 @@ var BacklogOptionColspan = []backlog.Option{
 	backlog.WithHeader(ColspanData.Header...),
 	backlog.WithColspan(backlog.ScopeBody, backlog.Columns(0, 1, 2, 3)),
 }
+````
+
+Example commands:
+
+````sh
+make example target=backlog mode=table data=colspan
+make example target=backlog mode=stream data=colspan
 ````
 
 `Table` output:
@@ -1281,6 +1382,13 @@ var TextOptionFooter = []text.Option{
 }
 ````
 
+Example commands:
+
+````sh
+make example target=text mode=table data=footer
+make example target=text mode=stream data=footer
+````
+
 `Table` output:
 
 ````text
@@ -1333,6 +1441,13 @@ var HTMLOptionFooter = []html.Option{
 	html.WithAlign(html.ScopeFooter, html.Columns(4, 5, 6, 7, 8, 9, 10, 11, 12, 13), html.AlignRight),
 	html.WithAlign(html.ScopeFooter, html.Columns(0), html.AlignCenter),
 }
+````
+
+Example commands:
+
+````sh
+make example target=html mode=table data=footer
+make example target=html mode=stream data=footer
 ````
 
 `Table` output:
@@ -1558,6 +1673,13 @@ var BacklogOptionFooter = []backlog.Option{
 }
 ````
 
+Example commands:
+
+````sh
+make example target=backlog mode=table data=footer
+make example target=backlog mode=stream data=footer
+````
+
 `Table` output:
 
 ````text
@@ -1590,6 +1712,13 @@ var CSVOptionFooter = []csv.Option{
 	csv.WithHeader(FooterData.Header[0]),
 	csv.WithFooter(FooterData.Footer),
 }
+````
+
+Example commands:
+
+````sh
+make example target=csv mode=table data=footer
+make example target=csv mode=stream data=footer
 ````
 
 `Table` and `Stream` output:
@@ -1780,6 +1909,13 @@ var TextOptionTransformer = []text.Option{
 }
 ````
 
+Example commands:
+
+````sh
+make example target=text mode=table data=transformer
+make example target=text mode=stream data=transformer
+````
+
 `Table` output:
 
 ````text
@@ -1854,6 +1990,13 @@ var HTMLOptionTransformer = []html.Option{
 		return "", nil, nil
 	}),
 }
+````
+
+Example commands:
+
+````sh
+make example target=html mode=table data=transformer
+make example target=html mode=stream data=transformer
 ````
 
 `Table` output:
@@ -2101,6 +2244,13 @@ var MarkdownOptionTransformer = []markdown.Option{
 }
 ````
 
+Example commands:
+
+````sh
+make example target=markdown mode=table data=transformer
+make example target=markdown mode=stream data=transformer
+````
+
 `Table` output:
 
 ````markdown
@@ -2159,6 +2309,13 @@ var BacklogOptionTransformer = []backlog.Option{
 }
 ````
 
+Example commands:
+
+````sh
+make example target=backlog mode=table data=transformer
+make example target=backlog mode=stream data=transformer
+````
+
 `Table` output:
 
 ````text
@@ -2213,6 +2370,13 @@ var CSVOptionTransformer = []csv.Option{
 		return ""
 	}),
 }
+````
+
+Example commands:
+
+````sh
+make example target=csv mode=table data=transformer
+make example target=csv mode=stream data=transformer
 ````
 
 `Table` and `Stream` output:
@@ -2368,6 +2532,13 @@ var TextOptionComplex = []text.Option{
 }
 ````
 
+Example commands:
+
+````sh
+make example target=text mode=table data=complex
+make example target=text mode=stream data=complex
+````
+
 `Table` output:
 
 ````text
@@ -2467,6 +2638,13 @@ var HTMLOptionComplex = []html.Option{
 	}),
 	html.WithCaption("⚡️ Rendered by <github.com/nekrassov01/table/html>", html.CaptionDefault),
 }
+````
+
+Example commands:
+
+````sh
+make example target=html mode=table data=complex
+make example target=html mode=stream data=complex
 ````
 
 `Table` and `Stream` output:
@@ -2569,6 +2747,13 @@ var MarkdownOptionComplex = []markdown.Option{
 }
 ````
 
+Example commands:
+
+````sh
+make example target=markdown mode=table data=complex
+make example target=markdown mode=stream data=complex
+````
+
 `Table` output:
 
 ````markdown
@@ -2633,6 +2818,13 @@ var BacklogOptionComplex = []backlog.Option{
 }
 ````
 
+Example commands:
+
+````sh
+make example target=backlog mode=table data=complex
+make example target=backlog mode=stream data=complex
+````
+
 `Table` output:
 
 ````text
@@ -2691,6 +2883,13 @@ var CSVOptionComplex = []csv.Option{
 		return fmt.Sprintf("sum=%d", sum)
 	}),
 }
+````
+
+Example commands:
+
+````sh
+make example target=csv mode=table data=complex
+make example target=csv mode=stream data=complex
 ````
 
 `Table` and `Stream` output:
@@ -2787,6 +2986,13 @@ var TextOptionStackedHeader = []text.Option{
 }
 ````
 
+Example commands:
+
+````sh
+make example target=text mode=table data=stacked-header
+make example target=text mode=stream data=stacked-header
+````
+
 `Table` and `Stream` output:
 
 ````text
@@ -2814,6 +3020,13 @@ var HTMLOptionStackedHeader = []html.Option{
 	html.WithRowspan(html.ScopeHeader, html.Columns(4)),
 	html.WithColspan(html.ScopeHeader, html.Columns(0, 1, 2, 3)),
 }
+````
+
+Example commands:
+
+````sh
+make example target=html mode=table data=stacked-header
+make example target=html mode=stream data=stacked-header
 ````
 
 `Table` and `Stream` output:
@@ -2866,6 +3079,13 @@ var BacklogOptionStackedHeader = []backlog.Option{
 	backlog.WithRowspan(backlog.ScopeHeader, backlog.Columns(4)),
 	backlog.WithColspan(backlog.ScopeHeader, backlog.Columns(0, 1, 2, 3)),
 }
+````
+
+Example commands:
+
+````sh
+make example target=backlog mode=table data=stacked-header
+make example target=backlog mode=stream data=stacked-header
 ````
 
 `Table` output:
@@ -2937,6 +3157,13 @@ var CSVOptionCommaIncluded = []csv.Option{
 	csv.WithHeader(CommaIncludedData.Header[0]),
 	csv.WithDelimiter(','),
 }
+````
+
+Example commands:
+
+````sh
+make example target=csv mode=table data=comma-included
+make example target=csv mode=stream data=comma-included
 ````
 
 `Table` and `Stream` output:

@@ -41,6 +41,33 @@ func Test_codeBlock(t *testing.T) {
 	}
 }
 
+func Test_exampleCommands(t *testing.T) {
+	type args struct {
+		target string
+		data   string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "table and stream",
+			args: args{
+				target: "text",
+				data:   "simple",
+			},
+			want: "````sh\nmake example target=text mode=table data=simple\nmake example target=text mode=stream data=simple\n````",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got := exampleCommands(test.args.target, test.args.data)
+			testutil.AssertValue(t, got, test.want, "exampleCommands")
+		})
+	}
+}
+
 func Test_outputBlock(t *testing.T) {
 	type args struct {
 		target string
