@@ -9,6 +9,7 @@ Select the documents that correspond to the task and read them before changing t
 | Area                                                                             | Document                                       |
 | -------------------------------------------------------------------------------- | ---------------------------------------------- |
 | Public API, format differences, output contracts, and specification conformance  | [`docs/API.md`](docs/API.md)                   |
+| Runnable examples, example data, and option combinations                         | [`docs/EXAMPLES.md`](docs/EXAMPLES.md)         |
 | Package structure, pipelines, state ownership, and lifetimes                     | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) |
 | Design principles, responsibility boundaries, constraints, and their rationale   | [`docs/DESIGN.md`](docs/DESIGN.md)             |
 | Test, coverage, benchmark, and static analysis commands                          | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md)   |

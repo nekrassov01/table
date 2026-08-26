@@ -33,6 +33,8 @@
 
 `nekrassov01/table` renders Go data as terminal tables, markup tables, or CSV records. Each output package provides `Table` for complete data sets and `Stream` for row-at-a-time output while retaining the selected format's own structure and escaping rules.
 
+Browse the [examples catalog](./docs/EXAMPLES.md) for a broad range of ways to use the library, with input, options, and exact output for each example.
+
 - `table` uses functional options for clear, reusable configuration.
 - In the bundled comparisons, `table` runs 1.2 to 6.3 times as fast as the next-fastest alternative; see [Performance](#performance).
 - `table` reuses internal buffers to minimize steady-state allocations.
@@ -378,7 +380,6 @@ Use these references to select the API, understand its design, and work on the m
 | [Design specification](./docs/DESIGN.md)                        | Design decisions, invariants, tradeoffs, and non-goals          |
 | [Development guide](./docs/DEVELOPMENT.md)                      | Test, benchmark, coverage, and analysis commands                |
 | [Performance baseline](./docs/BASELINE.md)                      | Benchmark procedure and performance acceptance criteria         |
-| [Runnable examples](./examples)                                 | Shared data sets, options, and commands for every output format |
 
 ## Author
 
