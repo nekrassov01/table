@@ -68,12 +68,12 @@ func Test_escapeValue(t *testing.T) {
 	}
 }
 
-func Test_needsEscapeValue(t *testing.T) {
+func Test_indexEscapeValue(t *testing.T) {
 	type args struct {
 		value string
 	}
 	type want struct {
-		escape bool
+		index int
 	}
 	tests := []struct {
 		name string
@@ -85,6 +85,9 @@ func Test_needsEscapeValue(t *testing.T) {
 			args: args{
 				value: "plain value",
 			},
+			want: want{
+				index: -1,
+			},
 		},
 		{
 			name: "backslash",
@@ -92,7 +95,7 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: `a\b`,
 			},
 			want: want{
-				escape: true,
+				index: 1,
 			},
 		},
 		{
@@ -101,13 +104,16 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "a|b",
 			},
 			want: want{
-				escape: true,
+				index: 1,
 			},
 		},
 		{
 			name: "plain punctuation",
 			args: args{
 				value: "[]'%&{}#",
+			},
+			want: want{
+				index: -1,
 			},
 		},
 		{
@@ -116,7 +122,7 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "''",
 			},
 			want: want{
-				escape: true,
+				index: 0,
 			},
 		},
 		{
@@ -125,7 +131,7 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "&br;",
 			},
 			want: want{
-				escape: true,
+				index: 0,
 			},
 		},
 		{
@@ -134,7 +140,7 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "&color(red){value}",
 			},
 			want: want{
-				escape: true,
+				index: 0,
 			},
 		},
 		{
@@ -143,7 +149,7 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "{quote}",
 			},
 			want: want{
-				escape: true,
+				index: 0,
 			},
 		},
 		{
@@ -152,7 +158,7 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "{/quote}",
 			},
 			want: want{
-				escape: true,
+				index: 0,
 			},
 		},
 		{
@@ -161,7 +167,7 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "{code}",
 			},
 			want: want{
-				escape: true,
+				index: 0,
 			},
 		},
 		{
@@ -170,7 +176,7 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "{code:go}",
 			},
 			want: want{
-				escape: true,
+				index: 0,
 			},
 		},
 		{
@@ -179,7 +185,7 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "{/code}",
 			},
 			want: want{
-				escape: true,
+				index: 0,
 			},
 		},
 		{
@@ -188,7 +194,7 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "#attach(file:1)",
 			},
 			want: want{
-				escape: true,
+				index: 0,
 			},
 		},
 		{
@@ -197,7 +203,7 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "#image(1)",
 			},
 			want: want{
-				escape: true,
+				index: 0,
 			},
 		},
 		{
@@ -206,7 +212,7 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "#thumbnail(1)",
 			},
 			want: want{
-				escape: true,
+				index: 0,
 			},
 		},
 		{
@@ -215,7 +221,7 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "#rev(1)",
 			},
 			want: want{
-				escape: true,
+				index: 0,
 			},
 		},
 		{
@@ -224,7 +230,7 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "#contents",
 			},
 			want: want{
-				escape: true,
+				index: 0,
 			},
 		},
 		{
@@ -233,7 +239,7 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "a\rb",
 			},
 			want: want{
-				escape: true,
+				index: 1,
 			},
 		},
 		{
@@ -242,16 +248,16 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "a\nb",
 			},
 			want: want{
-				escape: true,
+				index: 1,
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			got := want{
-				escape: needsEscapeValue(test.args.value),
+				index: indexEscapeValue(test.args.value),
 			}
-			testutil.AssertValue(t, got, test.want, "needsEscapeValue")
+			testutil.AssertValue(t, got, test.want, "indexEscapeValue")
 		})
 	}
 }

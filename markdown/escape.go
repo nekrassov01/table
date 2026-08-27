@@ -74,11 +74,13 @@ func escapeCode(escapes []byte, s string) (string, []byte) {
 // appends changed content to escapes. It returns the value together with the
 // updated storage.
 func escapeValue(escapes []byte, s string) (string, []byte) {
-	if !needsEscapeValue(s) {
+	index := indexEscapeValue(s)
+	if index < 0 {
 		return s, escapes
 	}
 	start := len(escapes)
-	for index := 0; index < len(s); index++ {
+	escapes = append(escapes, s[:index]...)
+	for ; index < len(s); index++ {
 		switch s[index] {
 		case '\\', '|', '`', '*', '_', '~', '[', ']', '<', '>', '&':
 			escapes = append(escapes, '\\', s[index])
@@ -106,21 +108,25 @@ func escapeValue(escapes []byte, s string) (string, []byte) {
 	return unsafe.View(escapes[start:]), escapes
 }
 
-// needsEscapeValue reports whether s requires GFM literalization or UTF-8
-// normalization.
-func needsEscapeValue(s string) bool {
-	nonASCII := false
+// indexEscapeValue returns the first byte that requires GFM literalization or
+// UTF-8 normalization, or -1 when s can be used unchanged.
+func indexEscapeValue(s string) int {
 	for index := 0; index < len(s); index++ {
-		if s[index] >= utf8.RuneSelf {
-			nonASCII = true
-			continue
-		}
 		switch s[index] {
 		case '\\', '|', '`', '*', '_', '~', '[', ']', '<', '>', '&', '\r', '\n', 0:
-			return true
+			return index
+		default:
+			if s[index] < utf8.RuneSelf {
+				continue
+			}
+			_, size := utf8.DecodeRuneInString(s[index:])
+			if size == 1 {
+				return index
+			}
+			index += size - 1
 		}
 	}
-	return nonASCII && !utf8.ValidString(s)
+	return -1
 }
 
 // escapeAttr produces a normalized double-quoted HTML attribute value without

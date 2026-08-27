@@ -12,11 +12,13 @@ const br = "&br;"
 // escapeValue literalizes Backlog notation and normalizes line breaks,
 // appending changed content to escapes.
 func escapeValue(escapes []byte, s string) (string, []byte) {
-	if !needsEscapeValue(s) {
+	index := indexEscapeValue(s)
+	if index < 0 {
 		return s, escapes
 	}
 	start := len(escapes)
-	for index := 0; index < len(s); index++ {
+	escapes = append(escapes, s[:index]...)
+	for ; index < len(s); index++ {
 		escape := false
 		switch s[index] {
 		case '\\':
@@ -57,22 +59,22 @@ func escapeValue(escapes []byte, s string) (string, []byte) {
 	return unsafe.View(escapes[start:]), escapes
 }
 
-// needsEscapeValue reports whether s requires Backlog literalization or
-// line-break normalization.
-func needsEscapeValue(s string) bool {
+// indexEscapeValue returns the first byte that requires Backlog literalization
+// or line-break normalization, or -1 when s can be used unchanged.
+func indexEscapeValue(s string) int {
 	for index := 0; index < len(s); index++ {
 		switch s[index] {
 		case '\\', '|', '\r', '\n':
-			return true
+			return index
 		case '\'', '%', '[', ']':
 			if index > 0 && s[index-1] == s[index] ||
 				index+1 < len(s) && s[index+1] == s[index] {
-				return true
+				return index
 			}
 		case '&':
 			if strings.HasPrefix(s[index:], "&br;") ||
 				strings.HasPrefix(s[index:], "&color(") {
-				return true
+				return index
 			}
 		case '{':
 			if strings.HasPrefix(s[index:], "{quote}") ||
@@ -80,7 +82,7 @@ func needsEscapeValue(s string) bool {
 				strings.HasPrefix(s[index:], "{code}") ||
 				strings.HasPrefix(s[index:], "{code:") ||
 				strings.HasPrefix(s[index:], "{/code}") {
-				return true
+				return index
 			}
 		case '#':
 			if strings.HasPrefix(s[index:], "#attach(") ||
@@ -88,9 +90,9 @@ func needsEscapeValue(s string) bool {
 				strings.HasPrefix(s[index:], "#thumbnail(") ||
 				strings.HasPrefix(s[index:], "#rev(") ||
 				strings.HasPrefix(s[index:], "#contents") {
-				return true
+				return index
 			}
 		}
 	}
-	return false
+	return -1
 }
