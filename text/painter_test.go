@@ -1874,7 +1874,9 @@ func Test_painter_layoutCell(t *testing.T) {
 			},
 			args: args{
 				cell: cell{
-					value: "a\n界",
+					value:    "a\n界",
+					width:    2,
+					hasBreak: true,
 				},
 			},
 			want: want{
@@ -1952,7 +1954,7 @@ func Test_painter_layoutCell(t *testing.T) {
 			},
 		},
 		{
-			name: "multiline truncates each physical line",
+			name: "unmeasured multiline truncates each physical line",
 			args: args{
 				cell: cell{
 					value: "abcdef\nxy",
@@ -2001,7 +2003,7 @@ func Test_painter_layoutCell(t *testing.T) {
 				err:     test.fields.err,
 			}
 			got := want{
-				layout:     o.layoutCell(test.args.cell, test.args.limit, test.args.truncate),
+				layout:     o.layoutCell(&test.args.cell, test.args.limit, test.args.truncate),
 				segments:   state.segments,
 				stringMark: store.Mark(),
 			}

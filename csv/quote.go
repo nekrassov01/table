@@ -13,14 +13,16 @@ import (
 // quotes are doubled. CRLF mode normalizes line breaks like
 // encoding/csv.Writer.
 func (o *compiler) quoteValue(s string) string {
-	if !o.needsQuoteValue(s) {
+	index := o.indexQuoteValue(s)
+	if index < 0 {
 		return s
 	}
 	state := o.state
 	start := len(state.quotes)
 	state.quotes = append(state.quotes, '"')
+	state.quotes = append(state.quotes, s[:index]...)
 	crlf := o.input.option.crlf
-	for index := 0; index < len(s); index++ {
+	for ; index < len(s); index++ {
 		switch s[index] {
 		case '"':
 			state.quotes = append(state.quotes, '"', '"')
@@ -41,22 +43,23 @@ func (o *compiler) quoteValue(s string) string {
 	return unsafe.View(state.quotes[start:])
 }
 
-// needsQuoteValue reports whether s requires encoding/csv-compatible quoting.
-func (o *compiler) needsQuoteValue(s string) bool {
+// indexQuoteValue returns the first byte from which encoding/csv-compatible
+// quoting must proceed, or -1 when s can be used unchanged.
+func (o *compiler) indexQuoteValue(s string) int {
 	if s == "" {
-		return false
+		return -1
 	}
 	if s == `\.` {
-		return true
+		return 0
 	}
 	firstByte := s[0]
 	if firstByte == ' ' || (firstByte >= '\t' && firstByte <= '\r') {
-		return true
+		return 0
 	}
 	if firstByte >= utf8.RuneSelf {
 		first, _ := utf8.DecodeRuneInString(s)
 		if unicode.IsSpace(first) {
-			return true
+			return 0
 		}
 	}
 	delimiter := o.input.option.delimiter
@@ -64,10 +67,15 @@ func (o *compiler) needsQuoteValue(s string) bool {
 		for index := 0; index < len(s); index++ {
 			value := s[index]
 			if rune(value) == delimiter || value == '"' || value == '\n' || value == '\r' {
-				return true
+				return index
 			}
 		}
-		return false
+		return -1
 	}
-	return strings.ContainsRune(s, delimiter) || strings.ContainsAny(s, "\"\r\n")
+	index := strings.IndexAny(s, "\"\r\n")
+	delimiterIndex := strings.IndexRune(s, delimiter)
+	if delimiterIndex >= 0 && (index < 0 || delimiterIndex < index) {
+		return delimiterIndex
+	}
+	return index
 }

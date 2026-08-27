@@ -139,10 +139,9 @@ func (o *compiler) compileBand(labels []string, sc Scope) row {
 			// Empty labels remain empty and carry no attribute.
 			attr = nil
 		}
-		r.cells[index] = cell{
-			value: text,
-			attr:  attr,
-		}
+		compiled := &r.cells[index]
+		compiled.value = text
+		compiled.attr = attr
 	}
 	o.setSpans(&r, sc, &state.previousBand)
 	return r
@@ -175,19 +174,14 @@ func (o *compiler) compileRow(source []any, rowIndex int) {
 func (o *compiler) compileCells(r row, source []any, rowIndex int) {
 	config := &o.input
 	for index := range config.columns {
+		compiled := &r.cells[index]
 		if index < config.option.indexOffset {
-			text := value.Number(o.strings, int64(rowIndex)+1)
-			r.cells[index] = cell{
-				value: text,
-			}
+			compiled.value = value.Number(o.strings, int64(rowIndex)+1)
 			continue
 		}
 		sourceIndex := index - config.option.indexOffset
 		if sourceIndex >= len(source) {
-			text := config.option.placeholder
-			r.cells[index] = cell{
-				value: text,
-			}
+			compiled.value = config.option.placeholder
 			continue
 		}
 		transformer := &config.columns[index].transformer
@@ -214,10 +208,8 @@ func (o *compiler) compileCells(r row, source []any, rowIndex int) {
 			text = config.option.placeholder
 			attr = nil
 		}
-		r.cells[index] = cell{
-			value: text,
-			attr:  attr,
-		}
+		compiled.value = text
+		compiled.attr = attr
 	}
 }
 
@@ -308,10 +300,11 @@ type row struct {
 	bars     uint64 // The bitset of visible vertical boundaries.
 }
 
-// cell holds the resolved value, attribute, and solved width of one logical
-// cell.
+// cell holds the resolved value, attribute, and solved measurements of one
+// logical cell.
 type cell struct {
-	value string // Resolved display value.
-	attr  *Attr  // Optional display attribute.
-	width int    // Solved display width for a non-empty single-line value.
+	value    string // Resolved display value.
+	attr     *Attr  // Optional display attribute.
+	width    int    // Solved display width of the widest physical line.
+	hasBreak bool   // Whether value contains a line break.
 }

@@ -102,7 +102,7 @@ func Test_quoteValue(t *testing.T) {
 	}
 }
 
-func Test_needsQuoteValue(t *testing.T) {
+func Test_compiler_indexQuoteValue(t *testing.T) {
 	type fields struct {
 		delimiter rune
 	}
@@ -110,7 +110,7 @@ func Test_needsQuoteValue(t *testing.T) {
 		value string
 	}
 	type want struct {
-		quoted bool
+		index int
 	}
 	tests := []struct {
 		name   string
@@ -126,6 +126,9 @@ func Test_needsQuoteValue(t *testing.T) {
 			args: args{
 				value: "plain",
 			},
+			want: want{
+				index: -1,
+			},
 		},
 		{
 			name: "delimiter",
@@ -136,7 +139,7 @@ func Test_needsQuoteValue(t *testing.T) {
 				value: "a,b",
 			},
 			want: want{
-				quoted: true,
+				index: 1,
 			},
 		},
 		{
@@ -148,7 +151,7 @@ func Test_needsQuoteValue(t *testing.T) {
 				value: "a・b",
 			},
 			want: want{
-				quoted: true,
+				index: 1,
 			},
 		},
 		{
@@ -160,7 +163,7 @@ func Test_needsQuoteValue(t *testing.T) {
 				value: `a"b`,
 			},
 			want: want{
-				quoted: true,
+				index: 1,
 			},
 		},
 		{
@@ -172,7 +175,7 @@ func Test_needsQuoteValue(t *testing.T) {
 				value: "a\nb",
 			},
 			want: want{
-				quoted: true,
+				index: 1,
 			},
 		},
 		{
@@ -184,7 +187,7 @@ func Test_needsQuoteValue(t *testing.T) {
 				value: "a\rb",
 			},
 			want: want{
-				quoted: true,
+				index: 1,
 			},
 		},
 		{
@@ -196,7 +199,7 @@ func Test_needsQuoteValue(t *testing.T) {
 				value: " value",
 			},
 			want: want{
-				quoted: true,
+				index: 0,
 			},
 		},
 		{
@@ -208,7 +211,7 @@ func Test_needsQuoteValue(t *testing.T) {
 				value: "\u00a0value",
 			},
 			want: want{
-				quoted: true,
+				index: 0,
 			},
 		},
 		{
@@ -220,7 +223,7 @@ func Test_needsQuoteValue(t *testing.T) {
 				value: "\vvalue",
 			},
 			want: want{
-				quoted: true,
+				index: 0,
 			},
 		},
 		{
@@ -230,6 +233,9 @@ func Test_needsQuoteValue(t *testing.T) {
 			},
 			args: args{
 				value: "value ",
+			},
+			want: want{
+				index: -1,
 			},
 		},
 		{
@@ -241,7 +247,7 @@ func Test_needsQuoteValue(t *testing.T) {
 				value: `\.`,
 			},
 			want: want{
-				quoted: true,
+				index: 0,
 			},
 		},
 	}
@@ -255,9 +261,9 @@ func Test_needsQuoteValue(t *testing.T) {
 				},
 			}
 			got := want{
-				quoted: o.needsQuoteValue(test.args.value),
+				index: o.indexQuoteValue(test.args.value),
 			}
-			testutil.AssertValue(t, got, test.want, "needsQuoteValue")
+			testutil.AssertValue(t, got, test.want, "indexQuoteValue")
 		})
 	}
 }

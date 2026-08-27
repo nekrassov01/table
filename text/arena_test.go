@@ -42,7 +42,9 @@ func Test_arena_resetRows(t *testing.T) {
 				compiler: compilerState{
 					cells: []cell{
 						{
-							value: "value",
+							value:    "value",
+							width:    5,
+							hasBreak: true,
 							attr: &Attr{
 								Prefix: []byte("prefix"),
 							},
@@ -675,7 +677,9 @@ func Test_arena_release(t *testing.T) {
 				compiler: compilerState{
 					cells: []cell{
 						{
-							value: "value",
+							value:    "value",
+							width:    5,
+							hasBreak: true,
 							attr: &Attr{
 								Prefix: []byte("prefix"),
 							},
@@ -750,7 +754,7 @@ func Test_arena_release(t *testing.T) {
 			}
 			if o != nil {
 				got.columnNil = o.config.columns[0].transformer.fn == nil
-				got.cellNil = o.compiler.cells[0].value == "" && o.compiler.cells[0].attr == nil
+				got.cellNil = o.compiler.cells[0] == (cell{})
 				got.valueNil = o.compiler.spanValues[0] == ""
 				got.rowNil = o.compiler.rows[0].cells == nil
 				got.layoutNil = o.painter.layouts[0].value == ""

@@ -100,12 +100,12 @@ func Test_escapeValue(t *testing.T) {
 	}
 }
 
-func Test_needsEscapeValue(t *testing.T) {
+func Test_indexEscapeValue(t *testing.T) {
 	type args struct {
 		value string
 	}
 	type want struct {
-		val bool
+		index int
 	}
 	tests := []struct {
 		name string
@@ -117,6 +117,9 @@ func Test_needsEscapeValue(t *testing.T) {
 			args: args{
 				value: "plain\ttext",
 			},
+			want: want{
+				index: -1,
+			},
 		},
 		{
 			name: "markup",
@@ -124,7 +127,7 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "<&>\"",
 			},
 			want: want{
-				val: true,
+				index: 0,
 			},
 		},
 		{
@@ -133,7 +136,7 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "a\nb",
 			},
 			want: want{
-				val: true,
+				index: 1,
 			},
 		},
 		{
@@ -142,13 +145,16 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "\x00",
 			},
 			want: want{
-				val: true,
+				index: 0,
 			},
 		},
 		{
 			name: "valid UTF-8",
 			args: args{
 				value: "日本語",
+			},
+			want: want{
+				index: -1,
 			},
 		},
 		{
@@ -157,14 +163,14 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: string([]byte{0xff}),
 			},
 			want: want{
-				val: true,
+				index: 0,
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			got := needsEscapeValue(test.args.value)
-			testutil.AssertValue(t, got, test.want.val, "needsEscapeValue")
+			got := indexEscapeValue(test.args.value)
+			testutil.AssertValue(t, got, test.want.index, "indexEscapeValue")
 		})
 	}
 }

@@ -312,12 +312,12 @@ func Test_escapeValue(t *testing.T) {
 	}
 }
 
-func Test_needsEscapeValue(t *testing.T) {
+func Test_indexEscapeValue(t *testing.T) {
 	type args struct {
 		value string
 	}
 	type want struct {
-		val bool
+		index int
 	}
 	tests := []struct {
 		name string
@@ -329,6 +329,9 @@ func Test_needsEscapeValue(t *testing.T) {
 			args: args{
 				value: "plain value",
 			},
+			want: want{
+				index: -1,
+			},
 		},
 		{
 			name: "markdown syntax",
@@ -336,7 +339,7 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "\\|`*_~[]<>&",
 			},
 			want: want{
-				val: true,
+				index: 0,
 			},
 		},
 		{
@@ -344,11 +347,17 @@ func Test_needsEscapeValue(t *testing.T) {
 			args: args{
 				value: " value",
 			},
+			want: want{
+				index: -1,
+			},
 		},
 		{
 			name: "keeps space run",
 			args: args{
 				value: "a  b",
+			},
+			want: want{
+				index: -1,
 			},
 		},
 		{
@@ -357,13 +366,16 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "a\x00b",
 			},
 			want: want{
-				val: true,
+				index: 1,
 			},
 		},
 		{
 			name: "valid utf-8",
 			args: args{
 				value: "日本語",
+			},
+			want: want{
+				index: -1,
 			},
 		},
 		{
@@ -372,14 +384,14 @@ func Test_needsEscapeValue(t *testing.T) {
 				value: "a\xffb",
 			},
 			want: want{
-				val: true,
+				index: 1,
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			got := needsEscapeValue(test.args.value)
-			testutil.AssertValue(t, got, test.want.val, "needsEscapeValue")
+			got := indexEscapeValue(test.args.value)
+			testutil.AssertValue(t, got, test.want.index, "indexEscapeValue")
 		})
 	}
 }

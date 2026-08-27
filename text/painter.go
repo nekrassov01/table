@@ -342,10 +342,10 @@ func (o *painter) layoutRow(r *row, sc Scope) int {
 			limit = cellBox.width
 			truncate = false
 		}
-		compiled := r.cells[columnIndex]
+		compiled := &r.cells[columnIndex]
 		bit := uint64(1) << uint(columnIndex)
 		if bit != 0 && (r.rowspans&bit != 0 || r.colspans&bit != 0) {
-			compiled = cell{}
+			compiled = &cell{}
 		}
 		layout := o.layoutCell(compiled, limit, truncate)
 		layout.attr = compiled.attr
@@ -366,11 +366,11 @@ func (o *painter) layoutRow(r *row, sc Scope) int {
 
 // layoutCell splits one logical cell into the physical lines required by its
 // limit.
-func (o *painter) layoutCell(cell cell, limit int, truncate bool) layout {
+func (o *painter) layoutCell(cell *cell, limit int, truncate bool) layout {
 	value := cell.value
 	cellWidth := cell.width
-	hasBreak := false
-	if cellWidth == 0 && value != "" {
+	hasBreak := cell.hasBreak
+	if cellWidth == 0 && value != "" && !hasBreak {
 		cellWidth, hasBreak = measureLine(value)
 	}
 	if !hasBreak && truncate && limit > 0 && cellWidth > limit {

@@ -16,11 +16,13 @@ const replacement = "\uFFFD"
 // escapeValue appends an escaped display value to escapes and returns the
 // value together with the updated storage.
 func escapeValue(escapes []byte, s string) (string, []byte) {
-	if !needsEscapeValue(s) {
+	index := indexEscapeValue(s)
+	if index < 0 {
 		return s, escapes
 	}
 	start := len(escapes)
-	for index := 0; index < len(s); index++ {
+	escapes = append(escapes, s[:index]...)
+	for ; index < len(s); index++ {
 		switch {
 		case s[index] == '&':
 			escapes = append(escapes, "&amp;"...)
@@ -52,24 +54,25 @@ func escapeValue(escapes []byte, s string) (string, []byte) {
 	return unsafe.View(escapes[start:]), escapes
 }
 
-// needsEscapeValue reports whether s requires HTML escaping or UTF-8 normalization.
-// It validates UTF-8 only after observing a non-ASCII byte.
-func needsEscapeValue(s string) bool {
-	nonASCII := false
-	for i := 0; i < len(s); i++ {
-		c := s[i]
-		if c >= utf8.RuneSelf {
-			nonASCII = true
-			continue
-		}
+// indexEscapeValue returns the first byte that requires HTML escaping or UTF-8
+// normalization, or -1 when s can be used unchanged.
+func indexEscapeValue(s string) int {
+	for index := 0; index < len(s); index++ {
+		c := s[index]
 		switch {
 		case c == '&' || c == '<' || c == '>' || c == '"' || c == '\r' || c == '\n':
-			return true
+			return index
 		case c < 0x20 && c != '\t', c == 0x7f:
-			return true
+			return index
+		case c >= utf8.RuneSelf:
+			_, size := utf8.DecodeRuneInString(s[index:])
+			if size == 1 {
+				return index
+			}
+			index += size - 1
 		}
 	}
-	return nonASCII && !utf8.ValidString(s)
+	return -1
 }
 
 // escapeAttr produces a normalized double-quoted HTML attribute value. It
