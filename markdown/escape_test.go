@@ -299,6 +299,16 @@ func Test_escapeValue(t *testing.T) {
 				escapes: "\\*\\*bold\\*\\* \\_em\\_ \\~\\~del\\~\\~ \\[link\\](url) \\<tag\\> \\&nbsp; \\`code\\`",
 			},
 		},
+		{
+			name: "retains valid utf-8 after escaped syntax",
+			args: args{
+				value: "a|日本",
+			},
+			want: want{
+				value:   `a\|日本`,
+				escapes: `a\|日本`,
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

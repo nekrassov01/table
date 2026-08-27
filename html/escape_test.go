@@ -87,6 +87,16 @@ func Test_escapeValue(t *testing.T) {
 				val: "世",
 			},
 		},
+		{
+			name: "retains valid UTF-8 after escaped markup",
+			args: args{
+				value: "a&世界",
+			},
+			want: want{
+				val:     "a&amp;世界",
+				escapes: "a&amp;世界",
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
