@@ -3,10 +3,9 @@ package html
 import (
 	"io"
 	"strconv"
-)
 
-// indent is one step of indentation for nested HTML elements.
-const indent = "  "
+	"github.com/nekrassov01/table/internal/repeat"
+)
 
 // painter writes solved logical rows as HTML elements.
 type painter struct {
@@ -328,9 +327,7 @@ func (o *painter) writeCellValue(compiled *cell) {
 
 // writeIndent appends indentation levels.
 func (o *painter) writeIndent(level int) {
-	for range level {
-		o.state.line = append(o.state.line, indent...)
-	}
+	o.state.line = repeat.AppendSpaces(o.state.line, level*2)
 }
 
 // writeNewline appends a newline.
