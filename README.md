@@ -18,9 +18,10 @@
 - [Output formats](#output-formats)
 - [Text output gallery](#text-output-gallery)
 - [Installation](#installation)
-- [Examples](#examples)
+- [Quick start](#quick-start)
   - [Table](#table)
   - [Stream](#stream)
+- [Runnable examples](#runnable-examples)
 - [Table library comparison](#table-library-comparison)
   - [Formats](#formats)
   - [Features](#features)
@@ -33,7 +34,7 @@
 
 `nekrassov01/table` renders Go data as terminal tables, markup tables, or CSV records. Each output package provides `Table` for complete data sets and `Stream` for row-at-a-time output while retaining the selected format's own structure and escaping rules.
 
-Browse the [examples catalog](./docs/EXAMPLES.md) for a broad range of ways to use the library, with input, options, and exact output for each example.
+See [Runnable examples](#runnable-examples) for a generated catalog of inputs, options, commands, and exact output.
 
 - `table` uses functional options for clear, reusable configuration.
 - In the bundled comparisons, `table` runs 5.9 to 7.0 times as fast as the next-fastest alternative; see [Performance](#performance).
@@ -61,7 +62,7 @@ Choose an output package for the destination. The root [`table`](.) package prov
 | [`html`](./html)         | Semantic HTML tables                                                                                                                                                                                                   | Web pages and reports          |
 | [`markdown`](./markdown) | GFM tables                                                                                                                                                                                                             | READMEs and GitHub             |
 | [`backlog`](./backlog)   | [Backlog table notation](https://help-center.backlog.com/%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88%E6%95%B4%E5%BD%A2%E3%83%AB%E3%83%BC%E3%83%AB%EF%BC%88Backlog%E8%A8%98%E6%B3%95%EF%BC%89-6a1d4d7f3abb3ada78c5658b#index7) | Backlog issues and Wiki pages  |
-| [`csv`](./csv)           | Configurable delimiter-separated records                                                                                                                                                                               | TSV, CSV, and data interchange |
+| [`csv`](./csv)           | CSV records with a configurable delimiter                                                                                                                                                                              | TSV, CSV, and data interchange |
 
 ## Text output gallery
 
@@ -111,13 +112,9 @@ Install with:
 go get github.com/nekrassov01/table
 ```
 
-## Examples
+## Quick start
 
-The runnable examples use `target`, `mode`, and `data` to select the output package, `Table` or `Stream`, and a data set. Omitting `target` runs every output package, omitting `mode` runs both APIs, and omitting `data` runs every data set available for each selected package. When selecting one data set, also specify `mode`. This command renders every text `Table` example:
-
-```sh
-make example target=text mode=table
-```
+`TableOf` and `StreamOf` adapt typed application data to the rows accepted by every output package.
 
 ### Table
 
@@ -182,13 +179,12 @@ This program produces the following table:
 
 ### Stream
 
-Use `StreamOf` to adapt an `iter.Seq2[T, error]` to streaming table rows. Each successful value becomes one output row, and the first source error is forwarded. Additionally, call `Stream.Close` for every stream so it can write deferred output, such as a footer or closing border, and report late errors.
+Use `StreamOf` to adapt an `iter.Seq2[T, error]` to streaming table rows. Each successful value becomes one output row, and the first source error is forwarded. Call `Stream.Close` even after an earlier error so it can attempt deferred output and release its internal workspace.
 
 ```go
 package report
 
 import (
-    "errors"
     "io"
     "iter"
     "time"
@@ -210,7 +206,9 @@ func WriteAuditEvents(w io.Writer, events iter.Seq2[AuditEvent, error]) (err err
         text.WithCompact(),
     )
     defer func() {
-        err = errors.Join(err, output.Close())
+        if closeErr := output.Close(); err == nil {
+            err = closeErr
+        }
     }()
 
     rows := table.StreamOf(events, func(event AuditEvent) []any {
@@ -245,6 +243,18 @@ Given an iterator of audit events, the function produces output like this:
 └───────────────────────────┴────────────┴───────────┴──────────────┘
 ```
 
+## Runnable examples
+
+The generated [examples catalog](./docs/EXAMPLES.md) pairs shared input data with the exact options, commands, and output for every supported scenario. The same definitions drive the catalog, runnable examples, and benchmarks.
+
+Use `target`, `mode`, and `data` to select the output package, API, and scenario. This command runs the simple text `Table` example:
+
+```sh
+make example target=text mode=table data=simple
+```
+
+Omit `data` to run every scenario for the selected package and mode. With no data selected, omit `mode` to run both APIs, or run `make example` without arguments to run every available example.
+
 ## Table library comparison
 
 The following tables compare the public APIs in the versions pinned by the [benchmark module](./benchmarks/go.mod).
@@ -268,7 +278,7 @@ This table records whether each library exposes a direct public API for a capabi
 
 | Feature                         | `table` | [`go-pretty` v6.8.3](https://github.com/jedib0t/go-pretty/tree/v6.8.3) | [`tablewriter` v1.1.4](https://github.com/olekukonko/tablewriter/tree/v1.1.4) | [`simpletable` v1.0.0](https://github.com/alexeyco/simpletable/tree/v1.0.0) |
 | ------------------------------- | ------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| Streaming API                   | ✓       | -                                                                      | ✓                                                                             | -                                                                           |
+| Streaming API                   | ✓ (All) | -                                                                      | ✓                                                                             | -                                                                           |
 | Header                          | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
 | Footer                          | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
 | Placeholder                     | ✓       | ✓ (HTML)                                                               | -                                                                             | -                                                                           |
@@ -304,7 +314,7 @@ The `go-pretty` placeholder entry refers to its HTML `EmptyColumn` setting.
 
 Run the comparison on your machine with `make bench target=comparison`. The following output records all five samples on an Apple M2 with Go 1.27.0:
 
-```console
+```powershell
 $ make bench target=comparison
 go test -benchmem -count 5 -benchtime 10000x -cpuprofile cpu.prof -memprofile mem.prof . -bench '^BenchmarkComparison'
 goos: darwin
@@ -367,14 +377,14 @@ The benchmark preserves each library's configuration model: `table` uses only fu
 
 Use these references to select the API, understand its design, and work on the module itself.
 
-| Resource                                                        | Contents                                                        |
-| --------------------------------------------------------------- | --------------------------------------------------------------- |
-| [Go Reference](https://pkg.go.dev/github.com/nekrassov01/table) | Exact declarations and symbol documentation                     |
-| [Public API guide](./docs/API.md)                               | Options, output behavior, defaults, and format capabilities     |
-| [Architecture](./docs/ARCHITECTURE.md)                          | Package structure, data flow, and state ownership               |
-| [Design specification](./docs/DESIGN.md)                        | Design decisions, invariants, tradeoffs, and non-goals          |
-| [Development guide](./docs/DEVELOPMENT.md)                      | Test, benchmark, coverage, and analysis commands                |
-| [Performance baseline](./docs/BASELINE.md)                      | Benchmark procedure and performance acceptance criteria         |
+| Resource                                                        | Contents                                                    |
+| --------------------------------------------------------------- | ----------------------------------------------------------- |
+| [Go Reference](https://pkg.go.dev/github.com/nekrassov01/table) | Exact declarations and symbol documentation                 |
+| [Public API guide](./docs/API.md)                               | Options, output behavior, defaults, and format capabilities |
+| [Architecture](./docs/ARCHITECTURE.md)                          | Package structure, data flow, and state ownership           |
+| [Design specification](./docs/DESIGN.md)                        | Design decisions, invariants, tradeoffs, and non-goals      |
+| [Development guide](./docs/DEVELOPMENT.md)                      | Test, benchmark, coverage, and analysis commands            |
+| [Performance baseline](./docs/BASELINE.md)                      | Benchmark procedure and performance acceptance criteria     |
 
 ## Author
 
