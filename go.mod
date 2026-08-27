@@ -1,6 +1,6 @@
 module github.com/nekrassov01/table
 
-go 1.26.6
+go 1.27.0
 
 require (
 	github.com/clipperhouse/uax29/v2 v2.7.0
