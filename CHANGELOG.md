@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.1.2](https://github.com/nekrassov01/table/compare/v0.1.1...v0.1.2) - 2026-08-27
+
+- Generate the examples catalog from source by @nekrassov01 in https://github.com/nekrassov01/table/pull/19
+- Refine rendering paths across packages by @nekrassov01 in https://github.com/nekrassov01/table/pull/21
+- Upgrade to Go 1.27 and refresh benchmarks by @nekrassov01 in https://github.com/nekrassov01/table/pull/22
+
 ## [v0.1.1](https://github.com/nekrassov01/table/compare/v0.1.0...v0.1.1) - 2026-08-25
 
 - Centralize column configuration by @nekrassov01 in https://github.com/nekrassov01/table/pull/13
