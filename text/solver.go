@@ -91,10 +91,6 @@ func (o *solver) measureRow(r *row) {
 		cell := &r.cells[i]
 		value := cell.value
 		cellWidth, hasBreak := measureLine(value)
-		cell.width = 0
-		if !hasBreak {
-			cell.width = cellWidth
-		}
 		overhead := len(value) - cellWidth
 		if hasBreak {
 			overhead = 0
@@ -108,6 +104,8 @@ func (o *solver) measureRow(r *row) {
 				start = next
 			}
 		}
+		cell.width = cellWidth
+		cell.hasBreak = hasBreak
 		metric.overhead = max(metric.overhead, overhead)
 		if r.colspans&(bit<<1) == 0 {
 			metric.box.width = max(metric.box.width, cellWidth)

@@ -122,7 +122,7 @@ CSV has no `solver` because it has no column widths or span geometry to determin
 
 `solve` resolves format-specific information:
 
-- `text` measures cell display widths and span width requirements, retains each measured single-line width on its cell, then applies column settings, padding, and terminal width to determine each column's width and starting position.
+- `text` measures cell display widths and span width requirements, retains each measured cell's widest physical-line width and line-break status, then applies column settings, padding, and terminal width to determine each column's width and starting position.
 - `html` counts span candidates and sets `rowspan` and `colspan` on their leading cells. It assigns `colspan == 0` to absorbed cells so they are omitted from output.
 - `markdown` and `backlog` measure the widest cell in each column and determine the padding width.
 

@@ -542,7 +542,9 @@ func Test_solver_measureRow(t *testing.T) {
 				},
 				cells: []cell{
 					{
-						value: "ab\n界界",
+						value:    "ab\n界界",
+						width:    4,
+						hasBreak: true,
 					},
 				},
 			},
