@@ -36,7 +36,7 @@
 Browse the [examples catalog](./docs/EXAMPLES.md) for a broad range of ways to use the library, with input, options, and exact output for each example.
 
 - `table` uses functional options for clear, reusable configuration.
-- In the bundled comparisons, `table` runs 1.2 to 6.3 times as fast as the next-fastest alternative; see [Performance](#performance).
+- In the bundled comparisons, `table` runs 5.9 to 7.0 times as fast as the next-fastest alternative; see [Performance](#performance).
 - `table` reuses internal buffers to minimize steady-state allocations.
 - `TableOf` and `StreamOf` adapt typed slices and error-returning iterators.
 - `text` measures Unicode by terminal display width, including ambiguous character widths in CJK locales.
@@ -253,39 +253,39 @@ The following tables compare the public APIs in the versions pinned by the [benc
 
 This table records the output implementations documented by each library. `✓` means the library provides a dedicated output mode for the format, and `-` means it does not. `table` targets the GFM table extension; the other Markdown entries indicate generic Markdown table output.
 
-| Output format    | `table` | [`mintab` v0.1.4](https://github.com/nekrassov01/mintab/tree/v0.1.4) | [`simpletable` v1.0.0](https://github.com/alexeyco/simpletable/tree/v1.0.0) | [`go-pretty` v6.8.3](https://github.com/jedib0t/go-pretty/tree/v6.8.3) | [`tablewriter` v1.1.4](https://github.com/olekukonko/tablewriter/tree/v1.1.4) |
-| ---------------- | ------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Text             | ✓       | ✓                                                                    | ✓                                                                           | ✓                                                                      | ✓                                                                             |
-| HTML             | ✓       | -                                                                    | -                                                                           | ✓                                                                      | ✓                                                                             |
-| Markdown         | ✓       | ✓                                                                    | ✓                                                                           | ✓                                                                      | ✓                                                                             |
-| Backlog notation | ✓       | ✓                                                                    | -                                                                           | -                                                                      | -                                                                             |
-| CSV or TSV       | ✓       | -                                                                    | -                                                                           | ✓                                                                      | -                                                                             |
-| SVG              | -       | -                                                                    | -                                                                           | -                                                                      | ✓                                                                             |
+| Output format    | `table` | [`go-pretty` v6.8.3](https://github.com/jedib0t/go-pretty/tree/v6.8.3) | [`tablewriter` v1.1.4](https://github.com/olekukonko/tablewriter/tree/v1.1.4) | [`simpletable` v1.0.0](https://github.com/alexeyco/simpletable/tree/v1.0.0) |
+| ---------------- | ------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Text             | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
+| HTML             | ✓       | ✓                                                                      | ✓                                                                             | -                                                                           |
+| Markdown         | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
+| Backlog notation | ✓       | -                                                                      | -                                                                             | -                                                                           |
+| CSV or TSV       | ✓       | ✓                                                                      | -                                                                             | -                                                                           |
+| SVG              | -       | -                                                                      | ✓                                                                             | -                                                                           |
 
 ### Features
 
 This table records whether each library exposes a direct public API for a capability in at least one output implementation. It does not imply that every format can express the capability.
 
-| Feature                         | `table` | [`mintab` v0.1.4](https://github.com/nekrassov01/mintab/tree/v0.1.4) | [`simpletable` v1.0.0](https://github.com/alexeyco/simpletable/tree/v1.0.0) | [`go-pretty` v6.8.3](https://github.com/jedib0t/go-pretty/tree/v6.8.3) | [`tablewriter` v1.1.4](https://github.com/olekukonko/tablewriter/tree/v1.1.4) |
-| ------------------------------- | ------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Streaming API                   | ✓       | -                                                                    | -                                                                           | -                                                                      | ✓                                                                             |
-| Header                          | ✓       | ✓                                                                    | ✓                                                                           | ✓                                                                      | ✓                                                                             |
-| Footer                          | ✓       | -                                                                    | ✓                                                                           | ✓                                                                      | ✓                                                                             |
-| Placeholder                     | ✓       | ✓                                                                    | -                                                                           | ✓ (HTML)                                                               | -                                                                             |
-| Index column                    | ✓       | -                                                                    | -                                                                           | ✓                                                                      | -                                                                             |
-| Vertical merge                  | ✓       | ✓                                                                    | -                                                                           | ✓                                                                      | ✓                                                                             |
-| Horizontal merge                | ✓       | -                                                                    | ✓                                                                           | ✓                                                                      | ✓                                                                             |
-| Caller-defined row adapter      | ✓       | -                                                                    | -                                                                           | -                                                                      | ✓                                                                             |
-| Reflection-based struct input   | -       | ✓                                                                    | -                                                                           | -                                                                      | ✓                                                                             |
-| CSV input                       | -       | -                                                                    | -                                                                           | -                                                                      | ✓                                                                             |
-| Per-column transformation       | ✓       | -                                                                    | -                                                                           | ✓                                                                      | ✓                                                                             |
-| Built-in sorting and filtering  | -       | -                                                                    | -                                                                           | ✓                                                                      | -                                                                             |
-| Pagination                      | -       | -                                                                    | -                                                                           | ✓                                                                      | -                                                                             |
-| Column hiding                   | -       | ✓                                                                    | -                                                                           | ✓                                                                      | ✓                                                                             |
-| Width, wrapping, and truncation | ✓       | -                                                                    | -                                                                           | ✓                                                                      | ✓                                                                             |
-| Automatic terminal fit          | ✓       | -                                                                    | -                                                                           | -                                                                      | -                                                                             |
-| Title or caption                | ✓       | -                                                                    | -                                                                           | ✓                                                                      | ✓                                                                             |
-| Pluggable output implementation | -       | -                                                                    | -                                                                           | -                                                                      | ✓                                                                             |
+| Feature                         | `table` | [`go-pretty` v6.8.3](https://github.com/jedib0t/go-pretty/tree/v6.8.3) | [`tablewriter` v1.1.4](https://github.com/olekukonko/tablewriter/tree/v1.1.4) | [`simpletable` v1.0.0](https://github.com/alexeyco/simpletable/tree/v1.0.0) |
+| ------------------------------- | ------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Streaming API                   | ✓       | -                                                                      | ✓                                                                             | -                                                                           |
+| Header                          | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
+| Footer                          | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
+| Placeholder                     | ✓       | ✓ (HTML)                                                               | -                                                                             | -                                                                           |
+| Index column                    | ✓       | ✓                                                                      | -                                                                             | -                                                                           |
+| Vertical merge                  | ✓       | ✓                                                                      | ✓                                                                             | -                                                                           |
+| Horizontal merge                | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
+| Caller-defined row adapter      | ✓       | -                                                                      | ✓                                                                             | -                                                                           |
+| Reflection-based struct input   | -       | -                                                                      | ✓                                                                             | -                                                                           |
+| CSV input                       | -       | -                                                                      | ✓                                                                             | -                                                                           |
+| Per-column transformation       | ✓       | ✓                                                                      | ✓                                                                             | -                                                                           |
+| Built-in sorting and filtering  | -       | ✓                                                                      | -                                                                             | -                                                                           |
+| Pagination                      | -       | ✓                                                                      | -                                                                             | -                                                                           |
+| Column hiding                   | -       | ✓                                                                      | ✓                                                                             | -                                                                           |
+| Width, wrapping, and truncation | ✓       | ✓                                                                      | ✓                                                                             | -                                                                           |
+| Automatic terminal fit          | ✓       | -                                                                      | -                                                                             | -                                                                           |
+| Title or caption                | ✓       | ✓                                                                      | ✓                                                                             | -                                                                           |
+| Pluggable output implementation | -       | -                                                                      | ✓                                                                             | -                                                                           |
 
 For `table`, the feature matrix has the following qualifications:
 
@@ -302,7 +302,7 @@ The `go-pretty` placeholder entry refers to its HTML `EmptyColumn` setting.
 >
 > Run `make bench target=comparison benchtime=1x count=1` to reduce steady-state amortization and expose one-iteration setup costs. For explicit pool-drained measurements of `table`, run `make bench target=cold`.
 
-Run the comparison on your machine with `make bench target=comparison`. The following output records all five samples on an Apple M2 with Go 1.26.6:
+Run the comparison on your machine with `make bench target=comparison`. The following output records all five samples on an Apple M2 with Go 1.27.0:
 
 ```console
 $ make bench target=comparison
@@ -311,62 +311,57 @@ goos: darwin
 goarch: arm64
 pkg: benchmarks
 cpu: Apple M2
-BenchmarkComparisonTableSimple-8             10000        1911 ns/op       224 B/op         1 allocs/op
-BenchmarkComparisonTableSimple-8             10000        2300 ns/op       224 B/op         1 allocs/op
-BenchmarkComparisonTableSimple-8             10000        1825 ns/op       224 B/op         1 allocs/op
-BenchmarkComparisonTableSimple-8             10000        1697 ns/op       224 B/op         1 allocs/op
-BenchmarkComparisonTableSimple-8             10000        1789 ns/op       224 B/op         1 allocs/op
-BenchmarkComparisonMintabSimple-8            10000        2312 ns/op      2475 B/op        43 allocs/op
-BenchmarkComparisonMintabSimple-8            10000        2267 ns/op      2473 B/op        43 allocs/op
-BenchmarkComparisonMintabSimple-8            10000        2254 ns/op      2474 B/op        43 allocs/op
-BenchmarkComparisonMintabSimple-8            10000        2254 ns/op      2473 B/op        43 allocs/op
-BenchmarkComparisonMintabSimple-8            10000        2288 ns/op      2473 B/op        43 allocs/op
-BenchmarkComparisonSimpleTableSimple-8       10000       24376 ns/op     13121 B/op       425 allocs/op
-BenchmarkComparisonSimpleTableSimple-8       10000       24201 ns/op     13095 B/op       425 allocs/op
-BenchmarkComparisonSimpleTableSimple-8       10000       24555 ns/op     13103 B/op       425 allocs/op
-BenchmarkComparisonSimpleTableSimple-8       10000       24671 ns/op     13132 B/op       425 allocs/op
-BenchmarkComparisonSimpleTableSimple-8       10000       25226 ns/op     13072 B/op       425 allocs/op
-BenchmarkComparisonGoPrettySimple-8          10000       12241 ns/op      8153 B/op       110 allocs/op
-BenchmarkComparisonGoPrettySimple-8          10000       11661 ns/op      8153 B/op       110 allocs/op
-BenchmarkComparisonGoPrettySimple-8          10000       11474 ns/op      8153 B/op       110 allocs/op
-BenchmarkComparisonGoPrettySimple-8          10000       11247 ns/op      8153 B/op       110 allocs/op
-BenchmarkComparisonGoPrettySimple-8          10000       11929 ns/op      8153 B/op       110 allocs/op
-BenchmarkComparisonTableWriterSimple-8       10000       81569 ns/op    486947 B/op       973 allocs/op
-BenchmarkComparisonTableWriterSimple-8       10000       82413 ns/op    486948 B/op       973 allocs/op
-BenchmarkComparisonTableWriterSimple-8       10000       84899 ns/op    486948 B/op       973 allocs/op
-BenchmarkComparisonTableWriterSimple-8       10000       82554 ns/op    486948 B/op       973 allocs/op
-BenchmarkComparisonTableWriterSimple-8       10000       81930 ns/op    486947 B/op       973 allocs/op
-BenchmarkComparisonTableComplex-8            10000       10979 ns/op      1151 B/op        35 allocs/op
-BenchmarkComparisonTableComplex-8            10000       10350 ns/op      1149 B/op        35 allocs/op
-BenchmarkComparisonTableComplex-8            10000        9921 ns/op      1149 B/op        35 allocs/op
-BenchmarkComparisonTableComplex-8            10000       10288 ns/op      1148 B/op        35 allocs/op
-BenchmarkComparisonTableComplex-8            10000        9484 ns/op      1149 B/op        35 allocs/op
-BenchmarkComparisonGoPrettyComplex-8         10000       62925 ns/op     49260 B/op       317 allocs/op
-BenchmarkComparisonGoPrettyComplex-8         10000       64738 ns/op     49260 B/op       317 allocs/op
-BenchmarkComparisonGoPrettyComplex-8         10000       65542 ns/op     49260 B/op       317 allocs/op
-BenchmarkComparisonGoPrettyComplex-8         10000       62829 ns/op     49257 B/op       317 allocs/op
-BenchmarkComparisonGoPrettyComplex-8         10000       65506 ns/op     49263 B/op       317 allocs/op
-BenchmarkComparisonTableWriterComplex-8      10000      296591 ns/op    720007 B/op      4749 allocs/op
-BenchmarkComparisonTableWriterComplex-8      10000      304143 ns/op    720002 B/op      4748 allocs/op
-BenchmarkComparisonTableWriterComplex-8      10000      326712 ns/op    719999 B/op      4748 allocs/op
-BenchmarkComparisonTableWriterComplex-8      10000      297357 ns/op    719995 B/op      4748 allocs/op
-BenchmarkComparisonTableWriterComplex-8      10000      297505 ns/op    719997 B/op      4749 allocs/op
+BenchmarkComparisonTableSimple-8           10000        2436 ns/op       225 B/op         1 allocs/op
+BenchmarkComparisonTableSimple-8           10000        1847 ns/op       224 B/op         1 allocs/op
+BenchmarkComparisonTableSimple-8           10000        1739 ns/op       224 B/op         1 allocs/op
+BenchmarkComparisonTableSimple-8           10000        1804 ns/op       224 B/op         1 allocs/op
+BenchmarkComparisonTableSimple-8           10000        1773 ns/op       224 B/op         1 allocs/op
+BenchmarkComparisonGoPrettySimple-8        10000       10580 ns/op      8155 B/op       110 allocs/op
+BenchmarkComparisonGoPrettySimple-8        10000       10572 ns/op      8153 B/op       110 allocs/op
+BenchmarkComparisonGoPrettySimple-8        10000       11115 ns/op      8153 B/op       110 allocs/op
+BenchmarkComparisonGoPrettySimple-8        10000       11826 ns/op      8153 B/op       110 allocs/op
+BenchmarkComparisonGoPrettySimple-8        10000       10688 ns/op      8153 B/op       110 allocs/op
+BenchmarkComparisonTableWriterSimple-8     10000       81974 ns/op    486948 B/op       973 allocs/op
+BenchmarkComparisonTableWriterSimple-8     10000       79278 ns/op    486948 B/op       973 allocs/op
+BenchmarkComparisonTableWriterSimple-8     10000       81598 ns/op    486948 B/op       973 allocs/op
+BenchmarkComparisonTableWriterSimple-8     10000       87737 ns/op    486949 B/op       973 allocs/op
+BenchmarkComparisonTableWriterSimple-8     10000       80748 ns/op    486948 B/op       973 allocs/op
+BenchmarkComparisonSimpleTableSimple-8     10000       23490 ns/op     13109 B/op       425 allocs/op
+BenchmarkComparisonSimpleTableSimple-8     10000       23955 ns/op     13098 B/op       425 allocs/op
+BenchmarkComparisonSimpleTableSimple-8     10000       22876 ns/op     13121 B/op       425 allocs/op
+BenchmarkComparisonSimpleTableSimple-8     10000       22583 ns/op     13116 B/op       425 allocs/op
+BenchmarkComparisonSimpleTableSimple-8     10000       22650 ns/op     13098 B/op       425 allocs/op
+BenchmarkComparisonTableComplex-8          10000        9192 ns/op      1150 B/op        35 allocs/op
+BenchmarkComparisonTableComplex-8          10000        9158 ns/op      1150 B/op        35 allocs/op
+BenchmarkComparisonTableComplex-8          10000        9176 ns/op      1149 B/op        35 allocs/op
+BenchmarkComparisonTableComplex-8          10000        9128 ns/op      1149 B/op        35 allocs/op
+BenchmarkComparisonTableComplex-8          10000        9106 ns/op      1150 B/op        35 allocs/op
+BenchmarkComparisonGoPrettyComplex-8       10000       63998 ns/op     49260 B/op       317 allocs/op
+BenchmarkComparisonGoPrettyComplex-8       10000       63791 ns/op     49260 B/op       317 allocs/op
+BenchmarkComparisonGoPrettyComplex-8       10000       61935 ns/op     49263 B/op       317 allocs/op
+BenchmarkComparisonGoPrettyComplex-8       10000       64352 ns/op     49261 B/op       317 allocs/op
+BenchmarkComparisonGoPrettyComplex-8       10000       62202 ns/op     49261 B/op       317 allocs/op
+BenchmarkComparisonTableWriterComplex-8    10000      276792 ns/op    720005 B/op      4749 allocs/op
+BenchmarkComparisonTableWriterComplex-8    10000      280501 ns/op    719999 B/op      4749 allocs/op
+BenchmarkComparisonTableWriterComplex-8    10000      277848 ns/op    720000 B/op      4749 allocs/op
+BenchmarkComparisonTableWriterComplex-8    10000      278027 ns/op    719994 B/op      4749 allocs/op
+BenchmarkComparisonTableWriterComplex-8    10000      279195 ns/op    719997 B/op      4749 allocs/op
 PASS
-ok      benchmarks      25.638s
+ok      benchmarks      24.222s
 ```
 
 The table summarizes those five samples. Each cell shows `allocs/op · ns/op`; both values are medians.
 
-| Scenario       | `table`         | `mintab`   | `simpletable` | `go-pretty`  | `tablewriter`   |
-| -------------- | --------------- | ---------- | ------------- | ------------ | --------------- |
-| Simple         | **1 · 1,825**   | 43 · 2,267 | 425 · 24,555  | 110 · 11,661 | 973 · 82,413    |
-| Complex values | **35 · 10,288** | -          | -             | 317 · 64,738 | 4,748 · 297,505 |
+| Scenario       | `table`        | `go-pretty`  | `tablewriter`   | `simpletable` |
+| -------------- | -------------- | ------------ | --------------- | ------------- |
+| Simple         | **1 · 1,804**  | 110 · 10,688 | 973 · 81,598    | 425 · 22,876  |
+| Complex values | **35 · 9,158** | 317 · 63,791 | 4,749 · 278,027 | -             |
 
 `-` indicates that a library cannot express the scenario with the benchmark input.
 
 The comparison benchmark uses the shared Simple and Complex data sets. Static data is converted to each library's required row type before timing begins. Each timed iteration constructs a table, processes the rows, and writes the result to a reused buffer. Complex compares native value handling rather than equivalent rendered bytes.
 
-The benchmark preserves each library's configuration model: `table` uses only functional options, `mintab` uses functional options and loads its input separately, `simpletable` receives prebuilt cells through exposed table sections, `go-pretty` accumulates settings through setters, and `tablewriter` combines constructor options with methods. These native construction paths remain inside each timed iteration. Only the settings needed to align table structure and preserve header text are applied; border characters and value formatting retain each library's defaults.
+The benchmark preserves each library's configuration model: `table` uses only functional options, `go-pretty` accumulates settings through setters, `tablewriter` combines constructor options with methods, and `simpletable` receives prebuilt cells through exposed table sections. These native construction paths remain inside each timed iteration. Only the settings needed to align table structure and preserve header text are applied; border characters and value formatting retain each library's defaults.
 
 ## Documentation
 
