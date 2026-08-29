@@ -143,6 +143,66 @@ func Test_compiler_indexQuoteValue(t *testing.T) {
 			},
 		},
 		{
+			name: "delimiter after block boundary",
+			fields: fields{
+				delimiter: ',',
+			},
+			args: args{
+				value: "12345678,value",
+			},
+			want: want{
+				index: 8,
+			},
+		},
+		{
+			name: "quote before block boundary",
+			fields: fields{
+				delimiter: ',',
+			},
+			args: args{
+				value: "1234567\"value",
+			},
+			want: want{
+				index: 7,
+			},
+		},
+		{
+			name: "line feed after block boundary",
+			fields: fields{
+				delimiter: ',',
+			},
+			args: args{
+				value: "12345678\nvalue",
+			},
+			want: want{
+				index: 8,
+			},
+		},
+		{
+			name: "carriage return in second block",
+			fields: fields{
+				delimiter: ',',
+			},
+			args: args{
+				value: "123456789012345\rvalue",
+			},
+			want: want{
+				index: 15,
+			},
+		},
+		{
+			name: "plain blocks",
+			fields: fields{
+				delimiter: ',',
+			},
+			args: args{
+				value: "1234567890123456",
+			},
+			want: want{
+				index: -1,
+			},
+		},
+		{
 			name: "Unicode delimiter",
 			fields: fields{
 				delimiter: '・',
