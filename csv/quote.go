@@ -1,6 +1,7 @@
 package csv
 
 import (
+	"encoding/binary"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -64,13 +65,18 @@ func (o *compiler) indexQuoteValue(s string) int {
 	}
 	delimiter := o.input.option.delimiter
 	if delimiter < utf8.RuneSelf {
-		for index := 0; index < len(s); index++ {
-			value := s[index]
-			if rune(value) == delimiter || value == '"' || value == '\n' || value == '\r' {
-				return index
+		//nolint:gosec // The delimiter is restricted to ASCII above.
+		delimiterByte := byte(delimiter)
+		if len(s) < 8 {
+			for index := 0; index < len(s); index++ {
+				value := s[index]
+				if value == delimiterByte || value == '"' || value == '\n' || value == '\r' {
+					return index
+				}
 			}
+			return -1
 		}
-		return -1
+		return indexQuoteASCII(s, delimiterByte)
 	}
 	index := strings.IndexAny(s, "\"\r\n")
 	delimiterIndex := strings.IndexRune(s, delimiter)
@@ -78,4 +84,43 @@ func (o *compiler) indexQuoteValue(s string) int {
 		return delimiterIndex
 	}
 	return index
+}
+
+// indexQuoteASCII scans eight-byte blocks for an ASCII delimiter or CSV
+// quoting byte, then verifies a matching block byte by byte.
+func indexQuoteASCII(s string, delimiter byte) int {
+	const lowBits uint64 = 0x0101010101010101
+	delimiterBits := uint64(delimiter) * lowBits
+	index := 0
+	for ; index <= len(s)-8; index += 8 {
+		value := binary.NativeEndian.Uint64([]byte(s[index:]))
+		matches := zeroByteBits(value ^ delimiterBits)
+		matches |= zeroByteBits(value ^ ('"' * lowBits))
+		matches |= zeroByteBits(value ^ ('\n' * lowBits))
+		matches |= zeroByteBits(value ^ ('\r' * lowBits))
+		if matches == 0 {
+			continue
+		}
+		for candidate := index; candidate < index+8; candidate++ {
+			value := s[candidate]
+			if value == delimiter || value == '"' || value == '\n' || value == '\r' {
+				return candidate
+			}
+		}
+	}
+	for ; index < len(s); index++ {
+		value := s[index]
+		if value == delimiter || value == '"' || value == '\n' || value == '\r' {
+			return index
+		}
+	}
+	return -1
+}
+
+// zeroByteBits marks byte positions that may be zero. Subtraction can also
+// mark neighboring bytes, so callers must verify matching blocks.
+func zeroByteBits(value uint64) uint64 {
+	const lowBits uint64 = 0x0101010101010101
+	const highBits uint64 = 0x8080808080808080
+	return (value - lowBits) & ^value & highBits
 }
