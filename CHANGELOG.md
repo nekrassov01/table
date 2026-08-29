@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.1.3](https://github.com/nekrassov01/table/compare/v0.1.2...v0.1.3) - 2026-08-29
+
+- Update dependencies by @nekrassov01 in https://github.com/nekrassov01/table/pull/24
+- Improve CSV Quote Scanning Performance by @nekrassov01 in https://github.com/nekrassov01/table/pull/26
+
 ## [v0.1.2](https://github.com/nekrassov01/table/compare/v0.1.1...v0.1.2) - 2026-08-27
 
 - Generate the examples catalog from source by @nekrassov01 in https://github.com/nekrassov01/table/pull/19
