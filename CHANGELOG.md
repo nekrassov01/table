@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.1.4](https://github.com/nekrassov01/table/compare/v0.1.3...v0.1.4) - 2026-08-31
+
+- Update logo to a grid by @nekrassov01 in https://github.com/nekrassov01/table/pull/27
+- Maintain repository settings by @nekrassov01 in https://github.com/nekrassov01/table/pull/29
+
 ## [v0.1.3](https://github.com/nekrassov01/table/compare/v0.1.2...v0.1.3) - 2026-08-29
 
 - Update dependencies by @nekrassov01 in https://github.com/nekrassov01/table/pull/24
