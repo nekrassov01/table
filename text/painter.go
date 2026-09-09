@@ -289,8 +289,8 @@ func (o *painter) paintHorizon(h *Horizontal, rowspans, upBars, downBars uint64)
 		if i > 0 {
 			bit := uint64(1) << uint(i)
 			o.writeGlyph(h.Inner.resolve(
-				bit == 0 || upBars&bit != 0,
-				bit == 0 || downBars&bit != 0,
+				upBars != noBars && (bit == 0 || upBars&bit != 0),
+				downBars != noBars && (bit == 0 || downBars&bit != 0),
 				!hasRowspan(rowspans, i-1),
 				!hasRowspan(rowspans, i),
 			))

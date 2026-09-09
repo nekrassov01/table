@@ -1409,6 +1409,58 @@ func Test_painter_paintHorizon(t *testing.T) {
 				output: "+--+  |\n",
 			},
 		},
+		{
+			name: "top border after span limit",
+			fields: fields{
+				input: solverResult{
+					compilerResult: compilerResult{
+						configResult: configResult{
+							option: &option{},
+						},
+					},
+					metrics: make([]columnMetric, 65),
+				},
+			},
+			args: args{
+				horizontal: &Horizontal{
+					Inner: Joints{
+						UDLR: "X",
+						XDLR: "T",
+					},
+				},
+				upBars:   noBars,
+				downBars: allBars,
+			},
+			want: want{
+				output: strings.Repeat("T", 64) + "\n",
+			},
+		},
+		{
+			name: "bottom border after span limit",
+			fields: fields{
+				input: solverResult{
+					compilerResult: compilerResult{
+						configResult: configResult{
+							option: &option{},
+						},
+					},
+					metrics: make([]columnMetric, 65),
+				},
+			},
+			args: args{
+				horizontal: &Horizontal{
+					Inner: Joints{
+						UDLR: "X",
+						UXLR: "B",
+					},
+				},
+				upBars:   allBars,
+				downBars: noBars,
+			},
+			want: want{
+				output: strings.Repeat("B", 64) + "\n",
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
