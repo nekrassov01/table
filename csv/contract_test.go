@@ -400,15 +400,42 @@ func TestContract_StreamInvalidDelimiter(t *testing.T) {
 }
 
 func TestContract_StreamCloseInvalidDelimiter(t *testing.T) {
-	for _, d := range []rune{'"', '\n', '\r', 0, utf8.RuneError, -1, 0xd800, utf8.MaxRune + 1} {
-		var buf bytes.Buffer
-		s := NewStream(&buf, WithDelimiter(d), WithHeader([]string{"A", "B"}))
-		if err := s.Close(); !errors.Is(err, table.ErrDelimiter) {
-			t.Fatalf("delimiter %q: expected table.ErrDelimiter, got %v", d, err)
-		}
-		if buf.Len() != 0 {
-			t.Fatalf("delimiter %q: expected no output, got %q", d, buf.String())
-		}
+	tests := []struct {
+		name string
+		opts []Option
+	}{
+		{
+			name: "no sections",
+		},
+		{
+			name: "header",
+			opts: []Option{WithHeader([]string{"A", "B"})},
+		},
+		{
+			name: "footer",
+			opts: []Option{WithFooter(func() [][]string {
+				return [][]string{{"A", "B"}}
+			})},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			for _, d := range []rune{'"', '\n', '\r', 0, utf8.RuneError, -1, 0xd800, utf8.MaxRune + 1} {
+				var buf bytes.Buffer
+				opts := append([]Option{WithDelimiter(d)}, test.opts...)
+				s := NewStream(&buf, opts...)
+				first := s.Close()
+				if !errors.Is(first, table.ErrDelimiter) {
+					t.Fatalf("delimiter %q: expected table.ErrDelimiter, got %v", d, first)
+				}
+				if err := s.Close(); err != first {
+					t.Fatalf("delimiter %q: second Close: expected %v, got %v", d, first, err)
+				}
+				if buf.Len() != 0 {
+					t.Fatalf("delimiter %q: expected no output, got %q", d, buf.String())
+				}
+			}
+		})
 	}
 }
 

@@ -112,9 +112,6 @@ func (o *Stream) Close() error {
 		o.releaseArena()
 		return o.err
 	}
-	if len(o.option.header) == 0 && len(footer) == 0 {
-		return nil
-	}
 	o.arena = acquireArena()
 	config := o.arena.newConfig(&o.option, footer, 0, 0)
 	config.prepare()
