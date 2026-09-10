@@ -1712,6 +1712,132 @@ func Test_painter_layoutRow(t *testing.T) {
 			},
 		},
 		{
+			name: "colspan uses leading column truncation",
+			fields: fields{
+				input: solverResult{
+					compilerResult: compilerResult{
+						configResult: configResult{
+							option: &option{},
+							columns: []columnConfig{
+								{truncate: true},
+								{},
+							},
+						},
+					},
+					metrics: []columnMetric{
+						{
+							box: box{width: 2},
+						},
+						{
+							box: box{
+								offset: 2,
+								width:  2,
+							},
+						},
+					},
+				},
+			},
+			args: args{
+				row: row{
+					cells: []cell{
+						{
+							value: "abcdef",
+							width: 6,
+						},
+						{},
+					},
+					colspans: 0b10,
+					bars:     allBars &^ 0b10,
+				},
+				scope: ScopeBody,
+			},
+			want: want{
+				height: 1,
+				layouts: []layout{
+					{
+						value: "a...",
+						box: box{
+							width: 4,
+						},
+						width: 4,
+					},
+				},
+			},
+		},
+		{
+			name: "colspan ignores trailing column truncation",
+			fields: fields{
+				input: solverResult{
+					compilerResult: compilerResult{
+						configResult: configResult{
+							option: &option{},
+							columns: []columnConfig{
+								{},
+								{truncate: true},
+							},
+						},
+					},
+					metrics: []columnMetric{
+						{
+							box: box{width: 2},
+						},
+						{
+							box: box{
+								offset: 2,
+								width:  2,
+							},
+						},
+					},
+				},
+			},
+			args: args{
+				row: row{
+					cells: []cell{
+						{
+							value: "abcdef",
+							width: 6,
+						},
+						{},
+					},
+					colspans: 0b10,
+					bars:     allBars &^ 0b10,
+				},
+				scope: ScopeBody,
+			},
+			want: want{
+				height: 2,
+				layouts: []layout{
+					{
+						value: "abcdef",
+						segments: []segment{
+							{
+								value: "abcd",
+								width: 4,
+							},
+							{
+								value: "ef",
+								width: 2,
+							},
+						},
+						box: box{
+							width: 4,
+						},
+						width: 4,
+					},
+				},
+				segments: []segment{
+					{
+						value: "abcd",
+						width: 4,
+					},
+					{
+						value: "ef",
+						width: 2,
+					},
+				},
+			},
+		},
+		{
 			name: "rowspan clears value and attribute",
 			fields: fields{
 				input: solverResult{

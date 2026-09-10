@@ -340,7 +340,6 @@ func (o *painter) layoutRow(r *row, sc Scope) int {
 				rPad:   lastBox.rPad,
 			}
 			limit = cellBox.width
-			truncate = false
 		}
 		compiled := &r.cells[columnIndex]
 		bit := uint64(1) << uint(columnIndex)

@@ -281,6 +281,7 @@ func WithTransformer(columns ColumnSelector, fn func(any) (string, *Attr)) Optio
 
 - `WithWidth` sets the display-width boundary of cell content, excluding padding. A value of zero or less removes the boundary.
 - `WithTruncate` replaces wrapping with `...`. In a column without `WithWidth`, it applies to values that exceed the initial column width after a stream has begun.
+- A horizontally spanned cell uses the `WithTruncate` setting of its leftmost column.
 - `WithPadding` sets left and right space widths. Negative values become zero, and padding contributes to the total table width.
 - `WithAutoFit` reduces column widths to fit terminal output within the terminal width. It has no effect for a non-terminal destination or if any column uses `WithWidth` or `WithTruncate`.
 - `WithIndexWidth` sets the minimum width of the index column. A stream reserves at least three digits.
