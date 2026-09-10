@@ -3,11 +3,11 @@
 //
 // Nil values, including typed nil references, and empty strings, slices, or
 // arrays produce an empty string so format packages can apply their own
-// placeholders. Byte slices are treated as text. Values implementing
-// fmt.Stringer or error use those representations. Other values use their
-// fmt.Sprint representation. Applications that need a different representation
-// can configure a transformer or convert the value before passing it to a Table
-// or Stream.
+// placeholders. Byte slices are treated as text. Values implementing error use
+// Error, including values that also implement fmt.Stringer. Other fmt.Stringer
+// values use String. Remaining values use their fmt.Sprint representation.
+// Applications that need a different representation can configure a transformer
+// or convert the value before passing it to a Table or Stream.
 package value
 
 import (
@@ -66,16 +66,16 @@ func Format(st *Store, v any) string {
 		return strconv.FormatBool(x)
 	case []byte:
 		return appendBytes(st, x)
-	case fmt.Stringer:
-		if isTypedNil(x) {
-			return ""
-		}
-		return x.String()
 	case error:
 		if isTypedNil(x) {
 			return ""
 		}
 		return x.Error()
+	case fmt.Stringer:
+		if isTypedNil(x) {
+			return ""
+		}
+		return x.String()
 	default:
 		return formatReflect(st, v)
 	}
@@ -229,17 +229,18 @@ func resolveReferenceChain(rv reflect.Value) (reflect.Value, string, bool) {
 	return rv, "", false
 }
 
-// resolveStringerOrError formats rv through fmt.Stringer or error when possible.
+// resolveStringerOrError formats rv through error or fmt.Stringer when possible,
+// preferring error when both are implemented.
 func resolveStringerOrError(rv reflect.Value) (string, bool) {
 	if !rv.CanInterface() {
 		return "", false
 	}
 	t := rv.Type()
-	if t.Implements(reflect.TypeFor[fmt.Stringer]()) {
-		return rv.Interface().(fmt.Stringer).String(), true
-	}
 	if t.Implements(reflect.TypeFor[error]()) {
 		return rv.Interface().(error).Error(), true
+	}
+	if t.Implements(reflect.TypeFor[fmt.Stringer]()) {
+		return rv.Interface().(fmt.Stringer).String(), true
 	}
 	return "", false
 }

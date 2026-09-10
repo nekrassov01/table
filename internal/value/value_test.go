@@ -268,6 +268,15 @@ func TestFormat(t *testing.T) {
 			},
 		},
 		{
+			name: "error takes precedence over stringer",
+			args: args{
+				v: stringerError{},
+			},
+			want: want{
+				text: "error",
+			},
+		},
+		{
 			name: "typed-nil error is missing",
 			args: args{
 				v: (*testutil.PtrError)(nil),
@@ -518,6 +527,15 @@ func TestFormat(t *testing.T) {
 			},
 			want: want{
 				text: "[a b]",
+			},
+		},
+		{
+			name: "slice of errors and stringers uses error formatting",
+			args: args{
+				v: []stringerError{{}},
+			},
+			want: want{
+				text: "[error]",
 			},
 		},
 		{
@@ -1172,6 +1190,18 @@ func Test_resolveStringerOrError(t *testing.T) {
 			},
 		},
 		{
+			name: "error takes precedence over stringer",
+			args: args{
+				value: func() reflect.Value {
+					return reflect.ValueOf(stringerError{})
+				},
+			},
+			want: want{
+				text:     "error",
+				resolved: true,
+			},
+		},
+		{
 			name: "ordinary value remains unresolved",
 			args: args{
 				value: func() reflect.Value {
@@ -1530,4 +1560,14 @@ func Test_isTypedNil(t *testing.T) {
 			testutil.AssertValue(t, got, test.want.val, "isTypedNil")
 		})
 	}
+}
+
+type stringerError struct{}
+
+func (stringerError) Error() string {
+	return "error"
+}
+
+func (stringerError) String() string {
+	return "stringer"
 }
