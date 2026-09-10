@@ -732,6 +732,37 @@ func Test_solver_resolveWidths(t *testing.T) {
 			},
 		},
 		{
+			name: "uses compiled placeholder width",
+			fields: fields{
+				input: compilerResult{
+					configResult: configResult{
+						option: &option{
+							placeholder: "\t",
+						},
+					},
+					placeholder: "    ",
+				},
+				state: solverState{
+					columnMetrics: []columnMetric{
+						{
+							box: box{
+								width: 1,
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				metrics: []columnMetric{
+					{
+						box: box{
+							width: 4,
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "satisfied span keeps widths",
 			fields: fields{
 				input: compilerResult{

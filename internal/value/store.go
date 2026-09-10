@@ -1,10 +1,6 @@
 package value
 
-import (
-	"strconv"
-
-	"github.com/nekrassov01/table/internal/unsafe"
-)
+import "strconv"
 
 // Store builds formatted values in shared backing storage and returns
 // zero-copy string views. Callers must discard the views before Reset because
@@ -23,9 +19,9 @@ func (o *Store) Reset() {
 	o.buf = o.buf[:0]
 }
 
-// Since returns an unsafe string view of the bytes appended since mark.
+// Since returns a zero-copy string view of the bytes appended since mark.
 func (o *Store) Since(mark int) string {
-	return unsafe.View(o.buf[mark:])
+	return View(o.buf[mark:])
 }
 
 // AppendString appends s.

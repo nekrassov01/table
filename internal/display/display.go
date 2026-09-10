@@ -1,11 +1,11 @@
-// Package width measures terminal display width and scans strings by display
+// Package display measures terminal display width and scans strings by display
 // units.
 //
 // ASCII text uses a direct byte-width path. Other text is segmented into
 // grapheme clusters and measured with go-runewidth so that all format packages
 // use the same width model. The package does not interpret line breaks or
 // combine lines; the text package applies those layout rules.
-package width
+package display
 
 import (
 	"github.com/clipperhouse/uax29/v2/graphemes"
@@ -46,7 +46,7 @@ func (o *Scanner) Next() (start, end, displayWidth int, ok bool) {
 		start = o.next
 		o.next++
 		value := o.text[start]
-		if value >= 0x20 && value != 0x7f {
+		if IsPrintableASCII(value) {
 			displayWidth = 1
 		}
 		return start, o.next, displayWidth, true
@@ -65,6 +65,11 @@ func (o *Scanner) Next() (start, end, displayWidth int, ok bool) {
 	return o.clusters.Start(), o.clusters.End(), displayWidth, true
 }
 
+// IsPrintableASCII reports whether b is between space and tilde, inclusive.
+func IsPrintableASCII(b byte) bool {
+	return b-0x20 < 0x5f
+}
+
 // StringWidth returns the display width of s in terminal columns.
 // Strings of printable ASCII use len(s) directly to avoid runewidth
 // overhead. Multibyte runes and control bytes take the measured path;
@@ -72,7 +77,7 @@ func (o *Scanner) Next() (start, end, displayWidth int, ok bool) {
 // same result for the same content.
 func StringWidth(s string) int {
 	for i := 0; i < len(s); i++ {
-		if s[i]-0x20 >= 0x5f {
+		if !IsPrintableASCII(s[i]) {
 			return runewidth.StringWidth(s)
 		}
 	}

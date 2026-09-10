@@ -33,8 +33,10 @@ func Test_compiler_prepare(t *testing.T) {
 		colspanBody    uint64
 		colspanFooter  uint64
 		outputRowspans uint64
+		placeholder    string
 		previousSpan   uint64
 		lastBars       uint64
+		stringMark     int
 	}
 	tests := []struct {
 		name   string
@@ -45,7 +47,9 @@ func Test_compiler_prepare(t *testing.T) {
 			name: "allocates storage and span masks",
 			fields: fields{
 				input: configResult{
-					option:   &option{},
+					option: &option{
+						placeholder: "\t",
+					},
 					header:   [][]string{{"header"}},
 					footer:   [][]string{{"footer"}},
 					bodyRows: 2,
@@ -75,7 +79,9 @@ func Test_compiler_prepare(t *testing.T) {
 				colspanBody:    0b10,
 				colspanFooter:  0b01,
 				outputRowspans: 0b11,
+				placeholder:    "    ",
 				lastBars:       allBars,
+				stringMark:     4,
 			},
 		},
 		{
@@ -148,8 +154,10 @@ func Test_compiler_prepare(t *testing.T) {
 				colspanBody:    state.colspans.Resolve(ScopeBody),
 				colspanFooter:  state.colspans.Resolve(ScopeFooter),
 				outputRowspans: o.output.rowspanMask,
+				placeholder:    o.output.placeholder,
 				previousSpan:   previousSpan,
 				lastBars:       state.lastBars,
+				stringMark:     strings.Mark(),
 			}
 			testutil.AssertValue(t, got, test.want, "prepare")
 		})
@@ -232,6 +240,7 @@ func Test_compiler_compileHeader(t *testing.T) {
 							{
 								value: "top",
 								attr:  NewAttr(CodeBold),
+								width: 3,
 							},
 						},
 						bars: allBars,
@@ -241,6 +250,7 @@ func Test_compiler_compileHeader(t *testing.T) {
 							{
 								value: "bottom",
 								attr:  NewAttr(CodeBold),
+								width: 6,
 							},
 						},
 						bars: allBars,
@@ -252,6 +262,7 @@ func Test_compiler_compileHeader(t *testing.T) {
 							{
 								value: "top",
 								attr:  NewAttr(CodeBold),
+								width: 3,
 							},
 						},
 						bars: allBars,
@@ -261,6 +272,7 @@ func Test_compiler_compileHeader(t *testing.T) {
 							{
 								value: "bottom",
 								attr:  NewAttr(CodeBold),
+								width: 6,
 							},
 						},
 						bars: allBars,
@@ -304,9 +316,10 @@ func Test_compiler_compileBody(t *testing.T) {
 		sources [][]any
 	}
 	type want struct {
-		values []string
-		rows   int
-		err    string
+		values   []string
+		rowspans []uint64
+		rows     int
+		err      string
 	}
 	tests := []struct {
 		name   string
@@ -340,8 +353,43 @@ func Test_compiler_compileBody(t *testing.T) {
 				},
 			},
 			want: want{
-				values: []string{"first", "second"},
-				rows:   2,
+				values:   []string{"first", "second"},
+				rowspans: []uint64{0, 0},
+				rows:     2,
+			},
+		},
+		{
+			name: "compares expanded values for spans",
+			fields: fields{
+				input: configResult{
+					option:  &option{},
+					columns: []columnConfig{{}},
+				},
+				state: func() compilerState {
+					var rowspans scope.Masks
+					rowspans.Mark(ScopeBody, 0)
+					return compilerState{
+						cells:      make([]cell, 0, 2),
+						spanValues: make([]string, 1),
+						rows:       make([]row, 0, 2),
+						rowspans:   rowspans,
+					}
+				}(),
+				bodyStart: -1,
+				output: compilerResult{
+					lastBars: allBars,
+				},
+			},
+			args: args{
+				sources: [][]any{
+					{"a\tb"},
+					{"a    b"},
+				},
+			},
+			want: want{
+				values:   []string{"a    b", "a    b"},
+				rowspans: []uint64{0, 1},
+				rows:     2,
 			},
 		},
 		{
@@ -371,9 +419,10 @@ func Test_compiler_compileBody(t *testing.T) {
 				},
 			},
 			want: want{
-				values: []string{"first"},
-				rows:   1,
-				err:    "text: column count exceeded: got 2, want 1",
+				values:   []string{"first"},
+				rowspans: []uint64{0},
+				rows:     1,
+				err:      "text: column count exceeded: got 2, want 1",
 			},
 		},
 	}
@@ -394,6 +443,7 @@ func Test_compiler_compileBody(t *testing.T) {
 				rows: len(o.output.body),
 			}
 			for _, row := range o.output.body {
+				got.rowspans = append(got.rowspans, row.rowspans)
 				for _, cell := range row.cells {
 					got.values = append(got.values, cell.value)
 				}
@@ -517,6 +567,7 @@ func Test_compiler_compileFooter(t *testing.T) {
 							{
 								value: "top",
 								attr:  NewAttr(CodeUnderline),
+								width: 3,
 							},
 						},
 						bars: allBars,
@@ -526,6 +577,7 @@ func Test_compiler_compileFooter(t *testing.T) {
 							{
 								value: "bottom",
 								attr:  NewAttr(CodeUnderline),
+								width: 6,
 							},
 						},
 						bars: allBars,
@@ -537,6 +589,7 @@ func Test_compiler_compileFooter(t *testing.T) {
 							{
 								value: "top",
 								attr:  NewAttr(CodeUnderline),
+								width: 3,
 							},
 						},
 						bars: allBars,
@@ -546,6 +599,7 @@ func Test_compiler_compileFooter(t *testing.T) {
 							{
 								value: "bottom",
 								attr:  NewAttr(CodeUnderline),
+								width: 6,
 							},
 						},
 						bars: allBars,
@@ -605,7 +659,8 @@ func Test_compiler_compileBand(t *testing.T) {
 		scope  Scope
 	}
 	type want struct {
-		row row
+		row        row
+		stringMark int
 	}
 	attr := NewAttr(CodeBold)
 	tests := []struct {
@@ -635,7 +690,7 @@ func Test_compiler_compileBand(t *testing.T) {
 				},
 			},
 			args: args{
-				labels: []string{"label"},
+				labels: []string{"la\tbel"},
 				scope:  ScopeHeader,
 			},
 			want: want{
@@ -644,14 +699,17 @@ func Test_compiler_compileBand(t *testing.T) {
 						{
 							value: "#",
 							attr:  attr,
+							width: 1,
 						},
 						{
-							value: "label",
+							value: "la    bel",
 							attr:  attr,
+							width: 9,
 						},
 						{},
 					},
 				},
+				stringMark: 9,
 			},
 		},
 		{
@@ -675,7 +733,7 @@ func Test_compiler_compileBand(t *testing.T) {
 				},
 			},
 			args: args{
-				labels: []string{"total", ""},
+				labels: []string{"to\ttal", ""},
 				scope:  ScopeFooter,
 			},
 			want: want{
@@ -683,12 +741,14 @@ func Test_compiler_compileBand(t *testing.T) {
 					cells: []cell{
 						{},
 						{
-							value: "total",
+							value: "to    tal",
 							attr:  attr,
+							width: 9,
 						},
 						{},
 					},
 				},
+				stringMark: 9,
 			},
 		},
 	}
@@ -705,7 +765,8 @@ func Test_compiler_compileBand(t *testing.T) {
 				output:    test.fields.output,
 			}
 			got := want{
-				row: o.compileBand(test.args.labels, test.args.scope),
+				row:        o.compileBand(test.args.labels, test.args.scope),
+				stringMark: strings.Mark(),
 			}
 			testutil.AssertValue(t, got, test.want, "compileBand")
 		})
@@ -893,7 +954,7 @@ func Test_compiler_compileCells(t *testing.T) {
 					attr := NewAttr(CodeFgRed)
 					configured := defaultColumn()
 					configured.transformer.fn = func(any) (string, *Attr) {
-						return "answer", attr
+						return "ans\twer", attr
 					}
 					return configResult{
 						option:  &option{},
@@ -910,12 +971,13 @@ func Test_compiler_compileCells(t *testing.T) {
 			want: want{
 				cells: []cell{
 					{
-						value: "answer",
+						value: "ans    wer",
 						attr:  NewAttr(CodeFgRed),
+						width: 10,
 					},
 				},
 				attrLen:    9,
-				stringMark: 0,
+				stringMark: 10,
 			},
 		},
 		{
@@ -946,6 +1008,7 @@ func Test_compiler_compileCells(t *testing.T) {
 					{
 						value: "transformed",
 						attr:  NewAttr(CodeBold),
+						width: 11,
 					},
 				},
 			},
@@ -976,6 +1039,7 @@ func Test_compiler_compileCells(t *testing.T) {
 					{
 						value: "12",
 						attr:  NewAttr(CodeBold),
+						width: 2,
 					},
 				},
 				stringMark: 2,
@@ -992,7 +1056,7 @@ func Test_compiler_compileCells(t *testing.T) {
 					}
 					return configResult{
 						option: &option{
-							placeholder: "-",
+							placeholder: "\t",
 						},
 						columns: []columnConfig{configured},
 					}
@@ -1007,10 +1071,12 @@ func Test_compiler_compileCells(t *testing.T) {
 			want: want{
 				cells: []cell{
 					{
-						value: "-",
+						value: "    ",
+						width: 4,
 					},
 				},
-				attrLen: 9,
+				attrLen:    9,
+				stringMark: 4,
 			},
 		},
 		{
@@ -1018,7 +1084,7 @@ func Test_compiler_compileCells(t *testing.T) {
 			fields: fields{
 				input: configResult{
 					option: &option{
-						placeholder: "-",
+						placeholder: "\t",
 						indexOffset: 1,
 					},
 					columns: []columnConfig{
@@ -1032,16 +1098,16 @@ func Test_compiler_compileCells(t *testing.T) {
 				row: row{
 					cells: make([]cell, 3),
 				},
-				source:   []any{"value"},
+				source:   []any{"va\tlue"},
 				rowIndex: 4,
 			},
 			want: want{
 				cells: []cell{
-					{value: "5"},
-					{value: "value"},
-					{value: "-"},
+					{value: "5", width: 1},
+					{value: "va    lue", width: 9},
+					{value: "    ", width: 4},
 				},
-				stringMark: 1,
+				stringMark: 14,
 			},
 		},
 	}
@@ -1451,6 +1517,93 @@ func Test_compiler_setBars(t *testing.T) {
 				bars: r.bars,
 			}
 			testutil.AssertValue(t, got, test.want, "setBars")
+		})
+	}
+}
+
+func Test_compiler_compileValue(t *testing.T) {
+	type fields struct {
+		prefix string
+	}
+	type args struct {
+		text      string
+		fromStore bool
+	}
+	type want struct {
+		text       string
+		width      int
+		stringMark int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   want
+	}{
+		{
+			name: "unchanged",
+			args: args{
+				text: "plain",
+			},
+			want: want{
+				text:  "plain",
+				width: 5,
+			},
+		},
+		{
+			name: "consecutive tabs",
+			args: args{
+				text: "a\t\tb",
+			},
+			want: want{
+				text:       "a        b",
+				width:      10,
+				stringMark: 10,
+			},
+		},
+		{
+			name: "store-backed input",
+			fields: fields{
+				prefix: "a\tb",
+			},
+			args: args{
+				fromStore: true,
+			},
+			want: want{
+				text:       "a    b",
+				width:      6,
+				stringMark: 9,
+			},
+		},
+		{
+			name: "non-ASCII with tab",
+			args: args{
+				text: "あ\tb",
+			},
+			want: want{
+				text:       "あ    b",
+				stringMark: 8,
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var strings value.Store
+			strings.AppendString(test.fields.prefix)
+			text := test.args.text
+			if test.args.fromStore {
+				text = strings.Since(0)
+			}
+			o := &compiler{
+				strings: &strings,
+			}
+			gotText, gotWidth := o.compileValue(text)
+			got := want{
+				text:       gotText,
+				width:      gotWidth,
+				stringMark: strings.Mark(),
+			}
+			testutil.AssertValue(t, got, test.want, "compileValue")
 		})
 	}
 }

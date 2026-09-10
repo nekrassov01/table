@@ -99,7 +99,7 @@ A reusable `Option` does not mutate captured values on each application. If a va
 
 Primitive slices and arrays are appended directly to arena-backed value storage while preserving their `fmt.Sprint` representation. Other values use `fmt.Append`, which provides the same representation without first creating a temporary string when the destination has reusable capacity.
 
-Missingness is retained when the value is resolved rather than inferred later by comparing strings with the placeholder. Spans compare displayed values before markup is added. Format-specific escaping and markup remain outside shared value conversion.
+Missingness is retained when the value is resolved rather than inferred later by comparing strings with the placeholder. Text expands tabs after selecting the displayed value and before comparing spans, so equal visible strings produce equal spans. The compiler passes known printable ASCII widths forward instead of making the solver scan those values again. Format-specific escaping and markup remain outside shared value conversion.
 
 ### Separate logical columns from display geometry
 

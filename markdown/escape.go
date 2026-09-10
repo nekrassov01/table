@@ -4,7 +4,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/nekrassov01/table/internal/unsafe"
+	"github.com/nekrassov01/table/internal/value"
 )
 
 const (
@@ -67,7 +67,7 @@ func escapeCode(escapes []byte, s string) (string, []byte) {
 	if pad {
 		escapes = append(escapes, ' ')
 	}
-	return unsafe.View(escapes[start:]), escapes
+	return value.View(escapes[start:]), escapes
 }
 
 // escapeValue literalizes GFM and HTML syntax, normalizes invalid input, and
@@ -105,7 +105,7 @@ func escapeValue(escapes []byte, s string) (string, []byte) {
 			index += size - 1
 		}
 	}
-	return unsafe.View(escapes[start:]), escapes
+	return value.View(escapes[start:]), escapes
 }
 
 // indexEscapeValue returns the first byte that requires GFM literalization or

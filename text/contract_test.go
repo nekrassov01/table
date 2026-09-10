@@ -11,8 +11,8 @@ import (
 	"testing"
 
 	"github.com/nekrassov01/table"
+	"github.com/nekrassov01/table/internal/display"
 	"github.com/nekrassov01/table/internal/testutil"
-	"github.com/nekrassov01/table/internal/width"
 )
 
 type contractCase struct {
@@ -388,9 +388,9 @@ func TestContract_MultiColumnFillKeepsFrameWidth(t *testing.T) {
 		t.Fatal(err)
 	}
 	lines := strings.Split(strings.TrimRight(buf.String(), "\n"), "\n")
-	want := width.StringWidth(lines[1])
+	want := display.StringWidth(lines[1])
 	for i, line := range lines {
-		if got := width.StringWidth(line); got != want {
+		if got := display.StringWidth(line); got != want {
 			t.Fatalf("line %d is %d wide, the frame is %d: %s", i+1, got, want, line)
 		}
 	}
@@ -692,9 +692,9 @@ func TestContract_IndexWidthHoldsPastTheFloor(t *testing.T) {
 		t.Fatal(err)
 	}
 	lines := strings.Split(strings.TrimRight(buf.String(), "\n"), "\n")
-	want := width.StringWidth(lines[0])
+	want := display.StringWidth(lines[0])
 	for i, l := range lines {
-		if w := width.StringWidth(l); w != want {
+		if w := display.StringWidth(l); w != want {
 			t.Fatalf("line %d is %d wide, the frame is %d: %s", i+1, w, want, l)
 		}
 	}

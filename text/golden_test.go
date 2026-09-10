@@ -1297,10 +1297,10 @@ func TestGolden_TableColspanTruncate(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"A", "B"}),
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1)),
-		WithWidth(Columns(0), 5),
-		WithTruncate(Columns(0)),
+		WithWidth(AllColumns(), 5),
+		WithTruncate(AllColumns()),
 	)
-	if err := tb.Render([][]any{{"a long value", "a long value"}, {"a long value", "q"}}); err != nil {
+	if err := tb.Render([][]any{{"a longer value", "a longer value"}, {"a long value", "q"}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_colspan_truncate", buf.Bytes())
@@ -1312,10 +1312,10 @@ func TestGolden_StreamColspanTruncate(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"A", "B"}),
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1)),
-		WithWidth(Columns(0), 5),
-		WithTruncate(Columns(0)),
+		WithWidth(AllColumns(), 5),
+		WithTruncate(AllColumns()),
 	)
-	for _, r := range [][]any{{"a long value", "a long value"}, {"a long value", "q"}} {
+	for _, r := range [][]any{{"a longer value", "a longer value"}, {"a long value", "q"}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}

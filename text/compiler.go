@@ -3,6 +3,7 @@ package text
 import (
 	"slices"
 
+	"github.com/nekrassov01/table/internal/display"
 	"github.com/nekrassov01/table/internal/param"
 	"github.com/nekrassov01/table/internal/scope"
 	"github.com/nekrassov01/table/internal/span"
@@ -57,6 +58,7 @@ func (o *compiler) prepare() {
 		state.colspans.Mark(col.colspan, index)
 	}
 	o.output.rowspanMask = state.rowspans.Resolve(ScopeBody)
+	o.output.placeholder, _ = o.compileValue(o.input.option.placeholder)
 	state.previousBody.Reset()
 	state.lastBars = allBars
 }
@@ -140,7 +142,7 @@ func (o *compiler) compileBand(labels []string, sc Scope) row {
 			attr = nil
 		}
 		compiled := &r.cells[index]
-		compiled.value = text
+		compiled.value, compiled.width = o.compileValue(text)
 		compiled.attr = attr
 	}
 	o.setSpans(&r, sc, &state.previousBand)
@@ -177,11 +179,12 @@ func (o *compiler) compileCells(r row, source []any, rowIndex int) {
 		compiled := &r.cells[index]
 		if index < config.option.indexOffset {
 			compiled.value = value.Number(o.strings, int64(rowIndex)+1)
+			compiled.width = len(compiled.value)
 			continue
 		}
 		sourceIndex := index - config.option.indexOffset
 		if sourceIndex >= len(source) {
-			compiled.value = config.option.placeholder
+			compiled.value, compiled.width = o.compileValue(config.option.placeholder)
 			continue
 		}
 		transformer := &config.columns[index].transformer
@@ -208,9 +211,50 @@ func (o *compiler) compileCells(r row, source []any, rowIndex int) {
 			text = config.option.placeholder
 			attr = nil
 		}
-		compiled.value = text
+		compiled.value, compiled.width = o.compileValue(text)
 		compiled.attr = attr
 	}
+}
+
+// compileValue expands tabs while recording printable ASCII width so the
+// solver does not repeat the same scan.
+func (o *compiler) compileValue(s string) (string, int) {
+	tab := -1
+	ascii := true
+	for index := 0; index < len(s); index++ {
+		if display.IsPrintableASCII(s[index]) {
+			continue
+		}
+		if s[index] == '\t' {
+			if tab < 0 {
+				tab = index
+			}
+			continue
+		}
+		ascii = false
+	}
+	if tab < 0 {
+		if ascii {
+			return s, len(s)
+		}
+		return s, 0
+	}
+	mark := o.strings.Mark()
+	start := 0
+	for index := tab; index < len(s); index++ {
+		if s[index] != '\t' {
+			continue
+		}
+		o.strings.AppendString(s[start:index])
+		o.strings.AppendString("    ")
+		start = index + 1
+	}
+	o.strings.AppendString(s[start:])
+	value := o.strings.Since(mark)
+	if ascii {
+		return value, len(value)
+	}
+	return value, 0
 }
 
 // reserveBand reserves storage for n header or footer rows and returns them.
@@ -289,6 +333,7 @@ type compilerResult struct {
 	previousBars    uint64 // Boundaries inherited from the preceding body row.
 	lastBars        uint64 // Final body row boundaries, or inherited boundaries without a body.
 	attrLen         uint32 // Greatest dynamic attribute byte length used for capacity estimation.
+	placeholder     string // Placeholder after displayed-value normalization.
 	hasPreviousBody bool   // Whether a body row precedes this result.
 }
 
@@ -305,6 +350,6 @@ type row struct {
 type cell struct {
 	value    string // Resolved display value.
 	attr     *Attr  // Optional display attribute.
-	width    int    // Solved display width of the widest physical line.
+	width    int    // Known display width of the widest physical line; zero if unresolved.
 	hasBreak bool   // Whether value contains a line break.
 }

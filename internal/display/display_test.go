@@ -1,4 +1,4 @@
-package width
+package display
 
 import (
 	"testing"
@@ -72,6 +72,72 @@ func TestScanner_Next(t *testing.T) {
 				units: units,
 			}
 			testutil.AssertValue(t, got, test.want, "Next")
+		})
+	}
+}
+
+func TestIsPrintableASCII(t *testing.T) {
+	type args struct {
+		b byte
+	}
+	type want struct {
+		printable bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "space",
+			args: args{
+				b: ' ',
+			},
+			want: want{
+				printable: true,
+			},
+		},
+		{
+			name: "tilde",
+			args: args{
+				b: '~',
+			},
+			want: want{
+				printable: true,
+			},
+		},
+		{
+			name: "control",
+			args: args{
+				b: '\t',
+			},
+			want: want{
+				printable: false,
+			},
+		},
+		{
+			name: "delete",
+			args: args{
+				b: 0x7f,
+			},
+			want: want{
+				printable: false,
+			},
+		},
+		{
+			name: "non-ASCII",
+			args: args{
+				b: 0x80,
+			},
+			want: want{
+				printable: false,
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got := IsPrintableASCII(test.args.b)
+			testutil.AssertValue(t, got, test.want.printable, "IsPrintableASCII")
 		})
 	}
 }

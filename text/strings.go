@@ -1,12 +1,12 @@
 package text
 
-import "github.com/nekrassov01/table/internal/width"
+import "github.com/nekrassov01/table/internal/display"
 
 // measureLine returns value's display width when it contains no line break. If
 // hasBreak is true, displayWidth is zero and scanLine must measure each line.
 func measureLine(value string) (displayWidth int, hasBreak bool) {
 	for i := 0; i < len(value); i++ {
-		if value[i]-0x20 < 0x5f {
+		if display.IsPrintableASCII(value[i]) {
 			continue
 		}
 		for ; i < len(value); i++ {
@@ -14,7 +14,7 @@ func measureLine(value string) (displayWidth int, hasBreak bool) {
 				return 0, true
 			}
 		}
-		return width.StringWidth(value), false
+		return display.StringWidth(value), false
 	}
 	return len(value), false
 }
@@ -25,13 +25,13 @@ func scanLine(s string, start int) (line string, displayWidth, next int, hasBrea
 	end := start
 	simple := true
 	for end < len(s) && s[end] != '\n' && s[end] != '\r' {
-		simple = simple && s[end]-0x20 < 0x5f
+		simple = simple && display.IsPrintableASCII(s[end])
 		end++
 	}
 	line = s[start:end]
 	displayWidth = len(line)
 	if !simple {
-		displayWidth = width.StringWidth(line)
+		displayWidth = display.StringWidth(line)
 	}
 	next = end
 	hasBreak = end < len(s)

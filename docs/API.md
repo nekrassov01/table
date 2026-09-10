@@ -119,13 +119,13 @@ func StreamOf[T any](values iter.Seq2[T, error], fn func(T) []any) iter.Seq2[[]a
 
 The following table identifies the primary consumer, reference specification, and conformance status of each format.
 
-| Format     | Primary consumer                  | Reference                                                                                                                                                                                                        | Conformance                                                                                                                  |
-| ---------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `text`     | Terminal or text viewer           | Terminal display width<br/>ECMA-48 SGR                                                                                                                                                                           | Custom format                                                                                                                |
-| `html`     | Browser                           | [HTML Standard: Tables](https://html.spec.whatwg.org/multipage/tables.html#tables)                                                                                                                               | Substantially conformant. `colspan` is limited to 64 columns, while `rowspan` may exceed the standard maximum of 65,534.     |
-| `markdown` | GitHub or a GFM-compatible parser | [GitHub Flavored Markdown: Tables extension](https://github.github.com/gfm/#tables-extension-)                                                                                                                   | Substantially conformant. A body row wider than the header returns `table.ErrColumnCount` instead of ignoring extra cells.   |
-| `backlog`  | Backlog notation parser           | [Backlog Notation](https://help-center.backlog.com/%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88%E6%95%B4%E5%BD%A2%E3%83%AB%E3%83%BC%E3%83%AB%EF%BC%88Backlog%E8%A8%98%E6%B3%95%EF%BC%89-6a1d4d7f3abb3ada78c5658b#index7) | Substantially conformant. Footers use header-cell notation, and span continuations use empty cells.                          |
-| `csv`      | `encoding/csv`-compatible reader  | [encoding/csv](https://pkg.go.dev/encoding/csv)<br/>[RFC 4180](https://www.rfc-editor.org/rfc/rfc4180)                                                                                                           | `encoding/csv.Writer`-compatible quoting, validation, and CRLF handling. Tab/LF by default; options select RFC 4180.         |
+| Format     | Primary consumer                  | Reference                                                                                                                                                                                                        | Conformance                                                                                                                |
+| ---------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `text`     | Terminal or text viewer           | Terminal display width<br/>ECMA-48 SGR                                                                                                                                                                           | Custom format                                                                                                              |
+| `html`     | Browser                           | [HTML Standard: Tables](https://html.spec.whatwg.org/multipage/tables.html#tables)                                                                                                                               | Substantially conformant. `colspan` is limited to 64 columns, while `rowspan` may exceed the standard maximum of 65,534.   |
+| `markdown` | GitHub or a GFM-compatible parser | [GitHub Flavored Markdown: Tables extension](https://github.github.com/gfm/#tables-extension-)                                                                                                                   | Substantially conformant. A body row wider than the header returns `table.ErrColumnCount` instead of ignoring extra cells. |
+| `backlog`  | Backlog notation parser           | [Backlog Notation](https://help-center.backlog.com/%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88%E6%95%B4%E5%BD%A2%E3%83%AB%E3%83%BC%E3%83%AB%EF%BC%88Backlog%E8%A8%98%E6%B3%95%EF%BC%89-6a1d4d7f3abb3ada78c5658b#index7) | Substantially conformant. Footers use header-cell notation, and span continuations use empty cells.                        |
+| `csv`      | `encoding/csv`-compatible reader  | [encoding/csv](https://pkg.go.dev/encoding/csv)<br/>[RFC 4180](https://www.rfc-editor.org/rfc/rfc4180)                                                                                                           | `encoding/csv.Writer`-compatible quoting, validation, and CRLF handling. Tab/LF by default; options select RFC 4180.       |
 
 ## Errors
 
@@ -240,16 +240,16 @@ This example aligns every body column to the left, then aligns input column 2 to
 
 The public API treats slices, pointers, and functions as follows.
 
-| Input                                                               | Treatment                                                                       |
-| ------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| Column indexes passed to `Columns`                                  | Cloned at construction and owned by the returned `ColumnSelector`.              |
-| Rows passed to `WithHeader`                                         | Borrowed read-only by `Table` or `Stream`.                                      |
-| `text.Style`                                                        | The struct is copied; internal pointers and byte slices are borrowed read-only. |
-| `text.WithAttr`                                                     | The `Attr` pointer and its byte slices are borrowed read-only.                  |
-| Colors and decorations in `html`, `markdown`, and `backlog`         | Referenced markup is borrowed read-only.                                        |
-| HTML table, section, and cell attributes                            | Copied by value and normalized when the `Option` is constructed.                |
-| `WithFooter` and `WithTransformer`                                  | The function is retained; the caller owns any state captured by its closure.    |
-| Body rows and values returned by a footer function                  | Borrowed read-only only for the corresponding call to `Render` or `Close`.      |
+| Input                                                       | Treatment                                                                       |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Column indexes passed to `Columns`                          | Cloned at construction and owned by the returned `ColumnSelector`.              |
+| Rows passed to `WithHeader`                                 | Borrowed read-only by `Table` or `Stream`.                                      |
+| `text.Style`                                                | The struct is copied; internal pointers and byte slices are borrowed read-only. |
+| `text.WithAttr`                                             | The `Attr` pointer and its byte slices are borrowed read-only.                  |
+| Colors and decorations in `html`, `markdown`, and `backlog` | Referenced markup is borrowed read-only.                                        |
+| HTML table, section, and cell attributes                    | Copied by value and normalized when the `Option` is constructed.                |
+| `WithFooter` and `WithTransformer`                          | The function is retained; the caller owns any state captured by its closure.    |
+| Body rows and values returned by a footer function          | Borrowed read-only only for the corresponding call to `Render` or `Close`.      |
 
 Do not mutate borrowed values or closure state while the associated `Table` or `Stream` is in use. Defensive copies of headers and markup are not part of the API contract. References to body and footer rows are discarded before the corresponding call returns.
 
@@ -281,11 +281,13 @@ func WithTransformer(columns ColumnSelector, fn func(any) (string, *Attr)) Optio
 
 - `WithWidth` sets the display-width boundary of cell content, excluding padding. A value of zero or less removes the boundary.
 - `WithTruncate` replaces wrapping with `...`. In a column without `WithWidth`, it applies to values that exceed the initial column width after a stream has begun.
+- A horizontally spanned cell uses the `WithTruncate` setting of its leftmost column.
 - `WithPadding` sets left and right space widths. Negative values become zero, and padding contributes to the total table width.
 - `WithAutoFit` reduces column widths to fit terminal output within the terminal width. It has no effect for a non-terminal destination or if any column uses `WithWidth` or `WithTruncate`.
 - `WithIndexWidth` sets the minimum width of the index column. A stream reserves at least three digits.
 - `WithCompact` omits horizontal borders between body rows. At a vertically spanned cell boundary, it retains the horizontal segments for cells that are not spanned.
 - Cell widths use Unicode terminal display widths. Wrapping preserves grapheme clusters; a cluster wider than the boundary remains intact and makes that physical output line wider than the column. When a stream begins rendering body rows, it reserves one display cell for a column whose initial content has zero display width.
+- Tabs in displayed cell values, including header and footer labels and placeholders, become four ASCII spaces before widths and spans are resolved. Captions are unchanged.
 - LF, CR, and CRLF are in-cell line breaks; output lines end with LF.
 - Invalid UTF-8 bytes are preserved rather than replaced, and ANSI sequences embedded in values are not parsed.
 
@@ -388,6 +390,8 @@ func WithTransformer(columns ColumnSelector, fn func(any) string) Option
 - Combining `WithDelimiter(',')` and `WithCRLF()` selects the delimiter and record ending specified by RFC 4180.
 - A header has one row. Footers are emitted as ordinary records.
 - Invalid UTF-8 bytes are preserved rather than replaced.
+- CSV quoting does not neutralize spreadsheet formulas. Spreadsheet software may interpret fields beginning with `=`, `+`, `-`, `@`, tab, or CR even when the field is quoted. Sanitize untrusted values with a transformer before producing files that will be opened in a spreadsheet.
+- A one-column record containing an empty field is written as a blank line, matching `encoding/csv.Writer`. Readers that skip blank lines do not preserve that record. Use a non-empty placeholder or transformer when the record must survive a round trip.
 
 ## Column resolution and settings
 
@@ -450,12 +454,12 @@ When a transformer does not supply a displayed value, an `any` value is converte
 | ------------------------------------------------------ | --------------------------------------------------------------- |
 | `string`, `bool`, integers, and floating-point numbers | Standard string representation                                  |
 | `[]byte` and named byte slices                         | Bytes interpreted as a string                                   |
-| `fmt.Stringer`                                         | Result of `String()`                                            |
 | `error`                                                | Result of `Error()`                                             |
+| `fmt.Stringer`                                         | Result of `String()`                                            |
 | Pointers and interfaces                                | `nil`, or recursively apply the same rule to the concrete value |
 | Other values                                           | `fmt.Sprint`                                                    |
 
-Floating-point values use the shortest representation produced by `strconv`. If a pointer chain is cyclic, conversion stops at a repeated pointer and uses `fmt.Sprint`. Slices, arrays, maps, and structs therefore include their contents by default. Use a transformer when the display requires a controlled representation such as JSON or redacted text.
+When a value implements both `error` and `fmt.Stringer`, `Error()` takes precedence. Floating-point values use the shortest representation produced by `strconv`. If a pointer chain is cyclic, conversion stops at a repeated pointer and uses `fmt.Sprint`. Slices, arrays, maps, and structs therefore include their contents by default. Use a transformer when the display requires a controlled representation such as JSON or redacted text.
 
 ### Transformers
 

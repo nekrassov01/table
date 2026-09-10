@@ -1409,6 +1409,58 @@ func Test_painter_paintHorizon(t *testing.T) {
 				output: "+--+  |\n",
 			},
 		},
+		{
+			name: "top border after span limit",
+			fields: fields{
+				input: solverResult{
+					compilerResult: compilerResult{
+						configResult: configResult{
+							option: &option{},
+						},
+					},
+					metrics: make([]columnMetric, 65),
+				},
+			},
+			args: args{
+				horizontal: &Horizontal{
+					Inner: Joints{
+						UDLR: "X",
+						XDLR: "T",
+					},
+				},
+				upBars:   noBars,
+				downBars: allBars,
+			},
+			want: want{
+				output: strings.Repeat("T", 64) + "\n",
+			},
+		},
+		{
+			name: "bottom border after span limit",
+			fields: fields{
+				input: solverResult{
+					compilerResult: compilerResult{
+						configResult: configResult{
+							option: &option{},
+						},
+					},
+					metrics: make([]columnMetric, 65),
+				},
+			},
+			args: args{
+				horizontal: &Horizontal{
+					Inner: Joints{
+						UDLR: "X",
+						UXLR: "B",
+					},
+				},
+				upBars:   allBars,
+				downBars: noBars,
+			},
+			want: want{
+				output: strings.Repeat("B", 64) + "\n",
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -1655,6 +1707,132 @@ func Test_painter_layoutRow(t *testing.T) {
 							rPad:   1,
 						},
 						width: 1,
+					},
+				},
+			},
+		},
+		{
+			name: "colspan uses leading column truncation",
+			fields: fields{
+				input: solverResult{
+					compilerResult: compilerResult{
+						configResult: configResult{
+							option: &option{},
+							columns: []columnConfig{
+								{truncate: true},
+								{},
+							},
+						},
+					},
+					metrics: []columnMetric{
+						{
+							box: box{width: 2},
+						},
+						{
+							box: box{
+								offset: 2,
+								width:  2,
+							},
+						},
+					},
+				},
+			},
+			args: args{
+				row: row{
+					cells: []cell{
+						{
+							value: "abcdef",
+							width: 6,
+						},
+						{},
+					},
+					colspans: 0b10,
+					bars:     allBars &^ 0b10,
+				},
+				scope: ScopeBody,
+			},
+			want: want{
+				height: 1,
+				layouts: []layout{
+					{
+						value: "a...",
+						box: box{
+							width: 4,
+						},
+						width: 4,
+					},
+				},
+			},
+		},
+		{
+			name: "colspan ignores trailing column truncation",
+			fields: fields{
+				input: solverResult{
+					compilerResult: compilerResult{
+						configResult: configResult{
+							option: &option{},
+							columns: []columnConfig{
+								{},
+								{truncate: true},
+							},
+						},
+					},
+					metrics: []columnMetric{
+						{
+							box: box{width: 2},
+						},
+						{
+							box: box{
+								offset: 2,
+								width:  2,
+							},
+						},
+					},
+				},
+			},
+			args: args{
+				row: row{
+					cells: []cell{
+						{
+							value: "abcdef",
+							width: 6,
+						},
+						{},
+					},
+					colspans: 0b10,
+					bars:     allBars &^ 0b10,
+				},
+				scope: ScopeBody,
+			},
+			want: want{
+				height: 2,
+				layouts: []layout{
+					{
+						value: "abcdef",
+						segments: []segment{
+							{
+								value: "abcd",
+								width: 4,
+							},
+							{
+								value: "ef",
+								width: 2,
+							},
+						},
+						box: box{
+							width: 4,
+						},
+						width: 4,
+					},
+				},
+				segments: []segment{
+					{
+						value: "abcd",
+						width: 4,
+					},
+					{
+						value: "ef",
+						width: 2,
 					},
 				},
 			},

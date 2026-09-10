@@ -3,7 +3,7 @@ package text
 import (
 	"slices"
 
-	"github.com/nekrassov01/table/internal/width"
+	"github.com/nekrassov01/table/internal/display"
 )
 
 // solver measures logical rows and derives the column metrics required by the
@@ -90,7 +90,11 @@ func (o *solver) measureRow(r *row) {
 		metric := &metrics[i]
 		cell := &r.cells[i]
 		value := cell.value
-		cellWidth, hasBreak := measureLine(value)
+		cellWidth := cell.width
+		hasBreak := cell.hasBreak
+		if cellWidth == 0 && value != "" && !hasBreak {
+			cellWidth, hasBreak = measureLine(value)
+		}
 		overhead := len(value) - cellWidth
 		if hasBreak {
 			overhead = 0
@@ -141,8 +145,12 @@ func (o *solver) measureRow(r *row) {
 func (o *solver) resolveWidths() {
 	option := o.input.option
 	metrics := o.state.columnMetrics
-	placeholderWidth := width.StringWidth(option.placeholder)
-	placeholderOverhead := len(option.placeholder) - placeholderWidth
+	placeholder := o.input.placeholder
+	if placeholder == "" {
+		placeholder = option.placeholder
+	}
+	placeholderWidth := display.StringWidth(placeholder)
+	placeholderOverhead := len(placeholder) - placeholderWidth
 	for index := range metrics {
 		metric := &metrics[index]
 		if index < option.indexOffset {
@@ -168,7 +176,7 @@ func (o *solver) resolveWidths() {
 			boxWidth += metrics[i].box.totalWidth()
 		}
 		if vertical := option.style.Border.Vertical; vertical != nil {
-			boxWidth += (span.end - span.start - 1) * width.StringWidth(vertical.Inner)
+			boxWidth += (span.end - span.start - 1) * display.StringWidth(vertical.Inner)
 		}
 		first := &metrics[span.start].box
 		last := &metrics[span.end-1].box
@@ -215,8 +223,8 @@ func (o *solver) fitColumns() {
 	}
 	frameWidth := 0
 	if vertical := option.style.Border.Vertical; vertical != nil {
-		frameWidth = 2 * width.StringWidth(vertical.Outer)
-		frameWidth += (columnCount - 1) * width.StringWidth(vertical.Inner)
+		frameWidth = 2 * display.StringWidth(vertical.Outer)
+		frameWidth += (columnCount - 1) * display.StringWidth(vertical.Inner)
 	}
 	naturalWidth := 0
 	for index := range metrics {
@@ -280,7 +288,7 @@ func (o *solver) offsetColumns() {
 	metrics := o.state.columnMetrics
 	innerWidth := 0
 	if vertical := o.input.option.style.Border.Vertical; vertical != nil {
-		innerWidth = width.StringWidth(vertical.Inner)
+		innerWidth = display.StringWidth(vertical.Inner)
 	}
 	offset := 0
 	for i := range metrics {
