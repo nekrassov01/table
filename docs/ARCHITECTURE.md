@@ -240,8 +240,7 @@ The following internal packages support output formats and repository maintenanc
 | `skills`   | Implement maintenance commands invoked by repository skill entry points.              |
 | `span`     | Identify vertical or horizontal runs of equal displayed values.                       |
 | `testutil` | Provide shared test assertions, data, and mocks.                                      |
-| `unsafe`   | Convert a byte slice to a string without copying.                                     |
-| `value`    | Convert arbitrary Go values to displayed strings stored in a caller-owned `Store`.    |
+| `value`    | Convert Go values and expose zero-copy string views over caller-owned byte storage.   |
 | `version`  | Hold the module version supplied by the release process.                              |
 
 ## Errors

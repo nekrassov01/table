@@ -6,7 +6,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/nekrassov01/table/internal/unsafe"
+	"github.com/nekrassov01/table/internal/value"
 )
 
 // quoteValue wraps s in double quotes when it contains the field delimiter, a
@@ -41,7 +41,7 @@ func (o *compiler) quoteValue(s string) string {
 		}
 	}
 	state.quotes = append(state.quotes, '"')
-	return unsafe.View(state.quotes[start:])
+	return value.View(state.quotes[start:])
 }
 
 // indexQuoteValue returns the first byte from which encoding/csv-compatible

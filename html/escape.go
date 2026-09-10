@@ -4,7 +4,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/nekrassov01/table/internal/unsafe"
+	"github.com/nekrassov01/table/internal/value"
 )
 
 // br is the HTML tag for a line break.
@@ -51,7 +51,7 @@ func escapeValue(escapes []byte, s string) (string, []byte) {
 			}
 		}
 	}
-	return unsafe.View(escapes[start:]), escapes
+	return value.View(escapes[start:]), escapes
 }
 
 // indexEscapeValue returns the first byte that requires HTML escaping or UTF-8

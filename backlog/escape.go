@@ -3,7 +3,7 @@ package backlog
 import (
 	"strings"
 
-	"github.com/nekrassov01/table/internal/unsafe"
+	"github.com/nekrassov01/table/internal/value"
 )
 
 // br is the Backlog notation for a line break.
@@ -56,7 +56,7 @@ func escapeValue(escapes []byte, s string) (string, []byte) {
 		}
 		escapes = append(escapes, s[index])
 	}
-	return unsafe.View(escapes[start:]), escapes
+	return value.View(escapes[start:]), escapes
 }
 
 // indexEscapeValue returns the first byte that requires Backlog literalization
