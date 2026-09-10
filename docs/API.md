@@ -389,6 +389,8 @@ func WithTransformer(columns ColumnSelector, fn func(any) string) Option
 - Combining `WithDelimiter(',')` and `WithCRLF()` selects the delimiter and record ending specified by RFC 4180.
 - A header has one row. Footers are emitted as ordinary records.
 - Invalid UTF-8 bytes are preserved rather than replaced.
+- CSV quoting does not neutralize spreadsheet formulas. Spreadsheet software may interpret fields beginning with `=`, `+`, `-`, `@`, tab, or CR even when the field is quoted. Sanitize untrusted values with a transformer before producing files that will be opened in a spreadsheet.
+- A one-column record containing an empty field is written as a blank line, matching `encoding/csv.Writer`. Readers that skip blank lines do not preserve that record. Use a non-empty placeholder or transformer when the record must survive a round trip.
 
 ## Column resolution and settings
 
