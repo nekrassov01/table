@@ -3,9 +3,9 @@ package text
 import (
 	"io"
 
+	"github.com/nekrassov01/table/internal/display"
 	"github.com/nekrassov01/table/internal/repeat"
 	"github.com/nekrassov01/table/internal/value"
-	"github.com/nekrassov01/table/internal/width"
 )
 
 // ellipsis marks truncated content.
@@ -281,7 +281,7 @@ func (o *painter) paintHorizon(h *Horizontal, rowspans, upBars, downBars uint64)
 		return
 	}
 	o.resetLine()
-	fillWidth := width.StringWidth(h.Fill)
+	fillWidth := display.StringWidth(h.Fill)
 	last := len(metrics) - 1
 	up, down := upBars&1 != 0, downBars&1 != 0
 	o.writeGlyph(h.Outer.resolve(up, down, false, !hasRowspan(rowspans, 0)))
@@ -414,7 +414,7 @@ func (o *painter) layoutCell(cell *cell, limit int, truncate bool) layout {
 
 // wrapLine splits a line into segments within the configured width.
 func (o *painter) wrapLine(line string, limit int) int {
-	scanner := width.NewScanner(line)
+	scanner := display.NewScanner(line)
 	maxWidth := 0
 	segmentStart := 0
 	segmentWidth := 0
@@ -449,7 +449,7 @@ func (o *painter) truncateLine(line string, lineWidth, limit int) (string, int) 
 	if contentLimit <= 0 {
 		return ellipsis[:limit], limit
 	}
-	scanner := width.NewScanner(line)
+	scanner := display.NewScanner(line)
 	end := 0
 	keptWidth := 0
 	for start, next, displayWidth, ok := scanner.Next(); ok; start, next, displayWidth, ok = scanner.Next() {

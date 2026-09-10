@@ -1,10 +1,10 @@
 package markdown
 
 import (
+	"github.com/nekrassov01/table/internal/display"
 	"github.com/nekrassov01/table/internal/param"
 	"github.com/nekrassov01/table/internal/span"
 	"github.com/nekrassov01/table/internal/value"
-	"github.com/nekrassov01/table/internal/width"
 )
 
 // compiler formats and escapes input values, then resolves them into the
@@ -191,7 +191,7 @@ func (o *compiler) compileCells(r row) {
 			}
 		}
 		compiled.value = value
-		compiled.width = width.StringWidth(value) + markup
+		compiled.width = display.StringWidth(value) + markup
 		compiled.size = len(value) + markup
 		if !color.IsZero() {
 			markup = len(color.Prefix) + len(color.Suffix)

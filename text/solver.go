@@ -3,7 +3,7 @@ package text
 import (
 	"slices"
 
-	"github.com/nekrassov01/table/internal/width"
+	"github.com/nekrassov01/table/internal/display"
 )
 
 // solver measures logical rows and derives the column metrics required by the
@@ -141,7 +141,7 @@ func (o *solver) measureRow(r *row) {
 func (o *solver) resolveWidths() {
 	option := o.input.option
 	metrics := o.state.columnMetrics
-	placeholderWidth := width.StringWidth(option.placeholder)
+	placeholderWidth := display.StringWidth(option.placeholder)
 	placeholderOverhead := len(option.placeholder) - placeholderWidth
 	for index := range metrics {
 		metric := &metrics[index]
@@ -168,7 +168,7 @@ func (o *solver) resolveWidths() {
 			boxWidth += metrics[i].box.totalWidth()
 		}
 		if vertical := option.style.Border.Vertical; vertical != nil {
-			boxWidth += (span.end - span.start - 1) * width.StringWidth(vertical.Inner)
+			boxWidth += (span.end - span.start - 1) * display.StringWidth(vertical.Inner)
 		}
 		first := &metrics[span.start].box
 		last := &metrics[span.end-1].box
@@ -215,8 +215,8 @@ func (o *solver) fitColumns() {
 	}
 	frameWidth := 0
 	if vertical := option.style.Border.Vertical; vertical != nil {
-		frameWidth = 2 * width.StringWidth(vertical.Outer)
-		frameWidth += (columnCount - 1) * width.StringWidth(vertical.Inner)
+		frameWidth = 2 * display.StringWidth(vertical.Outer)
+		frameWidth += (columnCount - 1) * display.StringWidth(vertical.Inner)
 	}
 	naturalWidth := 0
 	for index := range metrics {
@@ -280,7 +280,7 @@ func (o *solver) offsetColumns() {
 	metrics := o.state.columnMetrics
 	innerWidth := 0
 	if vertical := o.input.option.style.Border.Vertical; vertical != nil {
-		innerWidth = width.StringWidth(vertical.Inner)
+		innerWidth = display.StringWidth(vertical.Inner)
 	}
 	offset := 0
 	for i := range metrics {

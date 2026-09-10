@@ -3,11 +3,11 @@ package backlog
 import (
 	"slices"
 
+	"github.com/nekrassov01/table/internal/display"
 	"github.com/nekrassov01/table/internal/param"
 	"github.com/nekrassov01/table/internal/scope"
 	"github.com/nekrassov01/table/internal/span"
 	"github.com/nekrassov01/table/internal/value"
-	"github.com/nekrassov01/table/internal/width"
 )
 
 // compiler formats and escapes input values, then resolves them into the
@@ -227,7 +227,7 @@ func (o *compiler) compileCells(r row) {
 			compiled.decoration = decoration
 			markup = len(decoration.Prefix) + len(decoration.Suffix)
 		}
-		compiled.width = width.StringWidth(value) + markup
+		compiled.width = display.StringWidth(value) + markup
 		compiled.size = len(value) + markup
 		isCode := !decoration.IsZero() &&
 			decoration.Prefix == DecorationCode.Prefix &&

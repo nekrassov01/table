@@ -233,6 +233,7 @@ The following internal packages support output formats and repository maintenanc
 | `column`   | Retain and resolve column selections, and derive maximum column counts.               |
 | `color`    | Hold format-specific color markup surrounding a cell value.                           |
 | `decorate` | Hold format-specific decoration markup surrounding a cell value.                      |
+| `display`  | Classify and scan text by terminal display units, and measure its display width.      |
 | `param`    | Define shared constants independent of an output format.                              |
 | `repeat`   | Append a repeated byte to a caller-owned buffer.                                      |
 | `scope`    | Identify header, body, and footer sections and retain section values or column masks. |
@@ -241,7 +242,6 @@ The following internal packages support output formats and repository maintenanc
 | `testutil` | Provide shared test assertions, data, and mocks.                                      |
 | `unsafe`   | Convert a byte slice to a string without copying.                                     |
 | `value`    | Convert arbitrary Go values to displayed strings stored in a caller-owned `Store`.    |
-| `width`    | Measure terminal display width and scan strings by that width.                        |
 | `version`  | Hold the module version supplied by the release process.                              |
 
 ## Errors
