@@ -111,10 +111,11 @@ flowchart TD
 - Generate an index value and fill missing values with the placeholder.
 - Call the transformer when configured, then use the input value's default string representation only when the transformer returns an empty string.
 - Select the body attributes, colors, or decorations.
+- In text, replace tabs in displayed values with four ASCII spaces and record printable ASCII widths.
 
 Formats with spans compare these resolved strings and record where equal values continue. Escaped strings and markup are not used for comparison. Each value is then escaped or quoted according to its format, and the selected attributes, colors, and decorations are retained in the cell. Formats that need byte sizes or display widths for later capacity or geometry calculations record them here. A body row or footer wider than the resolved column count produces `ErrColumnCount` at this stage.
 
-`compilerResult` retains `configResult` and the compiled header and body. In `text`, `html`, `backlog`, and `csv`, it also retains the footer. Cell strings and span continuation positions or candidates are resolved at this point. Column widths and the `rowspan` and `colspan` counts written by HTML remain unresolved.
+`compilerResult` retains `configResult` and the compiled header and body. In `text`, `html`, `backlog`, and `csv`, it also retains the footer. Text additionally retains the normalized placeholder so its solver measures the value that later rows may display. Cell strings and span continuation positions or candidates are resolved at this point. Column widths and the `rowspan` and `colspan` counts written by HTML remain unresolved.
 
 ### Solver
 
@@ -122,7 +123,7 @@ CSV has no `solver` because it has no column widths or span geometry to determin
 
 `solve` resolves format-specific information:
 
-- `text` measures cell display widths and span width requirements, retains each measured cell's widest physical-line width and line-break status, then applies column settings, padding, and terminal width to determine each column's width and starting position.
+- `text` reuses compiled printable ASCII widths, measures the remaining cell widths and span width requirements, retains each cell's widest physical-line width and line-break status, then applies column settings, padding, and terminal width to determine each column's width and starting position.
 - `html` counts span candidates and sets `rowspan` and `colspan` on their leading cells. It assigns `colspan == 0` to absorbed cells so they are omitted from output.
 - `markdown` and `backlog` measure the widest cell in each column and determine the padding width.
 

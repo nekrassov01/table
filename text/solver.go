@@ -90,7 +90,11 @@ func (o *solver) measureRow(r *row) {
 		metric := &metrics[i]
 		cell := &r.cells[i]
 		value := cell.value
-		cellWidth, hasBreak := measureLine(value)
+		cellWidth := cell.width
+		hasBreak := cell.hasBreak
+		if cellWidth == 0 && value != "" && !hasBreak {
+			cellWidth, hasBreak = measureLine(value)
+		}
 		overhead := len(value) - cellWidth
 		if hasBreak {
 			overhead = 0
@@ -141,8 +145,12 @@ func (o *solver) measureRow(r *row) {
 func (o *solver) resolveWidths() {
 	option := o.input.option
 	metrics := o.state.columnMetrics
-	placeholderWidth := display.StringWidth(option.placeholder)
-	placeholderOverhead := len(option.placeholder) - placeholderWidth
+	placeholder := o.input.placeholder
+	if placeholder == "" {
+		placeholder = option.placeholder
+	}
+	placeholderWidth := display.StringWidth(placeholder)
+	placeholderOverhead := len(placeholder) - placeholderWidth
 	for index := range metrics {
 		metric := &metrics[index]
 		if index < option.indexOffset {
