@@ -7,15 +7,6 @@ import (
 	"github.com/nekrassov01/table/internal/testutil"
 )
 
-type entry struct {
-	name string
-	size int
-}
-
-func entryRow(e entry) []any {
-	return []any{e.name, e.size}
-}
-
 func TestTableOf(t *testing.T) {
 	type args struct {
 		values []entry
@@ -162,4 +153,13 @@ func TestStreamOf(t *testing.T) {
 			testutil.AssertValue(t, err != nil, test.want.isErr, "StreamOf error")
 		})
 	}
+}
+
+type entry struct {
+	name string
+	size int
+}
+
+func entryRow(e entry) []any {
+	return []any{e.name, e.size}
 }

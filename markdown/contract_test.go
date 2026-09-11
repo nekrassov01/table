@@ -477,61 +477,52 @@ func contractCases() []contractCase {
 			header: []string{"A", "B", "C"},
 			rows:   [][]any{{"x", "y", "z"}, {"p", "q", "r"}},
 		},
-
 		{
 			name:   "ragged rows",
 			opts:   []Option{},
 			header: []string{"A", "B", "C"},
 			rows:   [][]any{{"x"}, {"p", "q", "r"}, {}},
 		},
-
 		{
 			name:   "control chars",
 			opts:   []Option{},
 			header: []string{"A", "B", "C"},
 			rows:   [][]any{{"a\tb", "c\vd", "e\x00f"}},
 		},
-
 		{
 			name:   "invalid utf8",
 			opts:   []Option{},
 			header: []string{"A", "B", "C"},
 			rows:   [][]any{{"a\xffb", "\xfe", "ok"}},
 		},
-
 		{
 			name:   "emoji",
 			opts:   []Option{},
 			header: []string{"A", "B", "C"},
 			rows:   [][]any{{"\U0001F600", "\U0001F469\u200D\U0001F4BB", "e\u0301"}},
 		},
-
 		{
 			name:   "plain",
 			header: []string{"A", "B", "C"},
 			rows:   [][]any{{"xxx", "yyy", "zzz"}, {"aaa", "bbb", "ccc"}},
 		},
-
 		{
 			name:   "numeric",
 			header: []string{"Int", "Float"},
 			rows:   [][]any{{100, 1.25}, {200, 2.50}, {300, 3.75}},
 		},
-
 		{
 			name:   "rowspan string",
 			opts:   []Option{WithRowspan(Columns(0))},
 			header: []string{"Group", "Item"},
 			rows:   [][]any{{"aaa", "x"}, {"aaa", "y"}, {"bbb", "z"}},
 		},
-
 		{
 			name:   "rowspan numeric",
 			opts:   []Option{WithRowspan(Columns(0))},
 			header: []string{"ID", "Name"},
 			rows:   [][]any{{100, "a"}, {100, "b"}, {200, "c"}, {300, "d"}},
 		},
-
 		{
 			name:   "rowspan multi",
 			opts:   []Option{WithRowspan(Columns(0, 1))},
@@ -543,7 +534,6 @@ func contractCases() []contractCase {
 				{"us", "1a", "h4"},
 			},
 		},
-
 		{
 			name: "colspan",
 			opts: []Option{
@@ -552,28 +542,24 @@ func contractCases() []contractCase {
 			header: []string{"A", "B", "C"},
 			rows:   [][]any{{"x", "x", "y"}, {"p", "q", "q"}},
 		},
-
 		{
 			name:   "color",
 			opts:   []Option{WithColor(ScopeBody, Columns(0), ColorFgRed)},
 			header: []string{"A", "B"},
 			rows:   [][]any{{"xxx", "yyy"}, {"aaa", "bbb"}},
 		},
-
 		{
 			name:   "decoration code",
 			opts:   []Option{WithDecoration(ScopeBody, Columns(1), DecorationCode)},
 			header: []string{"Key", "Value"},
 			rows:   [][]any{{"k1", "v1"}, {"k2", "v2"}},
 		},
-
 		{
 			name:   "decoration bold",
 			opts:   []Option{WithDecoration(ScopeBody, Columns(0), DecorationBold)},
 			header: []string{"Name", "Score"},
 			rows:   [][]any{{"alice", 100}, {"bob", 200}},
 		},
-
 		{
 			name: "color and decoration",
 			opts: []Option{
@@ -584,7 +570,6 @@ func contractCases() []contractCase {
 			header: []string{"Group", "Value"},
 			rows:   [][]any{{"A", "x"}, {"A", "y"}, {"B", "z"}},
 		},
-
 		{
 			name:   "placeholder",
 			opts:   []Option{WithPlaceholder("N/A")},
