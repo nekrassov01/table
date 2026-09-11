@@ -85,6 +85,8 @@ make bench target=html benchtime=20000x count=10
 
 Each `Cold` benchmark runs garbage collection twice per iteration to discard the `sync.Pool` workspace, and uses `benchtime=100x` and `count=1`.
 
+CI runs every regular and `Cold` benchmark once with `benchtime=1x` as a smoke check. These runs detect benchmark execution failures; use the comparison process in [`BASELINE.md`](BASELINE.md) to evaluate performance changes.
+
 ## Validation
 
 Static analysis and vulnerability checks can be run separately or as part of the complete validation sequence.
@@ -96,3 +98,5 @@ Static analysis and vulnerability checks can be run separately or as part of the
 | Run tests, coverage, benchmarks, static analysis, and vulnerability checks | `make check` |
 
 `make lint` and `make vuln` install their required tools when they are not already available.
+
+CI also vets the Go command packages under `.agents/skills`, which are not included in the `./...` package pattern.

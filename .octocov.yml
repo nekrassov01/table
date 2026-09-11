@@ -14,6 +14,8 @@ codeToTestRatio:
     - "!examples/**"
   test:
     - "**/*_test.go"
+    - "!benchmarks/**"
+    - "!examples/**"
 testExecutionTime:
   if: true
 diff:
