@@ -450,16 +450,16 @@ A body cell first calls its transformer, when configured. A non-empty result bec
 
 When a transformer does not supply a displayed value, an `any` value is converted as follows.
 
-| Value                                                  | Displayed string                                                |
-| ------------------------------------------------------ | --------------------------------------------------------------- |
-| `string`, `bool`, integers, and floating-point numbers | Standard string representation                                  |
-| `[]byte` and named byte slices                         | Bytes interpreted as a string                                   |
-| `error`                                                | Result of `Error()`                                             |
-| `fmt.Stringer`                                         | Result of `String()`                                            |
-| Pointers and interfaces                                | `nil`, or recursively apply the same rule to the concrete value |
-| Other values                                           | `fmt.Sprint`                                                    |
+| Value                                                  | Displayed string                                             |
+| ------------------------------------------------------ | ------------------------------------------------------------ |
+| `string`, `bool`, integers, and floating-point numbers | Standard string representation                               |
+| `[]byte` and named byte slices                         | Bytes interpreted as a string                                |
+| `error`                                                | Result of `Error()`                                          |
+| `fmt.Stringer`                                         | Result of `String()`                                         |
+| Pointers and interfaces                                | Empty string when nil; otherwise apply the rule to the value |
+| Other values                                           | `fmt.Sprint`                                                 |
 
-When a value implements both `error` and `fmt.Stringer`, `Error()` takes precedence. Floating-point values use the shortest representation produced by `strconv`. If a pointer chain is cyclic, conversion stops at a repeated pointer and uses `fmt.Sprint`. Slices, arrays, maps, and structs therefore include their contents by default. Use a transformer when the display requires a controlled representation such as JSON or redacted text.
+When a value implements both `error` and `fmt.Stringer`, `Error()` takes precedence. A nil reached at any depth through pointers or interfaces produces an empty string, so the cell uses the placeholder. Floating-point values use the shortest representation produced by `strconv`. If a pointer chain is cyclic, conversion stops at a repeated pointer and uses `fmt.Sprint`. Slices, arrays, maps, and structs therefore include their contents by default. Use a transformer when the display requires a controlled representation such as JSON or redacted text.
 
 ### Transformers
 
@@ -532,6 +532,8 @@ Every format except CSV provides `WithRowspan` and `WithColspan`. `Scope` select
 - HTML spans horizontally only across cells with equal `rowspan` values, preserving rectangles.
 - `html.Table` does not split a vertical run longer than 65,534 rows and may therefore emit a `rowspan` above the HTML Standard limit.
 
+Backlog retains the cell nearest the body for a header or footer rowspan. For a body rowspan, it retains the first cell. The other cells in the run are empty.
+
 Formats represent spans as follows.
 
 | Format     | Vertical                                                                    | Horizontal                                             |
@@ -539,7 +541,7 @@ Formats represent spans as follows.
 | `text`     | Connect borders and render one cell.                                        | Connect borders and render one cell.                   |
 | `html`     | Use `rowspan`; streaming bodies emit empty cells.                           | Use `colspan`.                                         |
 | `markdown` | Retain the first cell and empty subsequent cells; applies only to the body. | Retain the leftmost cell and empty cells to its right. |
-| `backlog`  | Retain the first cell and empty subsequent cells.                           | Retain the leftmost cell and empty cells to its right. |
+| `backlog`  | Retain one cell and empty the other cells in the run.                       | Retain the leftmost cell and empty cells to its right. |
 
 ## Alignment
 
