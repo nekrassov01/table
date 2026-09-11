@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"math"
+	"os"
 	"slices"
 	"strings"
 	"sync"
@@ -375,6 +376,43 @@ func TestContract_FileIsNotATerminal(t *testing.T) {
 	testutil.AssertBytes(t, read(), buf.Bytes(), "render into a file")
 	if strings.Contains(buf.String(), "\x1b[") {
 		t.Fatal("wrote ANSI escapes to output that is not a terminal")
+	}
+}
+
+func TestContract_WindowsTerminalColor(t *testing.T) {
+	file, _ := testutil.NewFile(t)
+	var output bytes.Buffer
+	originalIsTerminal := isTerminal
+	originalTerminalWriter := terminalWriter
+	isTerminal = func(w io.Writer) bool {
+		return w == file
+	}
+	terminalWriter = func(*os.File) io.Writer {
+		return &output
+	}
+	t.Cleanup(func() {
+		isTerminal = originalIsTerminal
+		terminalWriter = originalTerminalWriter
+	})
+	opts := []Option{
+		WithStyle(StyleColoredLight),
+	}
+	if err := NewTable(file, opts...).Render([][]any{{"x"}}); err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Contains(output.Bytes(), []byte("\x1b[")) {
+		t.Fatalf("table output does not contain ANSI attributes:\n%s", output.Bytes())
+	}
+	output.Reset()
+	stream := NewStream(file, opts...)
+	if err := stream.Render([]any{"x"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := stream.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Contains(output.Bytes(), []byte("\x1b[")) {
+		t.Fatalf("stream output does not contain ANSI attributes:\n%s", output.Bytes())
 	}
 }
 

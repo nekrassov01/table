@@ -23,9 +23,13 @@ type Stream struct {
 
 // NewStream creates a [Stream] that writes to w with the given options.
 // ANSI attributes are suppressed when w is not a terminal.
+// Windows terminal files are adapted for console color output when needed.
 func NewStream(w io.Writer, opts ...Option) *Stream {
 	s := &Stream{w: w}
 	s.option.apply(w, minIndexWidth, opts...)
+	if !s.option.plain {
+		s.w = resolveWriter(w)
+	}
 	return s
 }
 

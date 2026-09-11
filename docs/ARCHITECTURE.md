@@ -94,6 +94,8 @@ flowchart TD
 
 `apply` sets defaults and then applies each `Option` in the order supplied, producing an `option` that later stages treat as read-only. Headers are part of `option`. Formats with footers also retain a function that produces footer rows.
 
+Text options determine terminal status once during construction. The constructors adapt a terminal file for Windows color output when needed. If adaptation changes the writer, the adapted writer retains the original file so automatic fitting can continue to read its terminal width.
+
 ### Config
 
 `newConfig` builds `config` from a reference to `option`, its headers, and the number of body rows. In `text`, `html`, `backlog`, and `csv`, it also receives footer rows returned by the footer function and the body column count. It does not retain body values.

@@ -291,7 +291,7 @@ func WithTransformer(columns ColumnSelector, fn func(any) (string, *Attr)) Optio
 - LF, CR, and CRLF are in-cell line breaks; output lines end with LF.
 - Invalid UTF-8 bytes are preserved rather than replaced, and ANSI sequences embedded in values are not parsed.
 
-`Attr` represents ANSI SGR color and decoration. `WithAttr` overrides `Style.Content` per column, and an `Attr` returned by a transformer overrides it per cell. ANSI attributes are omitted when the destination is not a terminal.
+`Attr` represents ANSI SGR color and decoration. `WithAttr` overrides `Style.Content` per column, and an `Attr` returned by a transformer overrides it per cell. ANSI attributes are omitted when the destination is not a terminal. Windows terminal files are adapted for console color output when needed.
 
 `NewAttr` combines multiple `Code` values into one SGR sequence. It returns `nil` when called without arguments.
 

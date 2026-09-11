@@ -11,6 +11,7 @@
 // truncation, and fitting to a terminal width. [Attr] represents both ANSI
 // colors and text decorations because SGR encodes them in the same parameter
 // sequence. ANSI attributes are omitted when the destination is not a terminal.
+// Windows terminal files are adapted for console color output when needed.
 //
 // Table measures the complete input before writing, so every row and a
 // dynamically generated footer can affect column geometry. Stream writes
