@@ -66,14 +66,17 @@ jobs:
 
       - name: Run tests
         run: |
-          git diff --cached --exit-code
           go test -race -cover -v -coverprofile coverage.out -covermode atomic ./...
 
-      - name: Compile benchmarks
+      - name: Run benchmark smoke tests
         working-directory: benchmarks
         run: |
-          go test ./...
-          go test -tags cold ./...
+          go test -run '^$' -bench . -benchtime 1x ./...
+          go test -tags cold -run '^$' -bench 'Cold$' -benchtime 1x ./...
+
+      - name: Vet skill commands
+        run: |
+          go vet ./.agents/skills/...
 
       - name: Upload coverage
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

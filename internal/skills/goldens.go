@@ -22,17 +22,7 @@ var defaultPackages = [...]string{"text", "html", "markdown", "backlog", "csv"}
 
 // RunGoldens audits golden tests and their output files.
 func RunGoldens(ctx context.Context, args []string, stdout, stderr io.Writer) int {
-	pkgs, err := parseGoldensOptions(args)
-	if errors.Is(err, flag.ErrHelp) {
-		newGoldensFlags(stdout).Usage()
-		return 0
-	}
-	if err != nil {
-		_, _ = fmt.Fprintln(stderr, err)
-		newGoldensFlags(stderr).Usage()
-		return 2
-	}
-	return runGoldens(ctx, pkgs, stdout, stderr)
+	return runGoldens(ctx, newCommandExecutor(), args, stdout, stderr)
 }
 
 type audit struct {
@@ -106,20 +96,43 @@ type duplicate struct {
 	names []string
 }
 
-func countCalls(tests []goldenTest) int {
-	count := 0
-	for _, test := range tests {
-		if test.name != "" {
-			count++
+func runGoldens(ctx context.Context, commands commandExecutor, args []string, stdout, stderr io.Writer) int {
+	pkgs, err := parseGoldensOptions(args)
+	if errors.Is(err, flag.ErrHelp) {
+		newGoldensFlags(stdout).Usage()
+		return 0
+	}
+	if err != nil {
+		_, _ = fmt.Fprintln(stderr, err)
+		newGoldensFlags(stderr).Usage()
+		return 2
+	}
+	root, err := commands.resolveRepositoryRoot(ctx)
+	if err != nil {
+		_, _ = fmt.Fprintln(stderr, err)
+		return 1
+	}
+	failed := false
+	for _, pkg := range pkgs {
+		if err := ctx.Err(); err != nil {
+			_, _ = fmt.Fprintln(stderr, err)
+			return 1
+		}
+		result, err := auditPackage(root, pkg)
+		if err != nil {
+			_, _ = fmt.Fprintf(stderr, "%s: %v\n", pkg, err)
+			failed = true
+			continue
+		}
+		result.write(stdout)
+		if len(result.missingFiles) > 0 || len(result.orphanedFiles) > 0 || len(result.badReferences) > 0 {
+			failed = true
 		}
 	}
-	return count
-}
-
-func writeItems(w io.Writer, label string, items []string) {
-	for _, item := range items {
-		_, _ = fmt.Fprintf(w, "%s: %s\n", label, item)
+	if failed {
+		return 1
 	}
+	return 0
 }
 
 func parseGoldensOptions(args []string) ([]string, error) {
@@ -148,40 +161,17 @@ func newGoldensFlags(output io.Writer) *flag.FlagSet {
 	return flags
 }
 
-func runGoldens(ctx context.Context, pkgs []string, stdout, stderr io.Writer) int {
-	failed := false
-	for _, pkg := range pkgs {
-		if err := ctx.Err(); err != nil {
-			_, _ = fmt.Fprintln(stderr, err)
-			return 1
-		}
-		result, err := auditPackage(pkg)
-		if err != nil {
-			_, _ = fmt.Fprintf(stderr, "%s: %v\n", pkg, err)
-			failed = true
-			continue
-		}
-		result.write(stdout)
-		if len(result.missingFiles) > 0 || len(result.orphanedFiles) > 0 || len(result.badReferences) > 0 {
-			failed = true
-		}
-	}
-	if failed {
-		return 1
-	}
-	return 0
-}
-
-func auditPackage(pkg string) (audit, error) {
-	tests, err := parseGoldenTests(filepath.Join(pkg, "golden_test.go"))
+func auditPackage(root, pkg string) (audit, error) {
+	directory := filepath.Join(root, pkg)
+	tests, err := parseGoldenTests(filepath.Join(directory, "golden_test.go"))
 	if err != nil {
 		return audit{}, err
 	}
-	files, hashes, err := readGoldenFiles(filepath.Join(pkg, "testdata"))
+	files, hashes, err := readGoldenFiles(filepath.Join(directory, "testdata"))
 	if err != nil {
 		return audit{}, err
 	}
-	options, err := parseOptionNames(filepath.Join(pkg, "option.go"))
+	options, err := parseOptionNames(filepath.Join(directory, "option.go"))
 	if err != nil {
 		return audit{}, err
 	}
@@ -339,4 +329,20 @@ func resolveUncoveredPairs(options []string, tests []goldenTest) []string {
 		}
 	}
 	return uncovered
+}
+
+func countCalls(tests []goldenTest) int {
+	count := 0
+	for _, test := range tests {
+		if test.name != "" {
+			count++
+		}
+	}
+	return count
+}
+
+func writeItems(w io.Writer, label string, items []string) {
+	for _, item := range items {
+		_, _ = fmt.Fprintf(w, "%s: %s\n", label, item)
+	}
 }

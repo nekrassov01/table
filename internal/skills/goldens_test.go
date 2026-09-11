@@ -6,9 +6,11 @@ import (
 	"crypto/sha256"
 	"errors"
 	"flag"
+	"fmt"
 	"go/ast"
 	"go/token"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -18,8 +20,7 @@ import (
 
 func TestRunGoldens(t *testing.T) {
 	type args struct {
-		ctx       context.Context
-		arguments func(*testing.T) []string
+		arguments []string
 	}
 	type want struct {
 		code   int
@@ -33,102 +34,9 @@ func TestRunGoldens(t *testing.T) {
 		want want
 	}{
 		{
-			name: "successful audit",
+			name: "invalid arguments",
 			args: args{
-				ctx: context.Background(),
-				arguments: func(t *testing.T) []string {
-					root := t.TempDir()
-					pkg := filepath.Join(root, "text")
-					if err := os.Mkdir(pkg, 0o700); err != nil {
-						t.Fatal(err)
-					}
-					writeAuditPackage(t, pkg)
-					t.Chdir(root)
-					return []string{"text"}
-				},
-			},
-			want: want{
-				stdout: true,
-			},
-		},
-		{
-			name: "default packages",
-			args: args{
-				ctx: context.Background(),
-				arguments: func(t *testing.T) []string {
-					root := t.TempDir()
-					for _, name := range defaultPackages {
-						pkg := filepath.Join(root, name)
-						if err := os.Mkdir(pkg, 0o700); err != nil {
-							t.Fatal(err)
-						}
-						writeAuditPackage(t, pkg)
-					}
-					t.Chdir(root)
-					return nil
-				},
-			},
-			want: want{
-				stdout: true,
-			},
-		},
-		{
-			name: "audit findings",
-			args: args{
-				ctx: context.Background(),
-				arguments: func(t *testing.T) []string {
-					root := t.TempDir()
-					pkg := filepath.Join(root, "text")
-					if err := os.Mkdir(pkg, 0o700); err != nil {
-						t.Fatal(err)
-					}
-					writeAuditPackage(t, pkg)
-					if err := os.Remove(filepath.Join(pkg, "testdata", "common_value.txt")); err != nil {
-						t.Fatal(err)
-					}
-					t.Chdir(root)
-					return []string{"text"}
-				},
-			},
-			want: want{
-				code:   1,
-				stdout: true,
-			},
-		},
-		{
-			name: "failed audit",
-			args: args{
-				ctx: context.Background(),
-				arguments: func(t *testing.T) []string {
-					t.Chdir(t.TempDir())
-					return []string{"text"}
-				},
-			},
-			want: want{
-				code:   1,
-				stderr: true,
-			},
-		},
-		{
-			name: "canceled audit",
-			args: args{
-				ctx: canceledContext(),
-				arguments: func(*testing.T) []string {
-					return []string{"text"}
-				},
-			},
-			want: want{
-				code:   1,
-				stderr: true,
-			},
-		},
-		{
-			name: "unknown package",
-			args: args{
-				ctx: context.Background(),
-				arguments: func(*testing.T) []string {
-					return []string{"unknown"}
-				},
+				arguments: []string{"unknown"},
 			},
 			want: want{
 				code:   2,
@@ -139,10 +47,7 @@ func TestRunGoldens(t *testing.T) {
 		{
 			name: "help",
 			args: args{
-				ctx: context.Background(),
-				arguments: func(*testing.T) []string {
-					return []string{"--help"}
-				},
+				arguments: []string{"--help"},
 			},
 			want: want{
 				stdout: true,
@@ -154,7 +59,7 @@ func TestRunGoldens(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			var stderr bytes.Buffer
-			code := RunGoldens(test.args.ctx, test.args.arguments(t), &stdout, &stderr)
+			code := RunGoldens(t.Context(), test.args.arguments, &stdout, &stderr)
 			got := want{
 				code:   code,
 				stdout: stdout.Len() > 0,
@@ -162,6 +67,263 @@ func TestRunGoldens(t *testing.T) {
 				usage:  strings.Contains(stdout.String()+stderr.String(), "Usage of goldens:"),
 			}
 			testutil.AssertValue(t, got, test.want, "run")
+		})
+	}
+}
+
+func Test_runGoldens(t *testing.T) {
+	type args struct {
+		ctx         context.Context
+		arguments   []string
+		prepareRoot func(*testing.T) string
+		rootFailure bool
+	}
+	type want struct {
+		code   int
+		stdout bool
+		stderr bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "successful audit",
+			args: args{
+				ctx:         context.Background(),
+				arguments:   []string{"text"},
+				prepareRoot: func(t *testing.T) string { return newAuditRoot(t, "text") },
+			},
+			want: want{
+				stdout: true,
+			},
+		},
+		{
+			name: "default packages",
+			args: args{
+				ctx:         context.Background(),
+				prepareRoot: func(t *testing.T) string { return newAuditRoot(t, defaultPackages[:]...) },
+			},
+			want: want{
+				stdout: true,
+			},
+		},
+		{
+			name: "audit findings",
+			args: args{
+				ctx:       context.Background(),
+				arguments: []string{"text"},
+				prepareRoot: func(t *testing.T) string {
+					root := newAuditRoot(t, "text")
+					if err := os.Remove(filepath.Join(root, "text", "testdata", "common_value.txt")); err != nil {
+						t.Fatal(err)
+					}
+					return root
+				},
+			},
+			want: want{
+				code:   1,
+				stdout: true,
+			},
+		},
+		{
+			name: "failed audit",
+			args: args{
+				ctx:         context.Background(),
+				arguments:   []string{"text"},
+				prepareRoot: func(t *testing.T) string { return t.TempDir() },
+			},
+			want: want{
+				code:   1,
+				stderr: true,
+			},
+		},
+		{
+			name: "repository root failure",
+			args: args{
+				ctx:         context.Background(),
+				arguments:   []string{"text"},
+				rootFailure: true,
+			},
+			want: want{
+				code:   1,
+				stderr: true,
+			},
+		},
+		{
+			name: "canceled audit",
+			args: args{
+				ctx:         canceledContext(),
+				arguments:   []string{"text"},
+				prepareRoot: func(t *testing.T) string { return newAuditRoot(t, "text") },
+			},
+			want: want{
+				code:   1,
+				stderr: true,
+			},
+		},
+		{
+			name: "invalid arguments",
+			args: args{
+				ctx:       context.Background(),
+				arguments: []string{"unknown"},
+			},
+			want: want{
+				code:   2,
+				stderr: true,
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			root := ""
+			if test.args.prepareRoot != nil {
+				root = test.args.prepareRoot(t)
+			}
+			commands := commandExecutor(func(_ context.Context, input command) error {
+				if test.args.rootFailure {
+					return testutil.NewError()
+				}
+				_, err := fmt.Fprintln(input.stdout, root)
+				return err
+			})
+			var stdout bytes.Buffer
+			var stderr bytes.Buffer
+			code := runGoldens(test.args.ctx, commands, test.args.arguments, &stdout, &stderr)
+			got := want{
+				code:   code,
+				stdout: stdout.Len() > 0,
+				stderr: stderr.Len() > 0,
+			}
+			testutil.AssertValue(t, got, test.want, "run")
+		})
+	}
+}
+
+func Test_parseGoldensOptions(t *testing.T) {
+	type args struct {
+		arguments []string
+	}
+	type want struct {
+		packages []string
+		failed   bool
+		help     bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "defaults",
+			want: want{
+				packages: defaultPackages[:],
+			},
+		},
+		{
+			name: "selected packages",
+			args: args{
+				arguments: []string{"text", "markdown"},
+			},
+			want: want{
+				packages: []string{"text", "markdown"},
+			},
+		},
+		{
+			name: "unknown package",
+			args: args{
+				arguments: []string{"unknown"},
+			},
+			want: want{
+				failed: true,
+			},
+		},
+		{
+			name: "invalid flag",
+			args: args{
+				arguments: []string{"--unknown"},
+			},
+			want: want{
+				failed: true,
+			},
+		},
+		{
+			name: "help",
+			args: args{
+				arguments: []string{"--help"},
+			},
+			want: want{
+				failed: true,
+				help:   true,
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			packages, err := parseGoldensOptions(test.args.arguments)
+			got := want{
+				packages: packages,
+				failed:   err != nil,
+				help:     errors.Is(err, flag.ErrHelp),
+			}
+			testutil.AssertValue(t, got, test.want, "parseGoldensOptions")
+		})
+	}
+}
+
+func TestRunGoldens_directory(t *testing.T) {
+	root := t.TempDir()
+	initRepository(t, root)
+	pkg := filepath.Join(root, "text")
+	if err := os.Mkdir(pkg, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	writeAuditPackage(t, pkg)
+	type args struct {
+		directory string
+	}
+	type want struct {
+		code   int
+		stdout string
+		stderr string
+	}
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "repository root",
+			args: args{
+				directory: root,
+			},
+			want: want{
+				stdout: "text: tests=2 calls=2 files=1 options=2 uncovered_pairs=0\n",
+			},
+		},
+		{
+			name: "package directory",
+			args: args{
+				directory: pkg,
+			},
+			want: want{
+				stdout: "text: tests=2 calls=2 files=1 options=2 uncovered_pairs=0\n",
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Chdir(test.args.directory)
+			var stdout bytes.Buffer
+			var stderr bytes.Buffer
+			code := RunGoldens(t.Context(), []string{"text"}, &stdout, &stderr)
+			got := want{
+				code:   code,
+				stdout: stdout.String(),
+				stderr: stderr.String(),
+			}
+			testutil.AssertValue(t, got, test.want, "RunGoldens")
 		})
 	}
 }
@@ -287,135 +449,6 @@ func TestAudit_write(t *testing.T) {
 	}
 }
 
-func Test_countCalls(t *testing.T) {
-	type args struct {
-		tests []goldenTest
-	}
-	tests := []struct {
-		name string
-		args args
-		want int
-	}{
-		{
-			name: "counts resolved names",
-			args: args{
-				tests: []goldenTest{
-					{
-						name: "common_value",
-					},
-					{},
-				},
-			},
-			want: 1,
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			got := countCalls(test.args.tests)
-			testutil.AssertValue(t, got, test.want, "countCalls")
-		})
-	}
-}
-
-func Test_writeItems(t *testing.T) {
-	type args struct {
-		label string
-		items []string
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{
-			name: "writes each item",
-			args: args{
-				label: "items",
-				items: []string{"a", "b"},
-			},
-			want: "items: a\nitems: b\n",
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			var w bytes.Buffer
-			writeItems(&w, test.args.label, test.args.items)
-			testutil.AssertValue(t, w.String(), test.want, "writeItems")
-		})
-	}
-}
-
-func Test_parseGoldensOptions(t *testing.T) {
-	type args struct {
-		arguments []string
-	}
-	type want struct {
-		packages []string
-		failed   bool
-		help     bool
-	}
-	tests := []struct {
-		name string
-		args args
-		want want
-	}{
-		{
-			name: "defaults",
-			want: want{
-				packages: defaultPackages[:],
-			},
-		},
-		{
-			name: "selected packages",
-			args: args{
-				arguments: []string{"text", "markdown"},
-			},
-			want: want{
-				packages: []string{"text", "markdown"},
-			},
-		},
-		{
-			name: "unknown package",
-			args: args{
-				arguments: []string{"unknown"},
-			},
-			want: want{
-				failed: true,
-			},
-		},
-		{
-			name: "invalid flag",
-			args: args{
-				arguments: []string{"--unknown"},
-			},
-			want: want{
-				failed: true,
-			},
-		},
-		{
-			name: "help",
-			args: args{
-				arguments: []string{"--help"},
-			},
-			want: want{
-				failed: true,
-				help:   true,
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			packages, err := parseGoldensOptions(test.args.arguments)
-			got := want{
-				packages: packages,
-				failed:   err != nil,
-				help:     errors.Is(err, flag.ErrHelp),
-			}
-			testutil.AssertValue(t, got, test.want, "parseGoldensOptions")
-		})
-	}
-}
-
 func Test_auditPackage(t *testing.T) {
 	type args struct {
 		pkg func(*testing.T) string
@@ -502,7 +535,8 @@ func Test_auditPackage(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := auditPackage(test.args.pkg(t))
+			directory := test.args.pkg(t)
+			result, err := auditPackage(filepath.Dir(directory), filepath.Base(directory))
 			got := want{
 				tests:          result.tests,
 				files:          result.files,
@@ -891,10 +925,90 @@ func Test_resolveUncoveredPairs(t *testing.T) {
 	}
 }
 
+func Test_countCalls(t *testing.T) {
+	type args struct {
+		tests []goldenTest
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{
+			name: "counts resolved names",
+			args: args{
+				tests: []goldenTest{
+					{
+						name: "common_value",
+					},
+					{},
+				},
+			},
+			want: 1,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got := countCalls(test.args.tests)
+			testutil.AssertValue(t, got, test.want, "countCalls")
+		})
+	}
+}
+
+func Test_writeItems(t *testing.T) {
+	type args struct {
+		label string
+		items []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "writes each item",
+			args: args{
+				label: "items",
+				items: []string{"a", "b"},
+			},
+			want: "items: a\nitems: b\n",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var w bytes.Buffer
+			writeItems(&w, test.args.label, test.args.items)
+			testutil.AssertValue(t, w.String(), test.want, "writeItems")
+		})
+	}
+}
+
 func canceledContext() context.Context {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	return ctx
+}
+
+func initRepository(t *testing.T, directory string) {
+	t.Helper()
+	// #nosec G204 -- directory is an isolated test path created by t.TempDir.
+	command := exec.Command("git", "init", "--quiet", directory)
+	if output, err := command.CombinedOutput(); err != nil {
+		t.Fatalf("init repository: %v: %s", err, output)
+	}
+}
+
+func newAuditRoot(t *testing.T, packages ...string) string {
+	t.Helper()
+	root := t.TempDir()
+	for _, name := range packages {
+		directory := filepath.Join(root, name)
+		if err := os.Mkdir(directory, 0o700); err != nil {
+			t.Fatal(err)
+		}
+		writeAuditPackage(t, directory)
+	}
+	return root
 }
 
 func newAuditPackage(t *testing.T) string {
