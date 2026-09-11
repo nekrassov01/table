@@ -3,7 +3,6 @@ package skills
 
 import (
 	"bufio"
-	"bytes"
 	"context"
 	"errors"
 	"flag"
@@ -32,17 +31,9 @@ type options struct {
 	keep      bool
 }
 
-type command struct {
-	name      string
-	args      []string
-	directory string
-	stdout    io.Writer
-	stderr    io.Writer
-}
-
 type execution struct {
 	lookPath  func(string) (string, error)
-	execute   func(context.Context, command) error
+	execute   commandExecutor
 	mkdirTemp func(string, string) (string, error)
 	mkdir     func(string, os.FileMode) error
 	removeAll func(string) error
@@ -52,30 +43,12 @@ type execution struct {
 func newExecution() execution {
 	return execution{
 		lookPath:  exec.LookPath,
+		execute:   newCommandExecutor(),
 		mkdirTemp: os.MkdirTemp,
 		mkdir:     os.Mkdir,
 		removeAll: os.RemoveAll,
 		openFile:  os.OpenFile,
-		execute: func(ctx context.Context, input command) error {
-			// #nosec G204 -- command names are selected internally and no shell is invoked.
-			cmd := exec.CommandContext(ctx, input.name, input.args...)
-			cmd.Dir = input.directory
-			cmd.Stdout = input.stdout
-			cmd.Stderr = input.stderr
-			return cmd.Run()
-		},
 	}
-}
-
-func (o execution) output(ctx context.Context, input command) (string, error) {
-	var contents bytes.Buffer
-	input.stdout = &contents
-	input.stderr = &contents
-	if err := o.execute(ctx, input); err != nil {
-		args := append([]string{input.name}, input.args...)
-		return "", fmt.Errorf("run %s: %w: %s", strings.Join(args, " "), err, strings.TrimSpace(contents.String()))
-	}
-	return strings.TrimSpace(contents.String()), nil
 }
 
 type metric struct {
@@ -130,14 +103,11 @@ func newBaselineFlags(opts *options, output io.Writer) *flag.FlagSet {
 }
 
 func compareBaseline(ctx context.Context, commands execution, opts options, stdout, stderr io.Writer) (err error) {
-	root, err := commands.output(ctx, command{
-		name: "git",
-		args: []string{"rev-parse", "--show-toplevel"},
-	})
+	root, err := commands.execute.resolveRepositoryRoot(ctx)
 	if err != nil {
 		return err
 	}
-	baseCommit, err := commands.output(ctx, command{
+	baseCommit, err := commands.execute.output(ctx, command{
 		name: "git",
 		args: []string{"-C", root, "rev-parse", "--verify", opts.base + "^{commit}"},
 	})
@@ -188,14 +158,14 @@ func compareBaseline(ctx context.Context, commands execution, opts options, stdo
 		return fmt.Errorf("add baseline worktree: %w", err)
 	}
 	worktreeAdded = true
-	goVersion, err := commands.output(ctx, command{
+	goVersion, err := commands.execute.output(ctx, command{
 		name: "go",
 		args: []string{"version"},
 	})
 	if err != nil {
 		return err
 	}
-	platform, err := commands.output(ctx, command{
+	platform, err := commands.execute.output(ctx, command{
 		name: "go",
 		args: []string{"env", "GOOS", "GOARCH"},
 	})
