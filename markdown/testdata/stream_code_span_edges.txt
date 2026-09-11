@@ -10,4 +10,5 @@
 | backslash then pipe | `a\\|b` |
 | padded spaces | `  x  ` |
 | edge line breaks | `  x  ` |
+| crlf | `a b` |
 | only spaces | `   ` |

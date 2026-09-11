@@ -177,6 +177,39 @@ func TestGolden_StreamControlChars(t *testing.T) {
 	testutil.AssertGolden(t, "common_control_chars", buf.Bytes())
 }
 
+func TestGolden_TableCRLFQuote(t *testing.T) {
+	var buf bytes.Buffer
+	tb := NewTable(&buf,
+		WithCRLF(),
+		WithHeader([]string{"Key", "Value"}),
+	)
+	if err := tb.Render([][]any{
+		{"crlf", "a\r\nb"},
+		{"cr", "a\rb"},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_crlf_quote", buf.Bytes())
+}
+
+func TestGolden_StreamCRLFQuote(t *testing.T) {
+	var buf bytes.Buffer
+	s := NewStream(&buf,
+		WithCRLF(),
+		WithHeader([]string{"Key", "Value"}),
+	)
+	if err := s.Render([]any{"crlf", "a\r\nb"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Render([]any{"cr", "a\rb"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Close(); err != nil {
+		t.Fatal(err)
+	}
+	testutil.AssertGolden(t, "common_crlf_quote", buf.Bytes())
+}
+
 func TestGolden_TableDelimiterIndex(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,

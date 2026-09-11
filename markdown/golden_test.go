@@ -291,6 +291,9 @@ func TestGolden_StreamCodeSpanEdges(t *testing.T) {
 	if err := s.Render([]any{"edge line breaks", "\nx\n"}); err != nil {
 		t.Fatal(err)
 	}
+	if err := s.Render([]any{"crlf", "a\r\nb"}); err != nil {
+		t.Fatal(err)
+	}
 	if err := s.Render([]any{"only spaces", "   "}); err != nil {
 		t.Fatal(err)
 	}
@@ -2041,6 +2044,7 @@ func TestGolden_TableCodeSpanEdges(t *testing.T) {
 		{"backslash then pipe", `a\|b`},
 		{"padded spaces", " x "},
 		{"edge line breaks", "\nx\n"},
+		{"crlf", "a\r\nb"},
 		{"only spaces", "   "},
 	}); err != nil {
 		t.Fatal(err)
