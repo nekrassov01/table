@@ -694,7 +694,6 @@ func contractCases() []contractCase {
 			header: []string{"A", "B", "C"},
 			rows:   [][]any{{"x", "", "z"}, {"", "q", ""}},
 		},
-
 		{
 			name: "footer",
 			opts: []Option{
@@ -705,47 +704,40 @@ func contractCases() []contractCase {
 			header: []string{"A", "B", "C"},
 			rows:   [][]any{{"x", "y", 1}, {"p", "q", 8}},
 		},
-
 		{
 			name:   "ragged rows",
 			opts:   []Option{},
 			header: []string{"A", "B", "C"},
 			rows:   [][]any{{"x"}, {"p", "q", "r"}, {}},
 		},
-
 		{
 			name:   "control chars",
 			opts:   []Option{},
 			header: []string{"A", "B", "C"},
 			rows:   [][]any{{"a\tb", "c\vd", "e\x00f"}},
 		},
-
 		{
 			name:   "invalid utf8",
 			opts:   []Option{},
 			header: []string{"A", "B", "C"},
 			rows:   [][]any{{"a\xffb", "\xfe", "ok"}},
 		},
-
 		{
 			name:   "emoji",
 			opts:   []Option{},
 			header: []string{"A", "B", "C"},
 			rows:   [][]any{{"\U0001F600", "\U0001F469\u200D\U0001F4BB", "e\u0301"}},
 		},
-
 		{
 			name:   "plain",
 			header: []string{"A", "B", "C"},
 			rows:   [][]any{{"xxx", "yyy", "zzz"}, {"aaa", "bbb", "ccc"}},
 		},
-
 		{
 			name:   "numeric",
 			header: []string{"Int", "Float"},
 			rows:   [][]any{{100, 1.25}, {200, 2.50}, {300, 3.75}},
 		},
-
 		{
 			name:   "index",
 			opts:   []Option{WithIndex()},
