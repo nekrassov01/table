@@ -1,5 +1,17 @@
 # Changelog
 
+## [v0.1.4](https://github.com/nekrassov01/table/compare/v0.1.3...v0.1.4) - 2026-09-11
+
+- Update logo to a grid by @nekrassov01 in https://github.com/nekrassov01/table/pull/27
+- Maintain repository settings by @nekrassov01 in https://github.com/nekrassov01/table/pull/29
+- Fix output correctness issues found in review by @nekrassov01 in https://github.com/nekrassov01/table/pull/31
+- Add style cloning by @nekrassov01 in https://github.com/nekrassov01/table/pull/33
+- Update dependencies by @nekrassov01 in https://github.com/nekrassov01/table/pull/34
+- Enhance repository maintenance checks by @nekrassov01 in https://github.com/nekrassov01/table/pull/35
+- Support Color Output on Windows Terminals by @nekrassov01 in https://github.com/nekrassov01/table/pull/36
+- Enhance test coverage and organization by @nekrassov01 in https://github.com/nekrassov01/table/pull/37
+- Correct API and architecture documentation by @nekrassov01 in https://github.com/nekrassov01/table/pull/38
+
 ## [v0.1.3](https://github.com/nekrassov01/table/compare/v0.1.2...v0.1.3) - 2026-08-29
 
 - Update dependencies by @nekrassov01 in https://github.com/nekrassov01/table/pull/24
