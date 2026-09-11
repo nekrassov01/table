@@ -6,6 +6,117 @@ import (
 	"github.com/nekrassov01/table/internal/testutil"
 )
 
+func TestStyle_Clone(t *testing.T) {
+	type fields struct {
+		style Style
+	}
+	type want struct {
+		style Style
+	}
+	sharedHorizontal := &Horizontal{Fill: "base"}
+	sharedAttr := &Attr{
+		Prefix: []byte("prefix"),
+		Suffix: []byte("suffix"),
+	}
+	fullStyle := Style{
+		Border: BorderStyle{
+			Top:      sharedHorizontal,
+			Header:   sharedHorizontal,
+			Body:     sharedHorizontal,
+			Footer:   sharedHorizontal,
+			Bottom:   sharedHorizontal,
+			Vertical: &Vertical{Outer: "outer", Inner: "inner"},
+			Attr:     sharedAttr,
+		},
+		Content: ContentStyle{
+			Header:  sharedAttr,
+			Body:    sharedAttr,
+			Footer:  sharedAttr,
+			Caption: sharedAttr,
+		},
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   want
+	}{
+		{
+			name: "empty",
+		},
+		{
+			name: "nested values are independent",
+			fields: fields{
+				style: fullStyle,
+			},
+			want: want{
+				style: fullStyle,
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got := test.fields.style.Clone()
+			testutil.AssertValue(t, got, test.want.style, "Clone")
+			horizontalPairs := [...]struct {
+				source *Horizontal
+				clone  *Horizontal
+			}{
+				{test.fields.style.Border.Top, got.Border.Top},
+				{test.fields.style.Border.Header, got.Border.Header},
+				{test.fields.style.Border.Body, got.Border.Body},
+				{test.fields.style.Border.Footer, got.Border.Footer},
+				{test.fields.style.Border.Bottom, got.Border.Bottom},
+			}
+			seenHorizontals := make(map[*Horizontal]struct{}, len(horizontalPairs))
+			for i, pair := range horizontalPairs {
+				if pair.clone != nil && pair.clone == pair.source {
+					t.Errorf("horizontal %d shares the source", i)
+				}
+				if _, exists := seenHorizontals[pair.clone]; pair.clone != nil && exists {
+					t.Errorf("horizontal %d shares another clone", i)
+				}
+				if pair.clone != nil {
+					seenHorizontals[pair.clone] = struct{}{}
+				}
+			}
+			if got.Border.Vertical != nil && got.Border.Vertical == test.fields.style.Border.Vertical {
+				t.Error("vertical shares the source")
+			}
+			attrPairs := [...]struct {
+				source *Attr
+				clone  *Attr
+			}{
+				{test.fields.style.Border.Attr, got.Border.Attr},
+				{test.fields.style.Content.Header, got.Content.Header},
+				{test.fields.style.Content.Body, got.Content.Body},
+				{test.fields.style.Content.Footer, got.Content.Footer},
+				{test.fields.style.Content.Caption, got.Content.Caption},
+			}
+			seenAttrs := make(map[*Attr]struct{}, len(attrPairs))
+			for i, pair := range attrPairs {
+				if pair.clone == nil {
+					continue
+				}
+				if pair.clone == pair.source {
+					t.Errorf("attribute %d shares the source", i)
+				}
+				if len(pair.clone.Prefix) > 0 && len(pair.source.Prefix) > 0 &&
+					&pair.clone.Prefix[0] == &pair.source.Prefix[0] {
+					t.Errorf("attribute %d shares its prefix", i)
+				}
+				if len(pair.clone.Suffix) > 0 && len(pair.source.Suffix) > 0 &&
+					&pair.clone.Suffix[0] == &pair.source.Suffix[0] {
+					t.Errorf("attribute %d shares its suffix", i)
+				}
+				if _, exists := seenAttrs[pair.clone]; exists {
+					t.Errorf("attribute %d shares another clone", i)
+				}
+				seenAttrs[pair.clone] = struct{}{}
+			}
+		})
+	}
+}
+
 func TestBorderStyle_maxGlyphLen(t *testing.T) {
 	type fields struct {
 		Top      *Horizontal
@@ -273,6 +384,108 @@ func TestContentStyle_resolve(t *testing.T) {
 			}
 			got := o.resolve(test.args.sc)
 			testutil.AssertValue(t, got, test.want.val, "resolve")
+		})
+	}
+}
+
+func Test_clonePointer(t *testing.T) {
+	type args struct {
+		value *Horizontal
+	}
+	type want struct {
+		value  *Horizontal
+		shared bool
+	}
+	value := &Horizontal{Fill: "-"}
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "nil",
+		},
+		{
+			name: "value",
+			args: args{
+				value: value,
+			},
+			want: want{
+				value: value,
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			value := clonePointer(test.args.value)
+			got := want{
+				value:  value,
+				shared: value != nil && value == test.args.value,
+			}
+			testutil.AssertValue(t, got, test.want, "clonePointer")
+		})
+	}
+}
+
+func Test_cloneAttr(t *testing.T) {
+	type args struct {
+		attr *Attr
+	}
+	type want struct {
+		attr         *Attr
+		shared       bool
+		prefixShared bool
+		suffixShared bool
+	}
+	empty := &Attr{
+		Prefix: []byte{},
+		Suffix: []byte{},
+	}
+	attr := &Attr{
+		Prefix: []byte("prefix"),
+		Suffix: []byte("suffix"),
+	}
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "nil",
+		},
+		{
+			name: "empty",
+			args: args{
+				attr: empty,
+			},
+			want: want{
+				attr: empty,
+			},
+		},
+		{
+			name: "byte slices",
+			args: args{
+				attr: attr,
+			},
+			want: want{
+				attr: attr,
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			attr := cloneAttr(test.args.attr)
+			got := want{
+				attr:   attr,
+				shared: attr != nil && attr == test.args.attr,
+			}
+			if attr != nil && test.args.attr != nil {
+				got.prefixShared = len(attr.Prefix) > 0 && len(test.args.attr.Prefix) > 0 &&
+					&attr.Prefix[0] == &test.args.attr.Prefix[0]
+				got.suffixShared = len(attr.Suffix) > 0 && len(test.args.attr.Suffix) > 0 &&
+					&attr.Suffix[0] == &test.args.attr.Suffix[0]
+			}
+			testutil.AssertValue(t, got, test.want, "cloneAttr")
 		})
 	}
 }

@@ -240,16 +240,16 @@ This example aligns every body column to the left, then aligns input column 2 to
 
 The public API treats slices, pointers, and functions as follows.
 
-| Input                                                       | Treatment                                                                       |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| Column indexes passed to `Columns`                          | Cloned at construction and owned by the returned `ColumnSelector`.              |
-| Rows passed to `WithHeader`                                 | Borrowed read-only by `Table` or `Stream`.                                      |
-| `text.Style`                                                | The struct is copied; internal pointers and byte slices are borrowed read-only. |
-| `text.WithAttr`                                             | The `Attr` pointer and its byte slices are borrowed read-only.                  |
-| Colors and decorations in `html`, `markdown`, and `backlog` | Referenced markup is borrowed read-only.                                        |
-| HTML table, section, and cell attributes                    | Copied by value and normalized when the `Option` is constructed.                |
-| `WithFooter` and `WithTransformer`                          | The function is retained; the caller owns any state captured by its closure.    |
-| Body rows and values returned by a footer function          | Borrowed read-only only for the corresponding call to `Render` or `Close`.      |
+| Input                                                       | Treatment                                                                    |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Column indexes passed to `Columns`                          | Cloned at construction and owned by the returned `ColumnSelector`.           |
+| Rows passed to `WithHeader`                                 | Borrowed read-only by `Table` or `Stream`.                                   |
+| `text.Style`                                                | The struct is copied; use `Style.Clone` to own nested values.                |
+| `text.WithAttr`                                             | The `Attr` pointer and its byte slices are borrowed read-only.               |
+| Colors and decorations in `html`, `markdown`, and `backlog` | Referenced markup is borrowed read-only.                                     |
+| HTML table, section, and cell attributes                    | Copied by value and normalized when the `Option` is constructed.             |
+| `WithFooter` and `WithTransformer`                          | The function is retained; the caller owns any state captured by its closure. |
+| Body rows and values returned by a footer function          | Borrowed read-only only for the corresponding call to `Render` or `Close`.   |
 
 Do not mutate borrowed values or closure state while the associated `Table` or `Stream` is in use. Defensive copies of headers and markup are not part of the API contract. References to body and footer rows are discarded before the corresponding call returns.
 
@@ -295,7 +295,7 @@ func WithTransformer(columns ColumnSelector, fn func(any) (string, *Attr)) Optio
 
 `NewAttr` combines multiple `Code` values into one SGR sequence. It returns `nil` when called without arguments.
 
-Built-in borders are `StyleASCII`, `StyleLight`, `StyleRounded`, `StyleHeavy`, and `StyleDouble`, together with colored variants of the latter four. Set individual `Style` fields to define custom borders and attributes.
+Built-in borders are `StyleASCII`, `StyleLight`, `StyleRounded`, `StyleHeavy`, and `StyleDouble`, together with colored variants of the latter four. Use `Style.Clone` before changing a built-in style's nested border or attribute values. A direct assignment copies the `Style` struct but continues to share its pointers and byte slices.
 
 ### html
 

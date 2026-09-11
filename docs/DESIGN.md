@@ -91,6 +91,8 @@ The returned footer is passed to `newConfig` or `resumeConfig` and proceeds thro
 
 Options do not clone every referenced value. Values that must be independent of subsequent caller changes are owned; values read only during execution are borrowed. For example, `Columns` clones indexes to create an independently reusable selector, while headers and footer functions remain referenced until needed. Choosing ownership based on value semantics avoids unnecessary allocations.
 
+`WithStyle` borrows the nested border and attribute values because rendering only reads them. Callers that need to customize a shared preset can use `Style.Clone` to request independent pointers and byte slices without adding allocations to ordinary read-only use.
+
 A reusable `Option` does not mutate captured values on each application. If a value always requires the same escaping or normalization, perform that work once when constructing the option. Values such as captions and cell contents remain unprocessed until the pipeline stage responsible for their output context handles them.
 
 ### Evaluate only the selected value

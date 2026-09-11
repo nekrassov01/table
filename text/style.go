@@ -1,9 +1,28 @@
 package text
 
+import "bytes"
+
 // Style defines a table's border and content appearance.
 type Style struct {
 	Border  BorderStyle  // The frame around and between the cells.
 	Content ContentStyle // The text within them.
+}
+
+// Clone returns a deep copy whose border and attribute values, including SGR
+// byte slices, can be changed without modifying the source.
+func (o Style) Clone() Style {
+	o.Border.Top = clonePointer(o.Border.Top)
+	o.Border.Header = clonePointer(o.Border.Header)
+	o.Border.Body = clonePointer(o.Border.Body)
+	o.Border.Footer = clonePointer(o.Border.Footer)
+	o.Border.Bottom = clonePointer(o.Border.Bottom)
+	o.Border.Vertical = clonePointer(o.Border.Vertical)
+	o.Border.Attr = cloneAttr(o.Border.Attr)
+	o.Content.Header = cloneAttr(o.Content.Header)
+	o.Content.Body = cloneAttr(o.Content.Body)
+	o.Content.Footer = cloneAttr(o.Content.Footer)
+	o.Content.Caption = cloneAttr(o.Content.Caption)
+	return o
 }
 
 // BorderStyle defines border glyphs and attributes. A nil horizontal or
@@ -387,6 +406,26 @@ var (
 		Inner: "│",
 	}
 )
+
+// clonePointer returns an independent copy of o while preserving nil.
+func clonePointer[T any](o *T) *T {
+	if o == nil {
+		return nil
+	}
+	clone := *o
+	return &clone
+}
+
+// cloneAttr returns an independent copy of o and its byte slices.
+func cloneAttr(o *Attr) *Attr {
+	if o == nil {
+		return nil
+	}
+	clone := *o
+	clone.Prefix = bytes.Clone(o.Prefix)
+	clone.Suffix = bytes.Clone(o.Suffix)
+	return &clone
+}
 
 // colored applies the default attributes to a style.
 func colored(s Style) Style {
