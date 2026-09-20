@@ -3,6 +3,7 @@ package csv
 import (
 	"unicode/utf8"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/internal/column"
 )
 
@@ -87,7 +88,8 @@ func (o *columnSet) resolve(columns []columnConfig, columnCount, indexOffset int
 
 // columnConfig holds CSV settings for one logical column.
 type columnConfig struct {
-	transformer func(any) string // Optional body-value transformation.
+	// Optional body-value transformation.
+	transformer func(table.Value) string
 }
 
 // validDelimiter reports whether delimiter can separate fields.

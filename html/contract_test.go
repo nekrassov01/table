@@ -18,7 +18,7 @@ type contractCase struct {
 	name          string
 	opts          []Option
 	header        []string
-	rows          [][]any
+	rows          [][]table.Value
 	omitHeader    bool
 	streamDiffers bool
 }
@@ -26,7 +26,7 @@ type contractCase struct {
 func TestContract_TableDeterministic(t *testing.T) {
 	var buf1, buf2 bytes.Buffer
 	header := []string{"A", "B", "C"}
-	rows := [][]any{{"x", 1, true}, {"y", 2, false}}
+	rows := [][]table.Value{{table.String("x"), table.Int(1), table.Bool(true)}, {table.String("y"), table.Int(2), table.Bool(false)}}
 	t1 := NewTable(&buf1, WithHeader(header))
 	if err := t1.Render(rows); err != nil {
 		t.Fatal(err)
@@ -41,7 +41,7 @@ func TestContract_TableDeterministic(t *testing.T) {
 func TestContract_TableReusable(t *testing.T) {
 	var buf bytes.Buffer
 	header := []string{"A", "B"}
-	rows := [][]any{{"x", 1}, {"y", 2}}
+	rows := [][]table.Value{{table.String("x"), table.Int(1)}, {table.String("y"), table.Int(2)}}
 	tb := NewTable(&buf, WithHeader(header))
 	if err := tb.Render(rows); err != nil {
 		t.Fatal(err)
@@ -70,7 +70,7 @@ func TestContract_TableFooterTiming(t *testing.T) {
 		t.Fatalf("constructor called footer %d times", calls)
 	}
 	total = "after"
-	if err := tb.Render([][]any{{"a", 1}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a"), table.Int(1)}}); err != nil {
 		t.Fatal(err)
 	}
 	if calls != 1 {
@@ -88,7 +88,7 @@ func TestContract_TableWriterError(t *testing.T) {
 	},
 		WithHeader([]string{"A"}),
 	)
-	err := tb.Render([][]any{{"x"}})
+	err := tb.Render([][]table.Value{{table.String("x")}})
 	if _, ok := err.(*table.Error); !ok {
 		t.Fatalf("expected outer *table.Error, got %T", err)
 	}
@@ -108,7 +108,7 @@ func TestContract_TableNilRows(t *testing.T) {
 func TestContract_StreamLifecycle(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf, WithHeader([]string{"A", "B"}))
-	for _, row := range [][]any{{"x", 1}, {"y", 2}} {
+	for _, row := range [][]table.Value{{table.String("x"), table.Int(1)}, {table.String("y"), table.Int(2)}} {
 		if err := s.Render(row); err != nil {
 			t.Fatalf("Render: %v", err)
 		}
@@ -124,13 +124,13 @@ func TestContract_StreamLifecycle(t *testing.T) {
 func TestContract_StreamRenderAfterClose(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf, WithHeader([]string{"A"}))
-	if err := s.Render([]any{"x"}); err != nil {
+	if err := s.Render([]table.Value{table.String("x")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"y"}); !errors.Is(err, table.ErrClosed) {
+	if err := s.Render([]table.Value{table.String("y")}); !errors.Is(err, table.ErrClosed) {
 		t.Fatalf("expected table.ErrClosed, got %v", err)
 	}
 }
@@ -138,7 +138,7 @@ func TestContract_StreamRenderAfterClose(t *testing.T) {
 func TestContract_StreamCloseAfterClose(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf, WithHeader([]string{"A"}))
-	if err := s.Render([]any{"x"}); err != nil {
+	if err := s.Render([]table.Value{table.String("x")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -160,7 +160,7 @@ func TestContract_StreamFooterTiming(t *testing.T) {
 			return [][]string{{"sum", total}}
 		}),
 	)
-	if err := s.Render([]any{"a", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("a"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
 	if calls != 0 {
@@ -185,7 +185,7 @@ func TestContract_FooterCanWidenTableButNotStream(t *testing.T) {
 	footer := func() [][]string {
 		return [][]string{{"sum", "footer-only"}}
 	}
-	rows := [][]any{{1}}
+	rows := [][]table.Value{{table.Int(1)}}
 	var tableOutput bytes.Buffer
 	if err := NewTable(&tableOutput, WithFooter(footer)).Render(rows); err != nil {
 		t.Fatal(err)
@@ -223,7 +223,7 @@ func TestContract_StreamCloseErrorOrder(t *testing.T) {
 		WithHeader([]string{"A"}),
 		WithFooter(footer),
 	)
-	if err := footerStream.Render([]any{"a"}); err != nil {
+	if err := footerStream.Render([]table.Value{table.String("a")}); err != nil {
 		t.Fatal(err)
 	}
 	footerStream.w = &testutil.ErrorWriter{Err: cause}
@@ -242,7 +242,7 @@ func TestContract_StreamCloseErrorOrder(t *testing.T) {
 			return [][]string{{"sum"}}
 		}),
 	)
-	if err := writeStream.Render([]any{"a"}); err != nil {
+	if err := writeStream.Render([]table.Value{table.String("a")}); err != nil {
 		t.Fatal(err)
 	}
 	writeStream.w = &testutil.ErrorWriter{Err: cause}
@@ -262,7 +262,7 @@ func TestContract_StreamWriterError(t *testing.T) {
 	},
 		WithHeader([]string{"A"}),
 	)
-	err := s.Render([]any{"x"})
+	err := s.Render([]table.Value{table.String("x")})
 	if _, ok := err.(*table.Error); !ok {
 		t.Fatalf("expected outer *table.Error, got %T", err)
 	}
@@ -285,11 +285,11 @@ func TestContract_StreamWriterErrorSticky(t *testing.T) {
 	},
 		WithHeader([]string{"A"}),
 	)
-	first := s.Render([]any{"x"})
+	first := s.Render([]table.Value{table.String("x")})
 	if first == nil {
 		t.Fatal("expected error, got nil")
 	}
-	if err := s.Render([]any{"y"}); err == nil || err != first {
+	if err := s.Render([]table.Value{table.String("y")}); err == nil || err != first {
 		t.Fatalf("second Render: want the latched error, got %v", err)
 	}
 	if err := s.Close(); err == nil || err != first {
@@ -299,7 +299,7 @@ func TestContract_StreamWriterErrorSticky(t *testing.T) {
 
 func TestContract_TableZeroColumns(t *testing.T) {
 	var buf bytes.Buffer
-	if err := NewTable(&buf).Render([][]any{}); err != nil {
+	if err := NewTable(&buf).Render([][]table.Value{}); err != nil {
 		t.Fatal(err)
 	}
 	if buf.Len() != 0 {
@@ -328,7 +328,7 @@ func TestContract_DecorationWithoutPrefix(t *testing.T) {
 	if deco := NewDecoration("", "suffix"); deco != nil {
 		t.Fatalf("expected nil decoration, got %v", deco)
 	}
-	rows := [][]any{{"x", "y"}}
+	rows := [][]table.Value{{table.String("x"), table.String("y")}}
 	var dressed, plain bytes.Buffer
 	if err := NewTable(&dressed,
 		WithHeader([]string{"A", "B"}),
@@ -401,7 +401,7 @@ func TestContract_PoolIsolation(t *testing.T) {
 func TestContract_TableRowWiderThanCount(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf)
-	if err := tb.Render([][]any{nil, {"a"}, {"b", "c", "d"}}); !errors.Is(err, table.ErrColumnCount) {
+	if err := tb.Render([][]table.Value{nil, {table.String("a")}, {table.String("b"), table.String("c"), table.String("d")}}); !errors.Is(err, table.ErrColumnCount) {
 		t.Fatalf("expected table.ErrColumnCount, got %v", err)
 	}
 	if buf.Len() != 0 {
@@ -415,10 +415,10 @@ func TestContract_StreamRowWiderThanCount(t *testing.T) {
 	if err := s.Render(nil); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"a"}); err != nil {
+	if err := s.Render([]table.Value{table.String("a")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"b", "c", "d"}); !errors.Is(err, table.ErrColumnCount) {
+	if err := s.Render([]table.Value{table.String("b"), table.String("c"), table.String("d")}); !errors.Is(err, table.ErrColumnCount) {
 		t.Fatalf("expected table.ErrColumnCount, got %v", err)
 	}
 }
@@ -426,7 +426,7 @@ func TestContract_StreamRowWiderThanCount(t *testing.T) {
 func TestContract_TableHeaderRejectsOverflow(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf, WithHeader([]string{"A"}))
-	err := tb.Render([][]any{{"a"}, {"b", "c", "d"}})
+	err := tb.Render([][]table.Value{{table.String("a")}, {table.String("b"), table.String("c"), table.String("d")}})
 	if _, ok := err.(*table.Error); !ok {
 		t.Fatalf("expected outer *table.Error, got %T", err)
 	}
@@ -441,19 +441,19 @@ func TestContract_TableHeaderRejectsOverflow(t *testing.T) {
 func TestContract_StreamHeaderRejectsOverflow(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf, WithHeader([]string{"A"}))
-	if err := s.Render([]any{"a", "b"}); !errors.Is(err, table.ErrColumnCount) {
+	if err := s.Render([]table.Value{table.String("a"), table.String("b")}); !errors.Is(err, table.ErrColumnCount) {
 		t.Fatalf("initial Render: expected table.ErrColumnCount, got %v", err)
 	}
 	if buf.Len() != 0 {
 		t.Fatalf("initial Render wrote output:\n%s", buf.String())
 	}
-	if err := s.Render([]any{"a"}); err != nil {
+	if err := s.Render([]table.Value{table.String("a")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"b", "c", "d"}); !errors.Is(err, table.ErrColumnCount) {
+	if err := s.Render([]table.Value{table.String("b"), table.String("c"), table.String("d")}); !errors.Is(err, table.ErrColumnCount) {
 		t.Fatalf("expected table.ErrColumnCount, got %v", err)
 	}
-	if err := s.Render([]any{"b"}); err != nil {
+	if err := s.Render([]table.Value{table.String("b")}); err != nil {
 		t.Fatalf("render after column count error: %v", err)
 	}
 	if err := s.Close(); err != nil {
@@ -469,7 +469,7 @@ func TestContract_FooterCannotExceedHeader(t *testing.T) {
 	if err := NewTable(&tableOutput,
 		WithHeader([]string{"A"}),
 		WithFooter(footer),
-	).Render([][]any{{"a"}}); !errors.Is(err, table.ErrColumnCount) {
+	).Render([][]table.Value{{table.String("a")}}); !errors.Is(err, table.ErrColumnCount) {
 		t.Fatalf("Table: expected table.ErrColumnCount, got %v", err)
 	}
 	if tableOutput.Len() != 0 {
@@ -480,7 +480,7 @@ func TestContract_FooterCannotExceedHeader(t *testing.T) {
 		WithHeader([]string{"A"}),
 		WithFooter(footer),
 	)
-	if err := stream.Render([]any{"a"}); err != nil {
+	if err := stream.Render([]table.Value{table.String("a")}); err != nil {
 		t.Fatal(err)
 	}
 	first := stream.Close()
@@ -508,10 +508,10 @@ func TestContract_FooterCannotExceedHeader(t *testing.T) {
 }
 
 func TestContract_TableLineCapacity(t *testing.T) {
-	rows := [][]any{
-		{"group-1", "日本語の長い値です <escaped>", 100, "line1\nline2\nline3"},
-		{"group-1", "second value", 99, "x"},
-		{"group-2", "x", 98, "y"},
+	rows := [][]table.Value{
+		{table.String("group-1"), table.String("日本語の長い値です <escaped>"), table.Int(100), table.String("line1\nline2\nline3")},
+		{table.String("group-1"), table.String("second value"), table.Int(99), table.String("x")},
+		{table.String("group-2"), table.String("x"), table.Int(98), table.String("y")},
 	}
 	o := NewTable(io.Discard,
 		WithHeader([]string{"Group", "Message", "Score", "Snippet"}),
@@ -585,7 +585,7 @@ func TestContract_TableLineCapacity(t *testing.T) {
 func TestContract_ArenaReleasedAfterClose(t *testing.T) {
 	var buf bytes.Buffer
 	stream := NewStream(&buf, WithHeader([]string{"A", "B"}))
-	if err := stream.Render([]any{"a", "b"}); err != nil {
+	if err := stream.Render([]table.Value{table.String("a"), table.String("b")}); err != nil {
 		t.Fatal(err)
 	}
 	a := stream.arena
@@ -611,7 +611,7 @@ func TestContract_OptionIsShareable(t *testing.T) {
 		wg.Go(func() {
 			for range 4 {
 				var buf bytes.Buffer
-				if err := NewTable(&buf, opts...).Render([][]any{{"a", 1}}); err != nil {
+				if err := NewTable(&buf, opts...).Render([][]table.Value{{table.String("a"), table.Int(1)}}); err != nil {
 					t.Error(err)
 					return
 				}
@@ -691,6 +691,133 @@ func TestContract_ConcurrentInstances(t *testing.T) {
 	wg.Wait()
 }
 
+func TestContract_TransformerValue(t *testing.T) {
+	type args struct {
+		input table.Value
+		read  func(table.Value) any
+	}
+	type want struct {
+		value any
+		calls int
+	}
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "string",
+			args: args{
+				input: table.String("text"),
+				read: func(v table.Value) any {
+					return v.AsString()
+				},
+			},
+			want: want{
+				value: "text",
+				calls: 1,
+			},
+		},
+		{
+			name: "int",
+			args: args{
+				input: table.Int(1000),
+				read: func(v table.Value) any {
+					return v.AsInt()
+				},
+			},
+			want: want{
+				value: 1000,
+				calls: 1,
+			},
+		},
+		{
+			name: "bytes capacity",
+			args: args{
+				input: table.Bytes(make([]byte, 2, 8)),
+				read: func(v table.Value) any {
+					return cap(v.AsBytes())
+				},
+			},
+			want: want{
+				value: 2,
+				calls: 1,
+			},
+		},
+		{
+			name: "Any capacity",
+			args: args{
+				input: table.Any(make([]byte, 2, 8)),
+				read: func(v table.Value) any {
+					return cap(v.AsBytes())
+				},
+			},
+			want: want{
+				value: 8,
+				calls: 1,
+			},
+		},
+		{
+			name: "typed nil",
+			args: args{
+				input: table.Any((*int)(nil)),
+				read: func(v table.Value) any {
+					return v.AsAny()
+				},
+			},
+			want: want{
+				value: (*int)(nil),
+				calls: 1,
+			},
+		},
+		{
+			name: "zero",
+			args: args{
+				input: table.Value{},
+				read: func(v table.Value) any {
+					return v.AsAny()
+				},
+			},
+			want: want{
+				value: nil,
+				calls: 1,
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run("Table/"+test.name, func(t *testing.T) {
+			got := want{}
+			output := NewTable(io.Discard,
+				WithHeader([]string{"VALUE"}),
+				WithTransformer(Columns(0), func(v table.Value) (string, *Color, *Decoration) {
+					got.value = test.args.read(v)
+					got.calls++
+					return "transformed", nil, nil
+				}),
+			)
+			err := output.Render([][]table.Value{{test.args.input}})
+			testutil.AssertValue(t, err, nil, "Render")
+			testutil.AssertValue(t, got, test.want, "transformer input")
+		})
+		t.Run("Stream/"+test.name, func(t *testing.T) {
+			got := want{}
+			output := NewStream(io.Discard,
+				WithHeader([]string{"VALUE"}),
+				WithTransformer(Columns(0), func(v table.Value) (string, *Color, *Decoration) {
+					got.value = test.args.read(v)
+					got.calls++
+					return "transformed", nil, nil
+				}),
+			)
+			err := output.Render([]table.Value{test.args.input})
+			closeErr := output.Close()
+			testutil.AssertValue(t, err, nil, "Render")
+			testutil.AssertValue(t, closeErr, nil, "Close")
+			testutil.AssertValue(t, got, test.want, "transformer input")
+		})
+	}
+}
+
 func contractCases() []contractCase {
 	return []contractCase{
 		{
@@ -709,7 +836,7 @@ func contractCases() []contractCase {
 		{
 			name:       "leading zero-column rows",
 			omitHeader: true,
-			rows:       [][]any{nil, {}, {"a", "b"}, {}, {"c"}},
+			rows:       [][]table.Value{nil, {}, {table.String("a"), table.String("b")}, {}, {table.String("c")}},
 		},
 		{
 			name: "placeholder",
@@ -717,7 +844,7 @@ func contractCases() []contractCase {
 				WithPlaceholder("-"),
 			},
 			header: []string{"A", "B", "C"},
-			rows:   [][]any{{"x", "", "z"}, {"", "q", ""}},
+			rows:   [][]table.Value{{table.String("x"), table.String(""), table.String("z")}, {table.String(""), table.String("q"), table.String("")}},
 		},
 		{
 			name: "footer",
@@ -727,59 +854,59 @@ func contractCases() []contractCase {
 				}),
 			},
 			header: []string{"A", "B", "C"},
-			rows:   [][]any{{"x", "y", 1}, {"p", "q", 8}},
+			rows:   [][]table.Value{{table.String("x"), table.String("y"), table.Int(1)}, {table.String("p"), table.String("q"), table.Int(8)}},
 		},
 		{
 			name:   "ragged rows",
 			opts:   []Option{},
 			header: []string{"A", "B", "C"},
-			rows:   [][]any{{"x"}, {"p", "q", "r"}, {}},
+			rows:   [][]table.Value{{table.String("x")}, {table.String("p"), table.String("q"), table.String("r")}, {}},
 		},
 		{
 			name:   "control chars",
 			opts:   []Option{},
 			header: []string{"A", "B", "C"},
-			rows:   [][]any{{"a\tb", "c\vd", "e\x00f"}},
+			rows:   [][]table.Value{{table.String("a\tb"), table.String("c\vd"), table.String("e\x00f")}},
 		},
 		{
 			name:   "invalid utf8",
 			opts:   []Option{},
 			header: []string{"A", "B", "C"},
-			rows:   [][]any{{"a\xffb", "\xfe", "ok"}},
+			rows:   [][]table.Value{{table.String("a\xffb"), table.String("\xfe"), table.String("ok")}},
 		},
 		{
 			name:   "emoji",
 			opts:   []Option{},
 			header: []string{"A", "B", "C"},
-			rows:   [][]any{{"\U0001F600", "\U0001F469\u200D\U0001F4BB", "e\u0301"}},
+			rows:   [][]table.Value{{table.String("\U0001F600"), table.String("\U0001F469\u200D\U0001F4BB"), table.String("e\u0301")}},
 		},
 		{
 			name:   "plain",
 			header: []string{"A", "B", "C"},
-			rows:   [][]any{{"xxx", "yyy", "zzz"}, {"aaa", "bbb", "ccc"}},
+			rows:   [][]table.Value{{table.String("xxx"), table.String("yyy"), table.String("zzz")}, {table.String("aaa"), table.String("bbb"), table.String("ccc")}},
 		},
 		{
 			name:   "numeric",
 			header: []string{"Int", "Float"},
-			rows:   [][]any{{100, 1.25}, {200, 2.50}, {300, 3.75}},
+			rows:   [][]table.Value{{table.Int(100), table.Float64(1.25)}, {table.Int(200), table.Float64(2.50)}, {table.Int(300), table.Float64(3.75)}},
 		},
 		{
 			name:          "rowspan string",
 			streamDiffers: true,
 			opts:          []Option{WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0))},
 			header:        []string{"Group", "Item"},
-			rows:          [][]any{{"aaa", "x"}, {"aaa", "y"}, {"bbb", "z"}},
+			rows:          [][]table.Value{{table.String("aaa"), table.String("x")}, {table.String("aaa"), table.String("y")}, {table.String("bbb"), table.String("z")}},
 		},
 		{
 			name:          "rowspan multi",
 			streamDiffers: true,
 			opts:          []Option{WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1))},
 			header:        []string{"Reg", "Zone", "Host"},
-			rows: [][]any{
-				{"jp", "1a", "h1"},
-				{"jp", "1a", "h2"},
-				{"jp", "1c", "h3"},
-				{"us", "1a", "h4"},
+			rows: [][]table.Value{
+				{table.String("jp"), table.String("1a"), table.String("h1")},
+				{table.String("jp"), table.String("1a"), table.String("h2")},
+				{table.String("jp"), table.String("1c"), table.String("h3")},
+				{table.String("us"), table.String("1a"), table.String("h4")},
 			},
 		},
 		{
@@ -788,25 +915,25 @@ func contractCases() []contractCase {
 				WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
 			},
 			header: []string{"A", "B", "C"},
-			rows:   [][]any{{"x", "x", "y"}, {"p", "q", "q"}},
+			rows:   [][]table.Value{{table.String("x"), table.String("x"), table.String("y")}, {table.String("p"), table.String("q"), table.String("q")}},
 		},
 		{
 			name:   "index",
 			opts:   []Option{WithIndex()},
 			header: []string{"Name", "Score"},
-			rows:   [][]any{{"alice", 100}, {"bob", 200}},
+			rows:   [][]table.Value{{table.String("alice"), table.Int(100)}, {table.String("bob"), table.Int(200)}},
 		},
 		{
 			name:   "color",
 			opts:   []Option{WithColor(ScopeBody, Columns(0), ColorFgRed)},
 			header: []string{"A", "B"},
-			rows:   [][]any{{"xxx", "yyy"}, {"aaa", "bbb"}},
+			rows:   [][]table.Value{{table.String("xxx"), table.String("yyy")}, {table.String("aaa"), table.String("bbb")}},
 		},
 		{
 			name:   "decoration code",
 			opts:   []Option{WithDecoration(ScopeBody, Columns(1), DecorationCode)},
 			header: []string{"Key", "Value"},
-			rows:   [][]any{{"k1", "v1"}, {"k2", "v2"}},
+			rows:   [][]table.Value{{table.String("k1"), table.String("v1")}, {table.String("k2"), table.String("v2")}},
 		},
 		{
 			name:          "color and decoration with rowspan",
@@ -817,7 +944,7 @@ func contractCases() []contractCase {
 				WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 			},
 			header: []string{"Group", "Value"},
-			rows:   [][]any{{"aaa", "x"}, {"aaa", "y"}, {"bbb", "z"}},
+			rows:   [][]table.Value{{table.String("aaa"), table.String("x")}, {table.String("aaa"), table.String("y")}, {table.String("bbb"), table.String("z")}},
 		},
 		{
 			name:          "rowspan and colspan",
@@ -827,7 +954,7 @@ func contractCases() []contractCase {
 				WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
 			},
 			header: []string{"A", "B", "C"},
-			rows:   [][]any{{"x", "x", "x"}, {"x", "x", "y"}, {"z", "z", "y"}},
+			rows:   [][]table.Value{{table.String("x"), table.String("x"), table.String("x")}, {table.String("x"), table.String("x"), table.String("y")}, {table.String("z"), table.String("z"), table.String("y")}},
 		},
 	}
 }

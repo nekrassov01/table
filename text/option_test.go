@@ -3,6 +3,7 @@ package text
 import (
 	"testing"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/internal/column"
 	"github.com/nekrassov01/table/internal/testutil"
 )
@@ -909,18 +910,18 @@ func TestWithAttr(t *testing.T) {
 
 func TestWithTransformer(t *testing.T) {
 	type fields struct {
-		fn func(any) (string, *Attr)
+		fn func(table.Value) (string, *Attr)
 	}
 	type args struct {
 		columns ColumnSelector
-		fn      func(any) (string, *Attr)
+		fn      func(table.Value) (string, *Attr)
 	}
 	type want struct {
 		isNil bool
 		value string
 		attr  *Attr
 	}
-	oldTransformer := func(any) (string, *Attr) {
+	oldTransformer := func(table.Value) (string, *Attr) {
 		return "old", nil
 	}
 	tests := []struct {
@@ -936,9 +937,9 @@ func TestWithTransformer(t *testing.T) {
 			},
 			args: args{
 				columns: Columns(0),
-				fn: func() func(any) (string, *Attr) {
+				fn: func() func(table.Value) (string, *Attr) {
 					attr := NewAttr(CodeBold)
-					return func(any) (string, *Attr) {
+					return func(table.Value) (string, *Attr) {
 						return "new", attr
 					}
 				}(),
@@ -980,7 +981,7 @@ func TestWithTransformer(t *testing.T) {
 				isNil: gotFn == nil,
 			}
 			if gotFn != nil {
-				got.value, got.attr = gotFn("input")
+				got.value, got.attr = gotFn(table.String("input"))
 			}
 			testutil.AssertValue(t, got, test.want, "WithTransformer")
 		})

@@ -12,7 +12,7 @@ func TestTableOf(t *testing.T) {
 		values []entry
 	}
 	type want struct {
-		rows [][]any
+		rows [][]Value
 	}
 	tests := []struct {
 		name string
@@ -34,7 +34,7 @@ func TestTableOf(t *testing.T) {
 				},
 			},
 			want: want{
-				rows: [][]any{{"a", 1}, {"b", 2}},
+				rows: [][]Value{{String("a"), Int(1)}, {String("b"), Int(2)}},
 			},
 		},
 		{
@@ -43,7 +43,7 @@ func TestTableOf(t *testing.T) {
 				values: nil,
 			},
 			want: want{
-				rows: [][]any{},
+				rows: [][]Value{},
 			},
 		},
 	}
@@ -61,7 +61,7 @@ func TestStreamOf(t *testing.T) {
 		stop   int
 	}
 	type want struct {
-		rows  [][]any
+		rows  [][]Value
 		isErr bool
 	}
 	tests := []struct {
@@ -84,7 +84,7 @@ func TestStreamOf(t *testing.T) {
 				}, nil),
 			},
 			want: want{
-				rows: [][]any{{"a", 0}, {"b", 1}},
+				rows: [][]Value{{String("a"), Int(0)}, {String("b"), Int(1)}},
 			},
 		},
 		{
@@ -98,7 +98,7 @@ func TestStreamOf(t *testing.T) {
 				}, testutil.NewError()),
 			},
 			want: want{
-				rows:  [][]any{{"a", 0}},
+				rows:  [][]Value{{String("a"), Int(0)}},
 				isErr: true,
 			},
 		},
@@ -122,7 +122,7 @@ func TestStreamOf(t *testing.T) {
 				stop: 1,
 			},
 			want: want{
-				rows: [][]any{{"a", 0}},
+				rows: [][]Value{{String("a"), Int(0)}},
 			},
 		},
 		{
@@ -137,7 +137,7 @@ func TestStreamOf(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			var rows [][]any
+			var rows [][]Value
 			var err error
 			for row, e := range StreamOf(test.args.values, entryRow) {
 				if e != nil {
@@ -160,6 +160,6 @@ type entry struct {
 	size int
 }
 
-func entryRow(e entry) []any {
-	return []any{e.name, e.size}
+func entryRow(e entry) []Value {
+	return []Value{String(e.name), Int(e.size)}
 }

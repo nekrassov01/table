@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/internal/span"
 	"github.com/nekrassov01/table/internal/testutil"
 	"github.com/nekrassov01/table/internal/value"
@@ -472,7 +473,7 @@ func Test_arena_release(t *testing.T) {
 						columns: []columnConfig{
 							{
 								transformer: transformer{
-									fn: func(any) (string, *Color, *Decoration) {
+									fn: func(table.Value) (string, *Color, *Decoration) {
 										return "", nil, nil
 									},
 								},

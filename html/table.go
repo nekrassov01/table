@@ -23,7 +23,7 @@ func NewTable(w io.Writer, opts ...Option) *Table {
 }
 
 // Render writes rows as one complete HTML table.
-func (o *Table) Render(rows [][]any) error {
+func (o *Table) Render(rows [][]table.Value) error {
 	header := o.option.header
 	body := rows
 	if column.MaxColumns(header) == 0 {

@@ -3,6 +3,7 @@ package text
 import (
 	"testing"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/internal/scope"
 	"github.com/nekrassov01/table/internal/span"
 	"github.com/nekrassov01/table/internal/testutil"
@@ -313,7 +314,7 @@ func Test_compiler_compileBody(t *testing.T) {
 		output    compilerResult
 	}
 	type args struct {
-		sources [][]any
+		sources [][]table.Value
 	}
 	type want struct {
 		values   []string
@@ -347,9 +348,9 @@ func Test_compiler_compileBody(t *testing.T) {
 				},
 			},
 			args: args{
-				sources: [][]any{
-					{"first"},
-					{"second"},
+				sources: [][]table.Value{
+					{table.String("first")},
+					{table.String("second")},
 				},
 			},
 			want: want{
@@ -381,9 +382,9 @@ func Test_compiler_compileBody(t *testing.T) {
 				},
 			},
 			args: args{
-				sources: [][]any{
-					{"a\tb"},
-					{"a    b"},
+				sources: [][]table.Value{
+					{table.String("a\tb")},
+					{table.String("a    b")},
 				},
 			},
 			want: want{
@@ -412,10 +413,10 @@ func Test_compiler_compileBody(t *testing.T) {
 				},
 			},
 			args: args{
-				sources: [][]any{
-					{"first"},
-					{"too", "wide"},
-					{"third"},
+				sources: [][]table.Value{
+					{table.String("first")},
+					{table.String("too"), table.String("wide")},
+					{table.String("third")},
 				},
 			},
 			want: want{
@@ -783,7 +784,7 @@ func Test_compiler_compileRow(t *testing.T) {
 		output    compilerResult
 	}
 	type args struct {
-		source   []any
+		source   []table.Value
 		rowIndex int
 	}
 	type want struct {
@@ -814,7 +815,7 @@ func Test_compiler_compileRow(t *testing.T) {
 					configuredAttr := NewAttr(CodeBold)
 					dynamicAttr := NewAttr(CodeFgRed)
 					dynamicColumn := defaultColumn()
-					dynamicColumn.transformer.fn = func(any) (string, *Attr) {
+					dynamicColumn.transformer.fn = func(table.Value) (string, *Attr) {
 						return "answer", dynamicAttr
 					}
 					emptyColumn := defaultColumn()
@@ -851,7 +852,7 @@ func Test_compiler_compileRow(t *testing.T) {
 				},
 			},
 			args: args{
-				source:   []any{testutil.PanicStringer{}, ""},
+				source:   []table.Value{table.Any(testutil.PanicStringer{}), table.String("")},
 				rowIndex: 4,
 			},
 			want: want{
@@ -877,7 +878,7 @@ func Test_compiler_compileRow(t *testing.T) {
 				bodyStart: -1,
 			},
 			args: args{
-				source: []any{"first", "second"},
+				source: []table.Value{table.String("first"), table.String("second")},
 			},
 			want: want{
 				bodyStart: -1,
@@ -933,7 +934,7 @@ func Test_compiler_compileCells(t *testing.T) {
 	}
 	type args struct {
 		row      row
-		source   []any
+		source   []table.Value
 		rowIndex int
 	}
 	type want struct {
@@ -953,7 +954,7 @@ func Test_compiler_compileCells(t *testing.T) {
 				input: func() configResult {
 					attr := NewAttr(CodeFgRed)
 					configured := defaultColumn()
-					configured.transformer.fn = func(any) (string, *Attr) {
+					configured.transformer.fn = func(table.Value) (string, *Attr) {
 						return "ans\twer", attr
 					}
 					return configResult{
@@ -966,7 +967,7 @@ func Test_compiler_compileCells(t *testing.T) {
 				row: row{
 					cells: make([]cell, 1),
 				},
-				source: []any{testutil.PanicStringer{}},
+				source: []table.Value{table.Any(testutil.PanicStringer{})},
 			},
 			want: want{
 				cells: []cell{
@@ -986,7 +987,7 @@ func Test_compiler_compileCells(t *testing.T) {
 				input: func() configResult {
 					configured := defaultColumn()
 					configured.transformer.attrs.Set(ScopeBody, NewAttr(CodeBold))
-					configured.transformer.fn = func(any) (string, *Attr) {
+					configured.transformer.fn = func(table.Value) (string, *Attr) {
 						return "transformed", NewAttr(CodeFgRed)
 					}
 					return configResult{
@@ -1001,7 +1002,7 @@ func Test_compiler_compileCells(t *testing.T) {
 				row: row{
 					cells: make([]cell, 1),
 				},
-				source: []any{"value"},
+				source: []table.Value{table.String("value")},
 			},
 			want: want{
 				cells: []cell{
@@ -1019,7 +1020,7 @@ func Test_compiler_compileCells(t *testing.T) {
 				input: func() configResult {
 					configured := defaultColumn()
 					configured.transformer.attrs.Set(ScopeBody, NewAttr(CodeBold))
-					configured.transformer.fn = func(any) (string, *Attr) {
+					configured.transformer.fn = func(table.Value) (string, *Attr) {
 						return "", nil
 					}
 					return configResult{
@@ -1032,7 +1033,7 @@ func Test_compiler_compileCells(t *testing.T) {
 				row: row{
 					cells: make([]cell, 1),
 				},
-				source: []any{12},
+				source: []table.Value{table.Int(12)},
 			},
 			want: want{
 				cells: []cell{
@@ -1051,7 +1052,7 @@ func Test_compiler_compileCells(t *testing.T) {
 				input: func() configResult {
 					attr := NewAttr(CodeFgRed)
 					configured := defaultColumn()
-					configured.transformer.fn = func(any) (string, *Attr) {
+					configured.transformer.fn = func(table.Value) (string, *Attr) {
 						return "", attr
 					}
 					return configResult{
@@ -1066,7 +1067,7 @@ func Test_compiler_compileCells(t *testing.T) {
 				row: row{
 					cells: make([]cell, 1),
 				},
-				source: []any{""},
+				source: []table.Value{table.String("")},
 			},
 			want: want{
 				cells: []cell{
@@ -1098,7 +1099,7 @@ func Test_compiler_compileCells(t *testing.T) {
 				row: row{
 					cells: make([]cell, 3),
 				},
-				source:   []any{"va\tlue"},
+				source:   []table.Value{table.String("va\tlue")},
 				rowIndex: 4,
 			},
 			want: want{

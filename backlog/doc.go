@@ -2,7 +2,8 @@
 // writes the result to an io.Writer.
 //
 // [NewTable] creates a [Table]. [Table.Render] accepts all body rows at once as
-// [][]any. [NewStream] creates a [Stream]. [Stream.Render] accepts one []any
+// [][]table.Value.
+// [NewStream] creates a [Stream]. [Stream.Render] accepts one []table.Value
 // body row at a time, and [Stream.Close] must be called after the final row.
 // Both types are configured with options passed to their constructors.
 //

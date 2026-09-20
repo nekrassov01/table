@@ -12,6 +12,7 @@ This document is the user guide to the public API.
     - [Output differences](#output-differences)
   - [Common interfaces](#common-interfaces)
   - [Row adapters](#row-adapters)
+  - [Value inputs and migration](#value-inputs-and-migration)
   - [Output specifications](#output-specifications)
   - [Errors](#errors)
     - [Error structure](#error-structure)
@@ -45,14 +46,14 @@ This document is the user guide to the public API.
 
 ## Core API
 
-Every output package provides `Table` and `Stream`. Constructors apply each `Option` in the order supplied. Settings cannot be changed after construction.
+Every output package provides `Table` and `Stream`. The root `table` package provides `Value` and its value constructors. Constructors apply each `Option` in the order supplied. Settings cannot be changed after construction.
 
 ```go
 func NewTable(w io.Writer, opts ...Option) *Table
-func (t *Table) Render(rows [][]any) error
+func (t *Table) Render(rows [][]table.Value) error
 
 func NewStream(w io.Writer, opts ...Option) *Stream
-func (s *Stream) Render(row []any) error
+func (s *Stream) Render(row []table.Value) error
 func (s *Stream) Close() error
 ```
 
@@ -90,13 +91,15 @@ Whitespace added by `markdown` and `backlog` for alignment is not part of the pa
 
 ## Common interfaces
 
+All five output packages accept `table.Value`, so the same rows can be shared across formats without conversion.
+
 ```go
 type Tabular interface {
-    Render(rows [][]any) error
+    Render(rows [][]table.Value) error
 }
 
 type Streamer interface {
-    Render(row []any) error
+    Render(row []table.Value) error
     Close() error
 }
 ```
@@ -108,12 +111,48 @@ type Streamer interface {
 The root package provides helpers that convert typed data into rows accepted by `Render`.
 
 ```go
-func TableOf[T any](values []T, fn func(T) []any) [][]any
-func StreamOf[T any](values iter.Seq2[T, error], fn func(T) []any) iter.Seq2[[]any, error]
+func TableOf[T any](values []T, fn func(T) []table.Value) [][]table.Value
+func StreamOf[T any](values iter.Seq2[T, error], fn func(T) []table.Value) iter.Seq2[[]table.Value, error]
 ```
 
-- `TableOf` converts a typed slice to `[][]any`.
-- `StreamOf` converts each iterator value to `[]any` and stops at the first error.
+- `TableOf` converts a typed slice to `[][]table.Value`.
+- `StreamOf` converts each iterator value to `[]table.Value` and stops at the first error.
+
+## Value inputs and migration
+
+The root `table` package provides `Value` and its constructors. Body input is `[][]table.Value` for Table and `[]table.Value` for Stream. This replaces `[][]any` and `[]any`; constructors, options, TableOf and StreamOf keep their call shapes. `NewTable(w, opts...)` and `NewStream(w, opts...)` do not require a type parameter or row callback.
+
+```go
+rows := [][]table.Value{
+    {table.String("worker"), table.Int(1000), table.Bool(true)},
+}
+err := text.NewTable(w).Render(rows)
+```
+
+Use `String`, `Bytes`, `Int`, `Int8`, `Int16`, `Int32`, `Int64`, `Uint`, `Uint8`, `Uint16`, `Uint32`, `Uint64`, `Uintptr`, `Float32`, `Float64`, and `Bool` for primitive values. Each constructor preserves its Go type. `Any` preserves arbitrary values, including named types and their `String` or `Error` methods, but their boxing may allocate. The zero Value is empty. Values are not comparable.
+
+`Value.AsAny()` restores the value for inspection or serialization and may box it again. Values do not implement JSON or text marshaling; convert them back to their values before serializing rows.
+
+Every primitive constructor has a matching accessor: `AsString`, `AsBytes`, `AsInt`, `AsInt8`, `AsInt16`, `AsInt32`, `AsInt64`, `AsUint`, `AsUint8`, `AsUint16`, `AsUint32`, `AsUint64`, `AsUintptr`, `AsFloat32`, `AsFloat64`, and `AsBool`. These return the exact stored type without boxing, including values stored through `Any`. They panic on a type mismatch; no numeric conversion occurs, and named types remain distinct. The zero Value returns nil from `AsAny` and panics for typed accessors. `AsBytes` borrows the retained bytes; primitive `Bytes` values have capacity equal to length, while `Any` preserves the original capacity. The `As` prefix avoids implementing `fmt.Stringer`.
+
+Primitive formatting reads stored values directly. On 64-bit platforms a Value occupies 24 bytes, compared with 16 bytes for an interface; inputs whose boxing was already free can therefore consume more row storage. Reuse a Stream row buffer when appropriate.
+
+Type and output changes:
+
+| Input change | Type and output effect |
+| --- | --- |
+| `"worker"` → `table.String("worker")` | Keeps `string` and its display. |
+| `1000` → `table.Int(1000)` | Keeps `int`, including for transformers; does not widen to `int64`. |
+| `float32(v)` → `table.Float32(v)` | Keeps 32-bit formatting. Using `Float64(float64(v))` instead may add decimal digits. |
+| Transformer argument `any` → `table.Value` | Use typed accessors or an explicit `AsAny()` call. Return types, empty-string fallback, and output rules are unchanged. |
+| Named value → `table.Any(v)` | Keeps its named type and formatting methods. Converting to a primitive constructor discards that named type and its methods. |
+| Byte slice → `table.Bytes(v)` | Borrows the bytes; does not copy. `AsAny()` and column transformers see the same length and contents, with capacity equal to length. Use `table.Any(v)` to preserve the original slice capacity. |
+
+Do not modify borrowed bytes until Render returns. A Value retains borrowed data across garbage collection. For a reused scan buffer, `table.String(string(buffer))` makes a copy.
+
+`WithTransformer` now accepts `table.Value` instead of `any`; its return types and support for nil functions are unchanged. Replace primitive type assertions such as `v.(int)` with `v.AsInt()`. The compiler passes the Value directly, avoiding boxing at the callback boundary. For arbitrary or mixed types, use `v.AsAny()` explicitly; restoring primitive values this way may allocate. Typed accessors panic on a type mismatch, so the callback must match the selected columns' input types, including nil values. Headers, footers, generated indexes, and absent cells do not invoke body transformers.
+
+Mapping order, footer evaluation, error handling, and default output bytes remain unchanged for equivalent input values. Existing golden outputs are unchanged.
 
 ## Output specifications
 
@@ -276,7 +315,7 @@ func WithPadding(columns ColumnSelector, left, right int) Option
 func WithRowspan(scopes Scope, columns ColumnSelector) Option
 func WithColspan(scopes Scope, columns ColumnSelector) Option
 func WithAttr(scopes Scope, columns ColumnSelector, attr *Attr) Option
-func WithTransformer(columns ColumnSelector, fn func(any) (string, *Attr)) Option
+func WithTransformer(columns ColumnSelector, fn func(table.Value) (string, *Attr)) Option
 ```
 
 - `WithWidth` sets the display-width boundary of cell content, excluding padding. A value of zero or less removes the boundary.
@@ -312,7 +351,7 @@ func WithColspan(scopes Scope, columns ColumnSelector) Option
 func WithColor(scopes Scope, columns ColumnSelector, color *Color) Option
 func WithDecoration(scopes Scope, columns ColumnSelector, decoration *Decoration) Option
 func WithCellAttr(scopes Scope, columns ColumnSelector, attr Attr) Option
-func WithTransformer(columns ColumnSelector, fn func(any) (string, *Color, *Decoration)) Option
+func WithTransformer(columns ColumnSelector, fn func(table.Value) (string, *Color, *Decoration)) Option
 ```
 
 - Output contains a `table` element only when at least one column exists. It includes `caption`, `thead`, `tbody`, and `tfoot` only when the corresponding section exists.
@@ -337,7 +376,7 @@ func WithRowspan(columns ColumnSelector) Option
 func WithColspan(columns ColumnSelector) Option
 func WithColor(scopes Scope, columns ColumnSelector, color *Color) Option
 func WithDecoration(scopes Scope, columns ColumnSelector, decoration *Decoration) Option
-func WithTransformer(columns ColumnSelector, fn func(any) (string, *Color, *Decoration)) Option
+func WithTransformer(columns ColumnSelector, fn func(table.Value) (string, *Color, *Decoration)) Option
 ```
 
 - A GFM table requires one header row. Omitting `WithHeader` or supplying an empty header produces `table.ErrHeaderRequired`.
@@ -361,7 +400,7 @@ func WithRowspan(scopes Scope, columns ColumnSelector) Option
 func WithColspan(scopes Scope, columns ColumnSelector) Option
 func WithColor(scopes Scope, columns ColumnSelector, color *Color) Option
 func WithDecoration(scopes Scope, columns ColumnSelector, decoration *Decoration) Option
-func WithTransformer(columns ColumnSelector, fn func(any) (string, *Color, *Decoration)) Option
+func WithTransformer(columns ColumnSelector, fn func(table.Value) (string, *Color, *Decoration)) Option
 ```
 
 - Header and footer cells use header-cell notation beginning with `~`. A footer is a library-level section; Backlog itself does not distinguish it.
@@ -381,7 +420,7 @@ func WithDelimiter(delimiter rune) Option
 func WithCRLF() Option
 func WithIndex() Option
 func WithPlaceholder(s string) Option
-func WithTransformer(columns ColumnSelector, fn func(any) string) Option
+func WithTransformer(columns ColumnSelector, fn func(table.Value) string) Option
 ```
 
 - The default delimiter is a tab. `WithDelimiter` changes it, and an invalid rune produces `table.ErrDelimiter`.
@@ -448,7 +487,7 @@ A body cell first calls its transformer, when configured. A non-empty result bec
 
 ### String conversion
 
-When a transformer does not supply a displayed value, an `any` value is converted as follows.
+When a transformer does not supply a displayed value, the value retained by `table.Value` is converted as follows.
 
 | Value                                                  | Displayed string                                             |
 | ------------------------------------------------------ | ------------------------------------------------------------ |
@@ -463,13 +502,13 @@ When a value implements both `error` and `fmt.Stringer`, `Error()` takes precede
 
 ### Transformers
 
-`WithTransformer` receives the raw value of an existing body cell. A non-empty returned string replaces the displayed value and skips default conversion; an empty string selects default conversion. A transformer cannot explicitly produce an empty displayed value.
+`WithTransformer` receives the original `table.Value` of an existing body cell without calling `AsAny()`. Use a typed accessor for a known input type, or `AsAny()` followed by a type switch or checked assertion for mixed inputs. Accessor type mismatches panic and are not converted into Render errors. A non-empty returned string replaces the displayed value and skips default conversion; an empty string selects default conversion. A transformer cannot explicitly produce an empty displayed value.
 
 A `nil` color, decoration, or `Attr` preserves the corresponding column setting.
 
 ```go
-html.WithTransformer(html.Columns(2), func(v any) (string, *html.Color, *html.Decoration) {
-    if n, ok := v.(int); ok && n < 0 {
+html.WithTransformer(html.Columns(2), func(v table.Value) (string, *html.Color, *html.Decoration) {
+    if n := v.AsInt(); n < 0 {
         return strconv.Itoa(n), html.ColorFgRed, html.DecorationBold
     }
     return "", nil, nil

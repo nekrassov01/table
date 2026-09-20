@@ -39,36 +39,36 @@ var SimpleData = Data{
 			"INSTANCE STATE",
 		},
 	},
-	Body: [][]any{
+	Body: [][]table.Value{
 		{
-			"i-00000000000000000",
-			"server-1",
-			"running",
+			table.String("i-00000000000000000"),
+			table.String("server-1"),
+			table.String("running"),
 		},
 		{
-			"i-00000000000000001",
-			"server-2",
-			"stopped",
+			table.String("i-00000000000000001"),
+			table.String("server-2"),
+			table.String("stopped"),
 		},
 		{
-			"i-00000000000000002",
-			"server-3",
-			"pending",
+			table.String("i-00000000000000002"),
+			table.String("server-3"),
+			table.String("pending"),
 		},
 		{
-			"i-00000000000000003",
-			"server-4",
-			"terminated",
+			table.String("i-00000000000000003"),
+			table.String("server-4"),
+			table.String("terminated"),
 		},
 		{
-			"i-00000000000000004",
-			"server-5",
-			"stopping",
+			table.String("i-00000000000000004"),
+			table.String("server-5"),
+			table.String("stopping"),
 		},
 		{
-			"i-00000000000000005",
-			"server-6",
-			"shutting-down",
+			table.String("i-00000000000000005"),
+			table.String("server-6"),
+			table.String("shutting-down"),
 		},
 	},
 }
@@ -127,36 +127,36 @@ var SimpleData = Data{
 			"INSTANCE STATE",
 		},
 	},
-	Body: [][]any{
+	Body: [][]table.Value{
 		{
-			"i-00000000000000000",
-			"server-1",
-			"running",
+			table.String("i-00000000000000000"),
+			table.String("server-1"),
+			table.String("running"),
 		},
 		{
-			"i-00000000000000001",
-			"server-2",
-			"stopped",
+			table.String("i-00000000000000001"),
+			table.String("server-2"),
+			table.String("stopped"),
 		},
 		{
-			"i-00000000000000002",
-			"server-3",
-			"pending",
+			table.String("i-00000000000000002"),
+			table.String("server-3"),
+			table.String("pending"),
 		},
 		{
-			"i-00000000000000003",
-			"server-4",
-			"terminated",
+			table.String("i-00000000000000003"),
+			table.String("server-4"),
+			table.String("terminated"),
 		},
 		{
-			"i-00000000000000004",
-			"server-5",
-			"stopping",
+			table.String("i-00000000000000004"),
+			table.String("server-5"),
+			table.String("stopping"),
 		},
 		{
-			"i-00000000000000005",
-			"server-6",
-			"shutting-down",
+			table.String("i-00000000000000005"),
+			table.String("server-6"),
+			table.String("shutting-down"),
 		},
 	},
 }
@@ -396,48 +396,48 @@ var CompactData = Data{
 			"STATUS CODE",
 		},
 	},
-	Body: [][]any{
+	Body: [][]table.Value{
 		{
-			"accesslog",
-			time.Date(2026, 5, 1, 9, 1, 15, 0, time.UTC).String(),
-			"healthcheck ok",
-			200,
+			table.String("accesslog"),
+			table.String(time.Date(2026, 5, 1, 9, 1, 15, 0, time.UTC).String()),
+			table.String("healthcheck ok"),
+			table.Int(200),
 		},
 		{
-			"accesslog",
-			time.Date(2026, 5, 1, 9, 1, 16, 0, time.UTC).String(),
-			"authentication ok",
-			200,
+			table.String("accesslog"),
+			table.String(time.Date(2026, 5, 1, 9, 1, 16, 0, time.UTC).String()),
+			table.String("authentication ok"),
+			table.Int(200),
 		},
 		{
-			"accesslog",
-			time.Date(2026, 5, 1, 9, 1, 19, 0, time.UTC).String(),
-			"get resource ok",
-			200,
+			table.String("accesslog"),
+			table.String(time.Date(2026, 5, 1, 9, 1, 19, 0, time.UTC).String()),
+			table.String("get resource ok"),
+			table.Int(200),
 		},
 		{
-			"application",
-			time.Date(2026, 5, 1, 0, 19, 21, 0, time.Local).String(),
-			"GET /api/v1/users/ HTTP/1.1",
-			200,
+			table.String("application"),
+			table.String(time.Date(2026, 5, 1, 0, 19, 21, 0, time.Local).String()),
+			table.String("GET /api/v1/users/ HTTP/1.1"),
+			table.Int(200),
 		},
 		{
-			"application",
-			time.Date(2026, 5, 1, 0, 20, 57, 0, time.Local).String(),
-			"GET /api/v1/users/alice/ HTTP/1.1",
-			200,
+			table.String("application"),
+			table.String(time.Date(2026, 5, 1, 0, 20, 57, 0, time.Local).String()),
+			table.String("GET /api/v1/users/alice/ HTTP/1.1"),
+			table.Int(200),
 		},
 		{
-			"application",
-			time.Date(2026, 5, 1, 1, 05, 34, 0, time.Local).String(),
-			"POST /api/v1/users/bob/ HTTP/1.1",
-			201,
+			table.String("application"),
+			table.String(time.Date(2026, 5, 1, 1, 05, 34, 0, time.Local).String()),
+			table.String("POST /api/v1/users/bob/ HTTP/1.1"),
+			table.Int(201),
 		},
 		{
-			"application",
-			time.Date(2026, 5, 1, 1, 07, 56, 0, time.Local).String(),
-			"DELETE /api/v1/users/alice/ HTTP/1.1",
-			204,
+			table.String("application"),
+			table.String(time.Date(2026, 5, 1, 1, 07, 56, 0, time.Local).String()),
+			table.String("DELETE /api/v1/users/alice/ HTTP/1.1"),
+			table.Int(204),
 		},
 	},
 }
@@ -507,96 +507,96 @@ var RowspanData = Data{
 			"CIDR BLOCK",
 		},
 	},
-	Body: [][]any{
+	Body: [][]table.Value{
 		{
-			"i-00000000000000000",
-			"sg-10000000000000000",
-			"Ingress",
-			"tcp",
-			22,
-			22,
-			"SecurityGroup",
-			"sg-20000000000000000",
+			table.String("i-00000000000000000"),
+			table.String("sg-10000000000000000"),
+			table.String("Ingress"),
+			table.String("tcp"),
+			table.Int(22),
+			table.Int(22),
+			table.String("SecurityGroup"),
+			table.String("sg-20000000000000000"),
 		},
 		{
-			"i-00000000000000000",
-			"sg-10000000000000000",
-			"Egress",
-			"-1",
-			0,
-			0,
-			"Ipv4",
-			"0.0.0.0/0",
+			table.String("i-00000000000000000"),
+			table.String("sg-10000000000000000"),
+			table.String("Egress"),
+			table.String("-1"),
+			table.Int(0),
+			table.Int(0),
+			table.String("Ipv4"),
+			table.String("0.0.0.0/0"),
 		},
 		{
-			"i-00000000000000000",
-			"sg-10000000000000001",
-			"Ingress",
-			"tcp",
-			443,
-			443,
-			"Ipv4",
-			"0.0.0.0/0",
+			table.String("i-00000000000000000"),
+			table.String("sg-10000000000000001"),
+			table.String("Ingress"),
+			table.String("tcp"),
+			table.Int(443),
+			table.Int(443),
+			table.String("Ipv4"),
+			table.String("0.0.0.0/0"),
 		},
 		{
-			"i-00000000000000000",
-			"sg-10000000000000001",
-			"Egress",
-			"-1",
-			0,
-			0,
-			"Ipv4",
-			"0.0.0.0/0",
+			table.String("i-00000000000000000"),
+			table.String("sg-10000000000000001"),
+			table.String("Egress"),
+			table.String("-1"),
+			table.Int(0),
+			table.Int(0),
+			table.String("Ipv4"),
+			table.String("0.0.0.0/0"),
 		},
 		{
-			"i-00000000000000001",
-			"sg-10000000000000002",
-			"Ingress",
-			"tcp",
-			3389,
-			3389,
-			"Ipv4",
-			"10.1.0.0/16",
+			table.String("i-00000000000000001"),
+			table.String("sg-10000000000000002"),
+			table.String("Ingress"),
+			table.String("tcp"),
+			table.Int(3389),
+			table.Int(3389),
+			table.String("Ipv4"),
+			table.String("10.1.0.0/16"),
 		},
 		{
-			"i-00000000000000001",
-			"sg-10000000000000002",
-			"Ingress",
-			"tcp",
-			0,
-			65535,
-			"PrefixList",
-			"pl-00000000/com.amazonaws.ap-northeast-1.s3",
+			table.String("i-00000000000000001"),
+			table.String("sg-10000000000000002"),
+			table.String("Ingress"),
+			table.String("tcp"),
+			table.Int(0),
+			table.Int(65535),
+			table.String("PrefixList"),
+			table.String("pl-00000000/com.amazonaws.ap-northeast-1.s3"),
 		},
 		{
-			"i-00000000000000001",
-			"sg-10000000000000002",
-			"Egress",
-			"-1",
-			0,
-			0,
-			"Ipv4",
-			"0.0.0.0/0",
+			table.String("i-00000000000000001"),
+			table.String("sg-10000000000000002"),
+			table.String("Egress"),
+			table.String("-1"),
+			table.Int(0),
+			table.Int(0),
+			table.String("Ipv4"),
+			table.String("0.0.0.0/0"),
 		},
 		{
-			"i-00000000000000002",
-			"sg-10000000000000003",
-			"Ingress",
-			"tcp",
-			443,
-			443,
-			"Ipv4",
-			"0.0.0.0/0",
+			table.String("i-00000000000000002"),
+			table.String("sg-10000000000000003"),
+			table.String("Ingress"),
+			table.String("tcp"),
+			table.Int(443),
+			table.Int(443),
+			table.String("Ipv4"),
+			table.String("0.0.0.0/0"),
 		},
 		{
-			"i-00000000000000002",
-			"sg-10000000000000003",
-			"Egress",
-			"-1",
-			0,
-			0,
-			"Ipv4",
-			"0.0.0.0/0",
+			table.String("i-00000000000000002"),
+			table.String("sg-10000000000000003"),
+			table.String("Egress"),
+			table.String("-1"),
+			table.Int(0),
+			table.Int(0),
+			table.String("Ipv4"),
+			table.String("0.0.0.0/0"),
 		},
 	},
 }
@@ -1024,30 +1024,30 @@ var ColspanData = Data{
 			"BIRTH (PREFORMATTED)",
 		},
 	},
-	Body: [][]any{
+	Body: [][]table.Value{
 		{
-			"John",
-			"Doe",
-			30,
-			time.Date(1994, 5, 1, 0, 0, 0, 0, time.UTC).String(),
+			table.String("John"),
+			table.String("Doe"),
+			table.Int(30),
+			table.String(time.Date(1994, 5, 1, 0, 0, 0, 0, time.UTC).String()),
 		},
 		{
-			"Jane",
-			"Smith",
-			25,
-			time.Date(1999, 5, 1, 0, 0, 0, 0, time.UTC).String(),
+			table.String("Jane"),
+			table.String("Smith"),
+			table.Int(25),
+			table.String(time.Date(1999, 5, 1, 0, 0, 0, 0, time.UTC).String()),
 		},
 		{
-			"Anonymous",
-			"Anonymous",
-			"Unknown",
-			"Unknown",
+			table.String("Anonymous"),
+			table.String("Anonymous"),
+			table.String("Unknown"),
+			table.String("Unknown"),
 		},
 		{
-			"Alice",
-			"Johnson",
-			28,
-			time.Date(1996, 5, 1, 0, 0, 0, 0, time.UTC).String(),
+			table.String("Alice"),
+			table.String("Johnson"),
+			table.Int(28),
+			table.String(time.Date(1996, 5, 1, 0, 0, 0, 0, time.UTC).String()),
 		},
 	},
 }
@@ -1264,70 +1264,70 @@ func newFooterData() Data {
 				"SPEED",
 			},
 		},
-		Body: [][]any{
+		Body: [][]table.Value{
 			{
-				"蜀",
-				"君主",
-				"劉備 玄徳",
-				161,
-				45,
-				2800,
-				350,
-				280,
-				5,
-				62,
-				68,
-				55,
-				58,
-				50,
+				table.String("蜀"),
+				table.String("君主"),
+				table.String("劉備 玄徳"),
+				table.Int(161),
+				table.Int(45),
+				table.Int(2800),
+				table.Int(350),
+				table.Int(280),
+				table.Int(5),
+				table.Int(62),
+				table.Int(68),
+				table.Int(55),
+				table.Int(58),
+				table.Int(50),
 			},
 			{
-				"蜀",
-				"軍神",
-				"関羽 雲長",
-				160,
-				38,
-				3500,
-				420,
-				150,
-				4,
-				95,
-				88,
-				72,
-				35,
-				55,
+				table.String("蜀"),
+				table.String("軍神"),
+				table.String("関羽 雲長"),
+				table.Int(160),
+				table.Int(38),
+				table.Int(3500),
+				table.Int(420),
+				table.Int(150),
+				table.Int(4),
+				table.Int(95),
+				table.Int(88),
+				table.Int(72),
+				table.Int(35),
+				table.Int(55),
 			},
 			{
-				"蜀",
-				"猛将",
-				"張飛 翼徳",
-				167,
-				52,
-				3200,
-				380,
-				80,
-				3,
-				97,
-				82,
-				40,
-				18,
-				62,
+				table.String("蜀"),
+				table.String("猛将"),
+				table.String("張飛 翼徳"),
+				table.Int(167),
+				table.Int(52),
+				table.Int(3200),
+				table.Int(380),
+				table.Int(80),
+				table.Int(3),
+				table.Int(97),
+				table.Int(82),
+				table.Int(40),
+				table.Int(18),
+				table.Int(62),
 			},
 			{
-				"蜀",
-				"軍師",
-				"諸葛亮 孔明",
-				181,
-				30,
-				1800,
-				280,
-				580,
-				3,
-				25,
-				38,
-				65,
-				99,
-				45,
+				table.String("蜀"),
+				table.String("軍師"),
+				table.String("諸葛亮 孔明"),
+				table.Int(181),
+				table.Int(30),
+				table.Int(1800),
+				table.Int(280),
+				table.Int(580),
+				table.Int(3),
+				table.Int(25),
+				table.Int(38),
+				table.Int(65),
+				table.Int(99),
+				table.Int(45),
 			},
 		},
 	}
@@ -1336,7 +1336,7 @@ func newFooterData() Data {
 		var totals [valueColumns]int
 		for column := range valueColumns {
 			for _, row := range data.Body {
-				totals[column] += row[labelColumns+column].(int)
+				totals[column] += row[labelColumns+column].AsInt()
 			}
 		}
 		bodyRows := len(data.Body)
@@ -1769,70 +1769,70 @@ func newFooterData() Data {
 				"SPEED",
 			},
 		},
-		Body: [][]any{
+		Body: [][]table.Value{
 			{
-				"蜀",
-				"君主",
-				"劉備 玄徳",
-				161,
-				45,
-				2800,
-				350,
-				280,
-				5,
-				62,
-				68,
-				55,
-				58,
-				50,
+				table.String("蜀"),
+				table.String("君主"),
+				table.String("劉備 玄徳"),
+				table.Int(161),
+				table.Int(45),
+				table.Int(2800),
+				table.Int(350),
+				table.Int(280),
+				table.Int(5),
+				table.Int(62),
+				table.Int(68),
+				table.Int(55),
+				table.Int(58),
+				table.Int(50),
 			},
 			{
-				"蜀",
-				"軍神",
-				"関羽 雲長",
-				160,
-				38,
-				3500,
-				420,
-				150,
-				4,
-				95,
-				88,
-				72,
-				35,
-				55,
+				table.String("蜀"),
+				table.String("軍神"),
+				table.String("関羽 雲長"),
+				table.Int(160),
+				table.Int(38),
+				table.Int(3500),
+				table.Int(420),
+				table.Int(150),
+				table.Int(4),
+				table.Int(95),
+				table.Int(88),
+				table.Int(72),
+				table.Int(35),
+				table.Int(55),
 			},
 			{
-				"蜀",
-				"猛将",
-				"張飛 翼徳",
-				167,
-				52,
-				3200,
-				380,
-				80,
-				3,
-				97,
-				82,
-				40,
-				18,
-				62,
+				table.String("蜀"),
+				table.String("猛将"),
+				table.String("張飛 翼徳"),
+				table.Int(167),
+				table.Int(52),
+				table.Int(3200),
+				table.Int(380),
+				table.Int(80),
+				table.Int(3),
+				table.Int(97),
+				table.Int(82),
+				table.Int(40),
+				table.Int(18),
+				table.Int(62),
 			},
 			{
-				"蜀",
-				"軍師",
-				"諸葛亮 孔明",
-				181,
-				30,
-				1800,
-				280,
-				580,
-				3,
-				25,
-				38,
-				65,
-				99,
-				45,
+				table.String("蜀"),
+				table.String("軍師"),
+				table.String("諸葛亮 孔明"),
+				table.Int(181),
+				table.Int(30),
+				table.Int(1800),
+				table.Int(280),
+				table.Int(580),
+				table.Int(3),
+				table.Int(25),
+				table.Int(38),
+				table.Int(65),
+				table.Int(99),
+				table.Int(45),
 			},
 		},
 	}
@@ -1841,7 +1841,7 @@ func newFooterData() Data {
 		var totals [valueColumns]int
 		for column := range valueColumns {
 			for _, row := range data.Body {
-				totals[column] += row[labelColumns+column].(int)
+				totals[column] += row[labelColumns+column].AsInt()
 			}
 		}
 		bodyRows := len(data.Body)
@@ -1884,24 +1884,21 @@ var TextOptionTransformer = []text.Option{
 	text.WithAlign(text.ScopeFooter, text.Columns(4, 5, 6, 7, 8, 9, 10, 11, 12, 13), text.AlignRight),
 	text.WithAlign(text.ScopeFooter, text.Columns(0), text.AlignCenter),
 	text.WithAutoFit(),
-	text.WithTransformer(text.Columns(5), func(v any) (string, *text.Attr) {
-		n, ok := v.(int)
-		if !ok {
-			return "", nil
-		}
+	text.WithTransformer(text.Columns(5), func(v table.Value) (string, *text.Attr) {
+		n := v.AsInt()
 		if n >= 3000 {
 			return fmt.Sprintf("*%d", n), textFgRedBold
 		}
 		return "", nil
 	}),
-	text.WithTransformer(text.Columns(9), func(v any) (string, *text.Attr) {
-		if n, ok := v.(int); ok && n >= 90 {
+	text.WithTransformer(text.Columns(9), func(v table.Value) (string, *text.Attr) {
+		if n := v.AsInt(); n >= 90 {
 			return fmt.Sprintf("*%d", n), textFgYellowBold
 		}
 		return "", nil
 	}),
-	text.WithTransformer(text.Columns(13), func(v any) (string, *text.Attr) {
-		if n, ok := v.(int); ok && n >= 60 {
+	text.WithTransformer(text.Columns(13), func(v table.Value) (string, *text.Attr) {
+		if n := v.AsInt(); n >= 60 {
 			return fmt.Sprintf("*%d", n), textFgGreenBold
 		}
 		return "", nil
@@ -1967,24 +1964,21 @@ var HTMLOptionTransformer = []html.Option{
 	html.WithAlign(html.ScopeBody, html.Columns(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13), html.AlignRight),
 	html.WithAlign(html.ScopeFooter, html.Columns(4, 5, 6, 7, 8, 9, 10, 11, 12, 13), html.AlignRight),
 	html.WithAlign(html.ScopeFooter, html.Columns(0), html.AlignCenter),
-	html.WithTransformer(html.Columns(5), func(v any) (string, *html.Color, *html.Decoration) {
-		n, ok := v.(int)
-		if !ok {
-			return "", nil, nil
-		}
+	html.WithTransformer(html.Columns(5), func(v table.Value) (string, *html.Color, *html.Decoration) {
+		n := v.AsInt()
 		if n >= 3000 {
 			return fmt.Sprintf("*%d", n), html.ColorFgRed, html.DecorationBold
 		}
 		return "", nil, nil
 	}),
-	html.WithTransformer(html.Columns(9), func(v any) (string, *html.Color, *html.Decoration) {
-		if n, ok := v.(int); ok && n >= 90 {
+	html.WithTransformer(html.Columns(9), func(v table.Value) (string, *html.Color, *html.Decoration) {
+		if n := v.AsInt(); n >= 90 {
 			return fmt.Sprintf("*%d", n), html.ColorFgYellow, html.DecorationBold
 		}
 		return "", nil, nil
 	}),
-	html.WithTransformer(html.Columns(13), func(v any) (string, *html.Color, *html.Decoration) {
-		if n, ok := v.(int); ok && n >= 60 {
+	html.WithTransformer(html.Columns(13), func(v table.Value) (string, *html.Color, *html.Decoration) {
+		if n := v.AsInt(); n >= 60 {
 			return fmt.Sprintf("*%d", n), html.ColorFgGreen, html.DecorationBold
 		}
 		return "", nil, nil
@@ -2219,24 +2213,21 @@ var MarkdownOptionTransformer = []markdown.Option{
 	markdown.WithRowspan(markdown.Columns(0)),
 	markdown.WithColspan(markdown.Columns(0, 1, 2, 3)),
 	markdown.WithAlign(markdown.Columns(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13), markdown.AlignRight),
-	markdown.WithTransformer(markdown.Columns(5), func(v any) (string, *markdown.Color, *markdown.Decoration) {
-		n, ok := v.(int)
-		if !ok {
-			return "", nil, nil
-		}
+	markdown.WithTransformer(markdown.Columns(5), func(v table.Value) (string, *markdown.Color, *markdown.Decoration) {
+		n := v.AsInt()
 		if n >= 3000 {
 			return fmt.Sprintf("*%d", n), markdown.ColorFgRed, markdown.DecorationBold
 		}
 		return "", nil, nil
 	}),
-	markdown.WithTransformer(markdown.Columns(9), func(v any) (string, *markdown.Color, *markdown.Decoration) {
-		if n, ok := v.(int); ok && n >= 90 {
+	markdown.WithTransformer(markdown.Columns(9), func(v table.Value) (string, *markdown.Color, *markdown.Decoration) {
+		if n := v.AsInt(); n >= 90 {
 			return fmt.Sprintf("*%d", n), markdown.ColorFgYellow, markdown.DecorationBold
 		}
 		return "", nil, nil
 	}),
-	markdown.WithTransformer(markdown.Columns(13), func(v any) (string, *markdown.Color, *markdown.Decoration) {
-		if n, ok := v.(int); ok && n >= 60 {
+	markdown.WithTransformer(markdown.Columns(13), func(v table.Value) (string, *markdown.Color, *markdown.Decoration) {
+		if n := v.AsInt(); n >= 60 {
 			return fmt.Sprintf("*%d", n), markdown.ColorFgGreen, markdown.DecorationBold
 		}
 		return "", nil, nil
@@ -2284,24 +2275,21 @@ var BacklogOptionTransformer = []backlog.Option{
 	backlog.WithFooter(FooterData.Footer),
 	backlog.WithRowspan(backlog.ScopeBody, backlog.Columns(0)),
 	backlog.WithColspan(backlog.ScopeFooter, backlog.Columns(0, 1, 2, 3)),
-	backlog.WithTransformer(backlog.Columns(5), func(v any) (string, *backlog.Color, *backlog.Decoration) {
-		n, ok := v.(int)
-		if !ok {
-			return "", nil, nil
-		}
+	backlog.WithTransformer(backlog.Columns(5), func(v table.Value) (string, *backlog.Color, *backlog.Decoration) {
+		n := v.AsInt()
 		if n >= 3000 {
 			return fmt.Sprintf("*%d", n), backlog.ColorFgRed, backlog.DecorationBold
 		}
 		return "", nil, nil
 	}),
-	backlog.WithTransformer(backlog.Columns(9), func(v any) (string, *backlog.Color, *backlog.Decoration) {
-		if n, ok := v.(int); ok && n >= 90 {
+	backlog.WithTransformer(backlog.Columns(9), func(v table.Value) (string, *backlog.Color, *backlog.Decoration) {
+		if n := v.AsInt(); n >= 90 {
 			return fmt.Sprintf("*%d", n), backlog.ColorFgYellow, backlog.DecorationBold
 		}
 		return "", nil, nil
 	}),
-	backlog.WithTransformer(backlog.Columns(13), func(v any) (string, *backlog.Color, *backlog.Decoration) {
-		if n, ok := v.(int); ok && n >= 60 {
+	backlog.WithTransformer(backlog.Columns(13), func(v table.Value) (string, *backlog.Color, *backlog.Decoration) {
+		if n := v.AsInt(); n >= 60 {
 			return fmt.Sprintf("*%d", n), backlog.ColorFgGreen, backlog.DecorationBold
 		}
 		return "", nil, nil
@@ -2347,24 +2335,21 @@ Configuration:
 var CSVOptionTransformer = []csv.Option{
 	csv.WithHeader(FooterData.Header[0]),
 	csv.WithFooter(FooterData.Footer),
-	csv.WithTransformer(csv.Columns(5), func(v any) string {
-		n, ok := v.(int)
-		if !ok {
-			return ""
-		}
+	csv.WithTransformer(csv.Columns(5), func(v table.Value) string {
+		n := v.AsInt()
 		if n >= 3000 {
 			return fmt.Sprintf("*%d", n)
 		}
 		return ""
 	}),
-	csv.WithTransformer(csv.Columns(9), func(v any) string {
-		if n, ok := v.(int); ok && n >= 90 {
+	csv.WithTransformer(csv.Columns(9), func(v table.Value) string {
+		if n := v.AsInt(); n >= 90 {
 			return fmt.Sprintf("*%d", n)
 		}
 		return ""
 	}),
-	csv.WithTransformer(csv.Columns(13), func(v any) string {
-		if n, ok := v.(int); ok && n >= 60 {
+	csv.WithTransformer(csv.Columns(13), func(v table.Value) string {
+		if n := v.AsInt(); n >= 60 {
 			return fmt.Sprintf("*%d", n)
 		}
 		return ""
@@ -2414,46 +2399,46 @@ var ComplexData = Data{
 			"WRAPPED CONTENT",
 		},
 	},
-	Body: [][]any{
+	Body: [][]table.Value{
 		{
-			"entry 1",
-			123,
-			3.14,
-			time.Date(2026, 5, 1, 12, 34, 56, 0, time.UTC),
-			time.Hour*2 + time.Minute*30,
-			[]string{"a", "b", "c"},
-			[3]string{"x", "y", "z"},
-			[]int{1, 2, 3},
-			struct {
+			table.String("entry 1"),
+			table.Int(123),
+			table.Float64(3.14),
+			table.Any(time.Date(2026, 5, 1, 12, 34, 56, 0, time.UTC)),
+			table.Any(time.Hour*2 + time.Minute*30),
+			table.Any([]string{"a", "b", "c"}),
+			table.Any([3]string{"x", "y", "z"}),
+			table.Any([]int{1, 2, 3}),
+			table.Any(struct {
 				Field1 string
 				Field2 int
 			}{
 				Field1: "value1",
 				Field2: 256,
-			},
-			map[string]string{
+			}),
+			table.Any(map[string]string{
 				"key1": "value1",
 				"key2": "value2",
-			},
-			[]struct {
+			}),
+			table.Any([]struct {
 				Field1 string
 				Field2 string
 				Field3 string
 			}{
 				{"Line1", "Line2", "Line3"},
-			},
-			"Line1\nLine2\nLine3",
+			}),
+			table.String("Line1\nLine2\nLine3"),
 		},
 		{
-			"entry 2",
-			000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
-			0.00000000000000000000000000000000000000001,
-			time.Date(2026, 5, 1, 12, 34, 56, 0, time.Local),
-			time.Nanosecond,
-			[]string{"a", "", "c"},
-			[3]string{" ", "y", ""},
-			[]int{1, 2, 3, 4, 5},
-			struct {
+			table.String("entry 2"),
+			table.Int(000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000),
+			table.Float64(0.00000000000000000000000000000000000000001),
+			table.Any(time.Date(2026, 5, 1, 12, 34, 56, 0, time.Local)),
+			table.Any(time.Nanosecond),
+			table.Any([]string{"a", "", "c"}),
+			table.Any([3]string{" ", "y", ""}),
+			table.Any([]int{1, 2, 3, 4, 5}),
+			table.Any(struct {
 				Field1 string
 				Field2 int
 				Field3 time.Time
@@ -2463,22 +2448,29 @@ var ComplexData = Data{
 				Field2: 256,
 				Field3: time.Date(2026, 5, 1, 12, 34, 56, 0, time.UTC),
 				Field4: time.Hour*2 + time.Minute*30,
-			},
-			map[string]string{
+			}),
+			table.Any(map[string]string{
 				"key1": "value1",
 				"key2": "value2",
 				"key3": "value3",
 				"key4": "value4",
 				"key5": "value5",
-			},
-			[][]string{
+			}),
+			table.Any([][]string{
 				{"Line1", "Line2", "Line3"},
 				{"Line4", "Line5", "Line6"},
-			},
-			func() []byte {
-				b, _ := json.MarshalIndent(SimpleData.Body[:2], "", "  ")
+			}),
+			table.Any(func() []byte {
+				rows := make([][]any, 2)
+				for i, row := range SimpleData.Body[:2] {
+					rows[i] = make([]any, len(row))
+					for j, cell := range row {
+						rows[i][j] = cell.AsAny()
+					}
+				}
+				b, _ := json.MarshalIndent(rows, "", "  ")
 				return b
-			}(),
+			}()),
 		},
 	},
 }
@@ -2495,8 +2487,8 @@ var TextOptionComplex = []text.Option{
 	text.WithHeader(ComplexData.Header...),
 	text.WithAutoFit(),
 	text.WithAttr(text.ScopeBody, text.Columns(8, 9, 10), text.ColorFgBlack),
-	text.WithTransformer(text.Columns(5), func(v any) (string, *text.Attr) {
-		values, ok := v.([]string)
+	text.WithTransformer(text.Columns(5), func(v table.Value) (string, *text.Attr) {
+		values, ok := v.AsAny().([]string)
 		if !ok {
 			return "", nil
 		}
@@ -2506,8 +2498,8 @@ var TextOptionComplex = []text.Option{
 		}
 		return strings.Join(tokens, "\n"), textBgGreenUnderline
 	}),
-	text.WithTransformer(text.Columns(6), func(v any) (string, *text.Attr) {
-		values, ok := v.([3]string)
+	text.WithTransformer(text.Columns(6), func(v table.Value) (string, *text.Attr) {
+		values, ok := v.AsAny().([3]string)
 		if !ok {
 			return "", nil
 		}
@@ -2517,8 +2509,8 @@ var TextOptionComplex = []text.Option{
 		}
 		return strings.Join(tokens, "\n"), textBgMagentaItalic
 	}),
-	text.WithTransformer(text.Columns(7), func(v any) (string, *text.Attr) {
-		values, ok := v.([]int)
+	text.WithTransformer(text.Columns(7), func(v table.Value) (string, *text.Attr) {
+		values, ok := v.AsAny().([]int)
 		if !ok {
 			return "", nil
 		}
@@ -2603,8 +2595,8 @@ var HTMLOptionComplex = []html.Option{
 	html.WithHeader(ComplexData.Header...),
 	html.WithColor(html.ScopeBody, html.Columns(8, 9, 10), html.ColorFgBlack),
 	html.WithDecoration(html.ScopeBody, html.Columns(11), html.DecorationPreformatted),
-	html.WithTransformer(html.Columns(5), func(v any) (string, *html.Color, *html.Decoration) {
-		values, ok := v.([]string)
+	html.WithTransformer(html.Columns(5), func(v table.Value) (string, *html.Color, *html.Decoration) {
+		values, ok := v.AsAny().([]string)
 		if !ok {
 			return "", nil, nil
 		}
@@ -2614,8 +2606,8 @@ var HTMLOptionComplex = []html.Option{
 		}
 		return strings.Join(tokens, "\n"), html.ColorBgGreen, html.DecorationUnderline
 	}),
-	html.WithTransformer(html.Columns(6), func(v any) (string, *html.Color, *html.Decoration) {
-		values, ok := v.([3]string)
+	html.WithTransformer(html.Columns(6), func(v table.Value) (string, *html.Color, *html.Decoration) {
+		values, ok := v.AsAny().([3]string)
 		if !ok {
 			return "", nil, nil
 		}
@@ -2625,8 +2617,8 @@ var HTMLOptionComplex = []html.Option{
 		}
 		return strings.Join(tokens, "\n"), html.ColorBgMagenta, html.DecorationItalic
 	}),
-	html.WithTransformer(html.Columns(7), func(v any) (string, *html.Color, *html.Decoration) {
-		values, ok := v.([]int)
+	html.WithTransformer(html.Columns(7), func(v table.Value) (string, *html.Color, *html.Decoration) {
+		values, ok := v.AsAny().([]int)
 		if !ok {
 			return "", nil, nil
 		}
@@ -2711,8 +2703,8 @@ var MarkdownOptionComplex = []markdown.Option{
 	markdown.WithHeader(ComplexData.Header[0]),
 	markdown.WithColor(markdown.ScopeBody, markdown.Columns(8, 9, 10), markdown.ColorFgBlack),
 	markdown.WithDecoration(markdown.ScopeBody, markdown.Columns(11), markdown.DecorationUnderline),
-	markdown.WithTransformer(markdown.Columns(5), func(v any) (string, *markdown.Color, *markdown.Decoration) {
-		values, ok := v.([]string)
+	markdown.WithTransformer(markdown.Columns(5), func(v table.Value) (string, *markdown.Color, *markdown.Decoration) {
+		values, ok := v.AsAny().([]string)
 		if !ok {
 			return "", nil, nil
 		}
@@ -2722,8 +2714,8 @@ var MarkdownOptionComplex = []markdown.Option{
 		}
 		return strings.Join(tokens, "\n"), markdown.ColorBgGreen, markdown.DecorationBold
 	}),
-	markdown.WithTransformer(markdown.Columns(6), func(v any) (string, *markdown.Color, *markdown.Decoration) {
-		values, ok := v.([3]string)
+	markdown.WithTransformer(markdown.Columns(6), func(v table.Value) (string, *markdown.Color, *markdown.Decoration) {
+		values, ok := v.AsAny().([3]string)
 		if !ok {
 			return "", nil, nil
 		}
@@ -2733,8 +2725,8 @@ var MarkdownOptionComplex = []markdown.Option{
 		}
 		return strings.Join(tokens, "\n"), markdown.ColorBgMagenta, markdown.DecorationItalic
 	}),
-	markdown.WithTransformer(markdown.Columns(7), func(v any) (string, *markdown.Color, *markdown.Decoration) {
-		values, ok := v.([]int)
+	markdown.WithTransformer(markdown.Columns(7), func(v table.Value) (string, *markdown.Color, *markdown.Decoration) {
+		values, ok := v.AsAny().([]int)
 		if !ok {
 			return "", nil, nil
 		}
@@ -2782,8 +2774,8 @@ var BacklogOptionComplex = []backlog.Option{
 	backlog.WithHeader(ComplexData.Header...),
 	backlog.WithColor(backlog.ScopeBody, backlog.Columns(8, 9, 10), backlog.ColorFgBlack),
 	backlog.WithDecoration(backlog.ScopeBody, backlog.Columns(11), backlog.DecorationBold),
-	backlog.WithTransformer(backlog.Columns(5), func(v any) (string, *backlog.Color, *backlog.Decoration) {
-		values, ok := v.([]string)
+	backlog.WithTransformer(backlog.Columns(5), func(v table.Value) (string, *backlog.Color, *backlog.Decoration) {
+		values, ok := v.AsAny().([]string)
 		if !ok {
 			return "", nil, nil
 		}
@@ -2793,8 +2785,8 @@ var BacklogOptionComplex = []backlog.Option{
 		}
 		return strings.Join(tokens, "\n"), backlog.ColorBgGreen, backlog.DecorationBold
 	}),
-	backlog.WithTransformer(backlog.Columns(6), func(v any) (string, *backlog.Color, *backlog.Decoration) {
-		values, ok := v.([3]string)
+	backlog.WithTransformer(backlog.Columns(6), func(v table.Value) (string, *backlog.Color, *backlog.Decoration) {
+		values, ok := v.AsAny().([3]string)
 		if !ok {
 			return "", nil, nil
 		}
@@ -2804,8 +2796,8 @@ var BacklogOptionComplex = []backlog.Option{
 		}
 		return strings.Join(tokens, "\n"), backlog.ColorBgYellow, backlog.DecorationItalic
 	}),
-	backlog.WithTransformer(backlog.Columns(7), func(v any) (string, *backlog.Color, *backlog.Decoration) {
-		values, ok := v.([]int)
+	backlog.WithTransformer(backlog.Columns(7), func(v table.Value) (string, *backlog.Color, *backlog.Decoration) {
+		values, ok := v.AsAny().([]int)
 		if !ok {
 			return "", nil, nil
 		}
@@ -2849,8 +2841,8 @@ Configuration:
 // CSVOptionComplex configures the complex delimiter-separated table example.
 var CSVOptionComplex = []csv.Option{
 	csv.WithHeader(ComplexData.Header[0]),
-	csv.WithTransformer(csv.Columns(5), func(v any) string {
-		values, ok := v.([]string)
+	csv.WithTransformer(csv.Columns(5), func(v table.Value) string {
+		values, ok := v.AsAny().([]string)
 		if !ok {
 			return ""
 		}
@@ -2860,8 +2852,8 @@ var CSVOptionComplex = []csv.Option{
 		}
 		return strings.Join(tokens, "\n")
 	}),
-	csv.WithTransformer(csv.Columns(6), func(v any) string {
-		values, ok := v.([3]string)
+	csv.WithTransformer(csv.Columns(6), func(v table.Value) string {
+		values, ok := v.AsAny().([3]string)
 		if !ok {
 			return ""
 		}
@@ -2871,8 +2863,8 @@ var CSVOptionComplex = []csv.Option{
 		}
 		return strings.Join(tokens, "\n")
 	}),
-	csv.WithTransformer(csv.Columns(7), func(v any) string {
-		values, ok := v.([]int)
+	csv.WithTransformer(csv.Columns(7), func(v table.Value) string {
+		values, ok := v.AsAny().([]int)
 		if !ok {
 			return ""
 		}
@@ -2953,20 +2945,20 @@ var StackedHeaderData = Data{
 			"ID",
 		},
 	},
-	Body: [][]any{
+	Body: [][]table.Value{
 		{
-			"vpc-1",
-			"sub-1",
-			"sg-1",
-			"nacl-1",
-			"i-001",
+			table.String("vpc-1"),
+			table.String("sub-1"),
+			table.String("sg-1"),
+			table.String("nacl-1"),
+			table.String("i-001"),
 		},
 		{
-			"vpc-2",
-			"sub-2",
-			"sg-2",
-			"nacl-2",
-			"i-002",
+			table.String("vpc-2"),
+			table.String("sub-2"),
+			table.String("sg-2"),
+			table.String("nacl-2"),
+			table.String("i-002"),
 		},
 	},
 }
@@ -3124,24 +3116,24 @@ var CommaIncludedData = Data{
 			"PROPERTIES",
 		},
 	},
-	Body: [][]any{
+	Body: [][]table.Value{
 		{
-			"p-00000000000000000",
-			"product-1",
-			"1,000.00",
-			[]string{"color:red", "size:large", "weight:1.5kg"},
+			table.String("p-00000000000000000"),
+			table.String("product-1"),
+			table.String("1,000.00"),
+			table.Any([]string{"color:red", "size:large", "weight:1.5kg"}),
 		},
 		{
-			"p-00000000000000001",
-			"product-2",
-			"2,500.00",
-			[]string{"color:blue", "size:medium", "weight:2.0kg"},
+			table.String("p-00000000000000001"),
+			table.String("product-2"),
+			table.String("2,500.00"),
+			table.Any([]string{"color:blue", "size:medium", "weight:2.0kg"}),
 		},
 		{
-			"p-00000000000000002",
-			"product-3",
-			"3,750.00",
-			[]string{"color:green", "size:small", "weight:1.0kg"},
+			table.String("p-00000000000000002"),
+			table.String("product-3"),
+			table.String("3,750.00"),
+			table.Any([]string{"color:green", "size:small", "weight:1.0kg"}),
 		},
 	},
 }

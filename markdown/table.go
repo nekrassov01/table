@@ -22,7 +22,7 @@ func NewTable(w io.Writer, opts ...Option) *Table {
 }
 
 // Render resolves column geometry from rows and writes one complete table.
-func (o *Table) Render(rows [][]any) error {
+func (o *Table) Render(rows [][]table.Value) error {
 	a := acquireArena()
 	config := a.newConfig(&o.option, len(rows))
 	config.prepare()

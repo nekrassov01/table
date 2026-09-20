@@ -2,8 +2,11 @@ package benchmarks
 
 import (
 	"bytes"
+	"io"
+	"strconv"
 	"testing"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/examples"
 	"github.com/nekrassov01/table/html"
 )
@@ -264,6 +267,184 @@ func BenchmarkHTMLStreamStackedHeader(b *testing.B) {
 		w.Reset()
 		s := html.NewStream(w, examples.HTMLOptionStackedHeader...)
 		for _, row := range examples.StackedHeaderData.Body {
+			if err := s.Render(row); err != nil {
+				b.Fatal(err)
+			}
+		}
+		if err := s.Close(); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkHTMLTableValueInputMixed(b *testing.B) {
+	records := make([]struct {
+		name   string
+		number int
+		ratio  float64
+		data   []byte
+	}, 1000)
+	for i := range records {
+		records[i].name = "resource-" + strconv.Itoa(i)
+		records[i].number = 1000 + i
+		records[i].ratio = float64(i) + 0.25
+		records[i].data = []byte("payload")
+	}
+	header := []string{"a", "b", "c", "d", "e", "f", "g", "h"}
+	t := html.NewTable(io.Discard, html.WithHeader(header))
+	b.ReportAllocs()
+	for b.Loop() {
+		rows := make([][]table.Value, len(records))
+		cells := make([]table.Value, len(records)*8)
+		for i, v := range records {
+			rows[i] = append(cells[i*8:i*8:i*8+8], table.String(v.name), table.String(v.name), table.String(v.name), table.Int(v.number), table.Int64(int64(v.number)), table.Float64(v.ratio), table.Bool(true), table.Bytes(v.data))
+		}
+		if err := t.Render(rows); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkHTMLStreamValueInputMixed(b *testing.B) {
+	records := make([]struct {
+		name   string
+		number int
+		ratio  float64
+		data   []byte
+	}, 1000)
+	for i := range records {
+		records[i].name = "resource-" + strconv.Itoa(i)
+		records[i].number = 1000 + i
+		records[i].ratio = float64(i) + 0.25
+		records[i].data = []byte("payload")
+	}
+	header := []string{"a", "b", "c", "d", "e", "f", "g", "h"}
+	row := make([]table.Value, 0, 8)
+	b.ReportAllocs()
+	for b.Loop() {
+		s := html.NewStream(io.Discard, html.WithHeader(header))
+		for _, v := range records {
+			row = append(row[:0], table.String(v.name), table.String(v.name), table.String(v.name), table.Int(v.number), table.Int64(int64(v.number)), table.Float64(v.ratio), table.Bool(true), table.Bytes(v.data))
+			if err := s.Render(row); err != nil {
+				b.Fatal(err)
+			}
+		}
+		if err := s.Close(); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkHTMLTableValueInputSmallInts(b *testing.B) {
+	records := make([]int, 1000)
+	for i := range records {
+		records[i] = 1000 + i
+	}
+	header := []string{"a", "b", "c", "d", "e", "f", "g", "h"}
+	t := html.NewTable(io.Discard, html.WithHeader(header))
+	b.ReportAllocs()
+	for b.Loop() {
+		rows := make([][]table.Value, len(records))
+		cells := make([]table.Value, len(records)*8)
+		for i, v := range records {
+			n := v % 128
+			rows[i] = append(cells[i*8:i*8:i*8+8], table.Int(n), table.Int(n), table.Int(n), table.Int(n), table.Int(n), table.Int(n), table.Int(n), table.Int(n))
+		}
+		if err := t.Render(rows); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkHTMLStreamValueInputSmallInts(b *testing.B) {
+	records := make([]int, 1000)
+	for i := range records {
+		records[i] = 1000 + i
+	}
+	header := []string{"a", "b", "c", "d", "e", "f", "g", "h"}
+	row := make([]table.Value, 0, 8)
+	b.ReportAllocs()
+	for b.Loop() {
+		s := html.NewStream(io.Discard, html.WithHeader(header))
+		for _, v := range records {
+			n := v % 128
+			row = append(row[:0], table.Int(n), table.Int(n), table.Int(n), table.Int(n), table.Int(n), table.Int(n), table.Int(n), table.Int(n))
+			if err := s.Render(row); err != nil {
+				b.Fatal(err)
+			}
+		}
+		if err := s.Close(); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+// BenchmarkHTMLTableTransformerValue isolates callback input costs.
+// Callbacks return existing strings to exclude formatting allocations.
+func BenchmarkHTMLTableTransformerValue(b *testing.B) {
+	message := "request completed"
+	rows := make([][]table.Value, 1000)
+	cells := make([]table.Value, len(rows)*2)
+	for i := range rows {
+		cells[i*2] = table.String(message)
+		cells[i*2+1] = table.Int(1000 + i)
+		rows[i] = cells[i*2 : i*2+2]
+	}
+	messageText := func(v table.Value) string {
+		return v.AsString()
+	}
+	levelText := func(v table.Value) string {
+		if v.AsInt() >= 1500 {
+			return "warn"
+		}
+		return "info"
+	}
+	t := html.NewTable(io.Discard,
+		html.WithHeader([]string{"MESSAGE", "LEVEL"}),
+		html.WithTransformer(html.Columns(0), func(v table.Value) (string, *html.Color, *html.Decoration) {
+			return messageText(v), nil, nil
+		}),
+		html.WithTransformer(html.Columns(1), func(v table.Value) (string, *html.Color, *html.Decoration) {
+			return levelText(v), nil, nil
+		}),
+	)
+	b.ReportAllocs()
+	for b.Loop() {
+		if err := t.Render(rows); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+// BenchmarkHTMLStreamTransformerValue isolates callback input costs.
+// Callbacks return existing strings to exclude formatting allocations.
+func BenchmarkHTMLStreamTransformerValue(b *testing.B) {
+	message := "request completed"
+	const rowCount = 1000
+	messageText := func(v table.Value) string {
+		return v.AsString()
+	}
+	levelText := func(v table.Value) string {
+		if v.AsInt() >= 1500 {
+			return "warn"
+		}
+		return "info"
+	}
+	row := make([]table.Value, 2)
+	b.ReportAllocs()
+	for b.Loop() {
+		s := html.NewStream(io.Discard,
+			html.WithHeader([]string{"MESSAGE", "LEVEL"}),
+			html.WithTransformer(html.Columns(0), func(v table.Value) (string, *html.Color, *html.Decoration) {
+				return messageText(v), nil, nil
+			}),
+			html.WithTransformer(html.Columns(1), func(v table.Value) (string, *html.Color, *html.Decoration) {
+				return levelText(v), nil, nil
+			}),
+		)
+		for i := range rowCount {
+			row[0] = table.String(message)
+			row[1] = table.Int(1000 + i)
 			if err := s.Render(row); err != nil {
 				b.Fatal(err)
 			}

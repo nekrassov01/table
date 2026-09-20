@@ -1,6 +1,7 @@
 package html
 
 import (
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/internal/column"
 	"github.com/nekrassov01/table/internal/scope"
 )
@@ -91,5 +92,5 @@ type columnConfig struct {
 type transformer struct {
 	colors      scope.Scopes[*Color]      // Color by table part.
 	decorations scope.Scopes[*Decoration] // Decoration by table part.
-	fn          func(any) (string, *Color, *Decoration)
+	fn          func(table.Value) (string, *Color, *Decoration)
 }

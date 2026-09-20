@@ -97,7 +97,11 @@ A reusable `Option` does not mutate captured values on each application. If a va
 
 ### Evaluate only the selected value
 
-`compiler` calls a configured transformer before default value conversion. A non-empty transformer result becomes the displayed value, so potentially expensive `String()` or `fmt.Sprint` work is not performed. An empty transformer result selects the default representation, and an empty default representation selects the placeholder.
+Body input uses compact Values to avoid primitive interface boxing without changing the row-oriented API. Primitive Go types are preserved so existing type-sensitive transformations and float32 formatting remain stable. Arbitrary values use an explicit Any fallback. `Any` retains the original boxed value, preserving type identity, slice capacity, and reuse by transformers. A single formatting entry point handles compact and boxed values. Both use the same typed `Store` append methods to convert values and obtain their text views. Primitive strings return their retained view before general type dispatch because they require neither conversion nor output storage. `Any` does not duplicate numeric state or normalize named types at construction, so arbitrary inputs keep their original behavior.
+
+Input retention and output views have separate lifetimes and boundaries. `Value` retention and restoration keep the borrowed pointer and length together; `View` exposes completed output bytes as a string. Neither operation transfers ownership to `Store`. Unsafe operations stay with these responsibilities rather than sharing a file solely because they use `unsafe`.
+
+`compiler` passes the input Value directly to a configured transformer before default value conversion. Known-type callbacks use typed accessors without boxing; callbacks that need arbitrary or mixed types explicitly use `AsAny()`. The caller is responsible for matching typed accessors to the input, and a mismatch panics. A non-empty transformer result becomes the displayed value, so potentially expensive `String()` or `fmt.Sprint` work is not performed. An empty transformer result selects the default representation, and an empty default representation selects the placeholder.
 
 Primitive slices and arrays are appended directly to arena-backed value storage while preserving their `fmt.Sprint` representation. Other values use `fmt.Append`, which provides the same representation without first creating a temporary string when the destination has reusable capacity.
 
