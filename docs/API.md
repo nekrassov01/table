@@ -129,13 +129,34 @@ rows := [][]table.Value{
 err := text.NewTable(w).Render(rows)
 ```
 
-Use `String`, `Bytes`, `Int`, `Int8`, `Int16`, `Int32`, `Int64`, `Uint`, `Uint8`, `Uint16`, `Uint32`, `Uint64`, `Uintptr`, `Float32`, `Float64`, and `Bool` for primitive values. Each constructor preserves its Go type. `Any` preserves arbitrary values, including named types and their `String` or `Error` methods, but their boxing may allocate. The zero Value is empty. Values are not comparable.
+Use the following constructors for primitive values. Each preserves its Go type and has a matching accessor.
+
+| Constructor | Accessor    |
+| ----------- | ----------- |
+| `String`    | `AsString`  |
+| `Bytes`     | `AsBytes`   |
+| `Int`       | `AsInt`     |
+| `Int8`      | `AsInt8`    |
+| `Int16`     | `AsInt16`   |
+| `Int32`     | `AsInt32`   |
+| `Int64`     | `AsInt64`   |
+| `Uint`      | `AsUint`    |
+| `Uint8`     | `AsUint8`   |
+| `Uint16`    | `AsUint16`  |
+| `Uint32`    | `AsUint32`  |
+| `Uint64`    | `AsUint64`  |
+| `Uintptr`   | `AsUintptr` |
+| `Float32`   | `AsFloat32` |
+| `Float64`   | `AsFloat64` |
+| `Bool`      | `AsBool`    |
+
+`Any` preserves arbitrary values, including named types and their `String` or `Error` methods, but their boxing may allocate. The zero Value is empty. Values are not comparable.
 
 `Value.AsAny()` restores the value for inspection or serialization and may box it again. Values do not implement JSON or text marshaling; convert them back to their values before serializing rows.
 
-Every primitive constructor has a matching accessor: `AsString`, `AsBytes`, `AsInt`, `AsInt8`, `AsInt16`, `AsInt32`, `AsInt64`, `AsUint`, `AsUint8`, `AsUint16`, `AsUint32`, `AsUint64`, `AsUintptr`, `AsFloat32`, `AsFloat64`, and `AsBool`. These return the exact stored type without boxing, including values stored through `Any`. They panic on a type mismatch; no numeric conversion occurs, and named types remain distinct. The zero Value returns nil from `AsAny` and panics for typed accessors. `AsBytes` borrows the retained bytes; primitive `Bytes` values have capacity equal to length, while `Any` preserves the original capacity. The `As` prefix avoids implementing `fmt.Stringer`.
+Typed accessors return the exact stored type without boxing, including values stored through `Any`. They panic on a type mismatch; no numeric conversion occurs, and named types remain distinct. The zero Value returns nil from `AsAny` and panics for typed accessors. `AsBytes` borrows the retained bytes; primitive `Bytes` values have capacity equal to length, while `Any` preserves the original capacity. The `As` prefix avoids implementing `fmt.Stringer`.
 
-Primitive formatting reads stored values directly. On 64-bit platforms a Value occupies 24 bytes, compared with 16 bytes for an interface; inputs whose boxing was already free can therefore consume more row storage. Reuse a Stream row buffer when appropriate.
+Primitive formatting reads stored values directly. On 64-bit platforms a Value occupies 24 bytes, compared with 16 bytes for an interface. Inputs whose boxing was already free can therefore consume more row storage. Reuse a Stream row buffer when appropriate.
 
 Type and output changes:
 
@@ -213,7 +234,7 @@ Write errors follow these rules:
 
 Individual `Table` and `Stream` instances do not synchronize method calls. Do not call methods on the same instance concurrently from multiple goroutines.
 
-Separately constructed instances can be used concurrently. When instances share an `io.Writer`, borrowed settings, or state captured by footer and transformer closures, the caller must provide the required synchronization.
+Separately constructed instances can be used concurrently. The caller must synchronize access to a shared `io.Writer` or borrowed settings. This also applies to shared state captured by footer and transformer closures.
 
 ## Options
 
@@ -265,7 +286,7 @@ A dash means that the output format has no corresponding feature.
 Options are applied in the order supplied. A later global setting replaces an earlier one. A later column setting replaces the same setting only for the selected columns and `Scope` values.
 
 - `WithIndex`, `text.WithCompact`, `text.WithAutoFit`, and `csv.WithCRLF` only enable a feature and cannot disable it.
-- `text.WithTruncate`, `WithRowspan`, and `WithColspan` accumulate selected columns and, where accepted, scopes.
+- `text.WithTruncate`, `WithRowspan`, and `WithColspan` accumulate selected columns. Options that accept scopes also accumulate them.
 - `text.WithIndexWidth` enables indexing. A positive value replaces the width, while zero or a negative value leaves an existing width unchanged.
 
 ```go
@@ -292,7 +313,7 @@ The public API treats slices, pointers, and functions as follows.
 
 Do not mutate borrowed values or closure state while the associated `Table` or `Stream` is in use. Defensive copies of headers and markup are not part of the API contract. References to body and footer rows are discarded before the corresponding call returns.
 
-Settings captured by value, such as strings, numbers, booleans, and runes, are independent of the caller. A constructed `Option` can be reused by multiple `Table` and `Stream` instances.
+Settings captured by value are independent of the caller. These include strings and numbers as well as booleans and runes. A constructed `Option` can be reused by multiple `Table` and `Stream` instances.
 
 ## Option reference
 
@@ -334,7 +355,7 @@ func WithTransformer(columns ColumnSelector, fn func(table.Value) (string, *Attr
 
 `NewAttr` combines multiple `Code` values into one SGR sequence. It returns `nil` when called without arguments.
 
-Built-in borders are `StyleASCII`, `StyleLight`, `StyleRounded`, `StyleHeavy`, and `StyleDouble`, together with colored variants of the latter four. Use `Style.Clone` before changing a built-in style's nested border or attribute values. A direct assignment copies the `Style` struct but continues to share its pointers and byte slices.
+Built-in borders include `StyleASCII`. The other presets are `StyleLight`, `StyleRounded`, `StyleHeavy`, and `StyleDouble`; each also has a colored variant. Use `Style.Clone` before changing a built-in style's nested border or attribute values. A direct assignment copies the `Style` struct but continues to share its pointers and byte slices.
 
 ### html
 
@@ -358,9 +379,9 @@ func WithTransformer(columns ColumnSelector, fn func(table.Value) (string, *Colo
 - Headers use `thead` and `th`, the body uses `tbody` and `td`, and footers use `tfoot` and `td`. Empty sections are omitted.
 - `Attr` holds the classes and inline style for one element. `TableAttr` groups attributes for the table and its sections, while `SectionAttr` groups section, row, and cell attributes.
 - `WithCellAttr` appends per-column cell attributes. Classes are joined with an ASCII space and styles with a semicolon; alignment from `WithAlign` is appended last.
-- Displayed values are escaped as HTML text. CR, LF, and CRLF become `<br>`. C0 controls other than tab, CR, and LF, together with DEL and invalid UTF-8, become U+FFFD.
-- Values in the `Class` and `Style` fields, and color strings passed to `NewColor`, are escaped as HTML attributes. NUL, C0 controls other than ASCII whitespace, DEL, C1 controls, Unicode noncharacters, and invalid UTF-8 become U+FFFD. CR and CRLF are normalized to LF, while tab, LF, and form feed are preserved.
-- Decoration presets are `DecorationBold`, `DecorationUnderline`, `DecorationItalic`, `DecorationStrikethrough`, `DecorationCode`, and `DecorationPreformatted`.
+- Displayed values are escaped as HTML text. CR, LF, and CRLF become `<br>`. C0 controls other than tab, CR, and LF become U+FFFD. DEL and invalid UTF-8 also become U+FFFD.
+- Values in the `Class` and `Style` fields, and color strings passed to `NewColor`, are escaped as HTML attributes. NUL and C0 controls other than ASCII whitespace become U+FFFD. So do DEL, C1 controls, Unicode noncharacters, and invalid UTF-8. CR and CRLF are normalized to LF, while tab, LF, and form feed are preserved.
+- Text decoration presets are `DecorationBold`, `DecorationUnderline`, `DecorationItalic`, and `DecorationStrikethrough`. Code presets are `DecorationCode` and `DecorationPreformatted`.
 - When decoration and color are combined, the decoration element is outside the color `span`.
 - `NewDecoration` writes the supplied markup without escaping. Pass only trusted HTML. It returns `nil` when `prefix` is empty.
 - `NewColor` returns `nil` when both foreground and background are empty.
@@ -381,10 +402,10 @@ func WithTransformer(columns ColumnSelector, fn func(table.Value) (string, *Colo
 
 - A GFM table requires one header row. Omitting `WithHeader` or supplying an empty header produces `table.ErrHeaderRequired`.
 - `WithAlign` sets alignment markers on the GFM delimiter row.
-- Backslashes, vertical bars, backticks, emphasis markers, square brackets, angle brackets, and ampersands in displayed values are escaped. LF, CR, and CRLF become `<br>`. NUL and invalid UTF-8 become U+FFFD.
+- Backslashes, vertical bars, backticks, and emphasis markers in displayed values are escaped. Square brackets, angle brackets, and ampersands are also escaped. LF, CR, and CRLF become `<br>`. NUL and invalid UTF-8 become U+FFFD.
 - Strings resembling URLs or email addresses may be autolinked by a GFM implementation.
 - Color uses an HTML `span`. Other decorations surround the color span; with `DecorationCode`, the color span surrounds the code span.
-- `DecorationCode` follows the GFM code-span rules. Its fence is longer than any backtick run in the value, and LF, CR, and CRLF become spaces. When the normalized content begins and ends with spaces but is not entirely spaces, the emitted span adds one space at each end so GFM parsing preserves them.
+- `DecorationCode` follows the GFM code-span rules. Its fence is longer than any backtick run in the value, and LF, CR, and CRLF become spaces. If normalized content begins and ends with spaces but contains other characters, the emitted span adds one space at each end. This preserves those spaces during GFM parsing.
 - `DecorationPreformatted` preserves whitespace with `<pre>`.
 - `NewColor` escapes a CSS color as an HTML attribute. Vertical bars become character references so they cannot split a GFM table row. Invalid characters follow HTML attribute replacement rules, and line breaks become spaces. CSS validity is not checked.
 - `NewDecoration` writes the supplied delimiters without escaping. Pass only trusted markup. It returns `nil` when `prefix` is empty.
@@ -404,7 +425,7 @@ func WithTransformer(columns ColumnSelector, fn func(table.Value) (string, *Colo
 ```
 
 - Header and footer cells use header-cell notation beginning with `~`. A footer is a library-level section; Backlog itself does not distinguish it.
-- Displayed values literalize bracketed links, bold, italic, strikethrough, colors, line breaks, quote and code macros, and attachment, image, revision, and contents macros. Backslashes and vertical bars are also escaped. Actual CR and LF become `&br;`, while a caller-supplied `&br;` remains text. Invalid UTF-8 bytes are preserved rather than replaced.
+- Displayed values literalize bracketed links and text markup: bold, italic, strikethrough, and colors. They also literalize line breaks and quote and code macros. Attachment, image, revision, and contents macros are literalized too. Backslashes and vertical bars are also escaped. Actual CR and LF become `&br;`, while a caller-supplied `&br;` remains text. Invalid UTF-8 bytes are preserved rather than replaced.
 - The header-cell `~` immediately follows the opening vertical bar, and padding follows the value.
 - When color is combined with any decoration other than `DecorationCode`, the color notation surrounds the decoration.
 - Backlog notation cannot represent `DecorationCode` and color simultaneously, so code decoration is retained and color is omitted.
@@ -429,7 +450,7 @@ func WithTransformer(columns ColumnSelector, fn func(table.Value) string) Option
 - Combining `WithDelimiter(',')` and `WithCRLF()` selects the delimiter and record ending specified by RFC 4180.
 - A header has one row. Footers are emitted as ordinary records.
 - Invalid UTF-8 bytes are preserved rather than replaced.
-- CSV quoting does not neutralize spreadsheet formulas. Spreadsheet software may interpret fields beginning with `=`, `+`, `-`, `@`, tab, or CR even when the field is quoted. Sanitize untrusted values with a transformer before producing files that will be opened in a spreadsheet.
+- CSV quoting does not neutralize spreadsheet formulas. Spreadsheet software may interpret fields beginning with `=`, `+`, `-`, or `@` even when quoted. Leading tab or CR may also trigger interpretation. Sanitize untrusted values with a transformer before producing files that will be opened in a spreadsheet.
 - A one-column record containing an empty field is written as a blank line, matching `encoding/csv.Writer`. Readers that skip blank lines do not preserve that record. Use a non-empty placeholder or transformer when the record must survive a round trip.
 
 ## Column resolution and settings
@@ -566,7 +587,7 @@ Every format except CSV provides `WithRowspan` and `WithColspan`. `Scope` select
 - `WithRowspan` spans vertically adjacent equal values in selected columns. When a selected column to the left changes, selected columns to its right begin new spans.
 - `WithColspan` spans horizontally adjacent equal values when both columns are selected. A vertical continuation is not eligible.
 - Body cells compare strings after placeholder application; headers and footers compare configured strings. Escaping, color, and decoration are excluded, and spans never cross section boundaries.
-- Spanning depends only on consecutive displayed strings. Adjacent logical groups with equal displayed strings will also span; select different columns or return distinct transformer strings when a boundary is required.
+- Spanning depends only on consecutive displayed strings. Adjacent logical groups with equal displayed strings will also span. Select different columns or return distinct transformer strings when a boundary is required.
 - Spans are limited to the first 64 output columns. Columns 65 and later never span. A generated index counts as one output column.
 - HTML spans horizontally only across cells with equal `rowspan` values, preserving rectangles.
 - `html.Table` does not split a vertical run longer than 65,534 rows and may therefore emit a `rowspan` above the HTML Standard limit.
@@ -584,7 +605,7 @@ Formats represent spans as follows.
 
 ## Alignment
 
-`text`, `html`, and `markdown` define `AlignDefault`, `AlignLeft`, `AlignRight`, and `AlignCenter`.
+Alignment is available in `text`, `html`, and `markdown`. These packages define `AlignDefault`, `AlignLeft`, `AlignRight`, and `AlignCenter`.
 
 | Format     | Default                                           | Representation                               |
 | ---------- | ------------------------------------------------- | -------------------------------------------- |

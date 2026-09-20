@@ -49,7 +49,7 @@ The pipeline stages are named `config`, `compiler`, `solver`, and `painter`. A f
 
 ### Separate decisions from representations
 
-When several formats share a rule, they share only the decision and retain their own output representation. `internal/column` derives maximum column counts from header and footer rows and owns column selection and default inheritance, while each format retains its own column settings. Similarly, `internal/span` identifies continuation positions for adjacent cells with equal values, but it does not decide whether those positions become borders, empty cells, or HTML attributes.
+When several formats share a rule, they share only the decision and retain their own output representation. `internal/column` derives maximum column counts from header and footer rows. It owns column selection and default inheritance. Each format retains its own column settings. `internal/span` identifies continuation positions for adjacent cells with equal values. Each format decides whether those positions become borders, empty cells, or HTML attributes.
 
 ### Separate state with different lifetimes
 
@@ -65,7 +65,7 @@ Do not add helper types without measured justification or wrappers that merely d
 
 ### Separate Table and Stream control flow
 
-`Table` can inspect every row before producing output, whereas `Stream` cannot revise output already written. Their exported methods retain this difference in control flow. The shared `config`, `compiler`, `solver`, and `painter` stages use only their inputs, the preceding result, and `arena` state.
+`Table` can inspect every row before producing output, whereas `Stream` cannot revise output already written. Their exported methods retain this difference in control flow. The shared stages use only their inputs, the preceding result, and `arena` state.
 
 Shared stages do not receive a flag indicating whether the caller is `Table` or `Stream`, or whether lookahead is available. Such a flag would make a stage's behavior depend on the caller instead of its explicit inputs. The sequence of method calls made by `Table` and `Stream` expresses the availability of lookahead.
 
@@ -77,7 +77,7 @@ The pipeline does not collect every stage's fields into one shared structure. Su
 
 ### Limit arena to state ownership
 
-The `arena` is not a pipeline stage. It holds reusable storage for each stage and continuation state required by the next `Stream` pass. It may supply inputs when constructing stages, but `Table` and `Stream` decide the order of `prepare`, `compile*`, `solve`, and `paint*`. Moving control flow into the `arena` would hide both execution sequences and stage inputs.
+The `arena` is not a pipeline stage. It holds reusable storage for each stage and continuation state required by the next `Stream` pass. It may supply inputs when constructing stages. `Table` and `Stream` decide the order of `prepare`, `compile*`, `solve`, and `paint*`. Moving control flow into the `arena` would hide both execution sequences and stage inputs.
 
 Each format defines its own `arena`. A shared type would force CSV to carry an unused `solverState` and every format to carry buffers used only for text line layout. `sync.Pool` is strictly a reuse mechanism for reducing allocations. Correctness never depends on retrieving the same `arena` or on state surviving a return to the pool. Release removes references to external values and retains only storage owned by the arena itself.
 
@@ -91,7 +91,7 @@ The returned footer is passed to `newConfig` or `resumeConfig` and proceeds thro
 
 Options do not clone every referenced value. Values that must be independent of subsequent caller changes are owned; values read only during execution are borrowed. For example, `Columns` clones indexes to create an independently reusable selector, while headers and footer functions remain referenced until needed. Choosing ownership based on value semantics avoids unnecessary allocations.
 
-`WithStyle` borrows the nested border and attribute values because rendering only reads them. Callers that need to customize a shared preset can use `Style.Clone` to request independent pointers and byte slices without adding allocations to ordinary read-only use.
+`WithStyle` borrows the nested border and attribute values because rendering only reads them. Callers can use `Style.Clone` to obtain independent pointers and byte slices before customizing a shared preset. Ordinary read-only use adds no cloning allocations.
 
 A reusable `Option` does not mutate captured values on each application. If a value always requires the same escaping or normalization, perform that work once when constructing the option. Values such as captions and cell contents remain unprocessed until the pipeline stage responsible for their output context handles them.
 
@@ -103,19 +103,19 @@ Input retention and output views have separate lifetimes and boundaries. `Value`
 
 `compiler` passes the input Value directly to a configured transformer before default value conversion. Known-type callbacks use typed accessors without boxing; callbacks that need arbitrary or mixed types explicitly use `AsAny()`. The caller is responsible for matching typed accessors to the input, and a mismatch panics. A non-empty transformer result becomes the displayed value, so potentially expensive `String()` or `fmt.Sprint` work is not performed. An empty transformer result selects the default representation, and an empty default representation selects the placeholder.
 
-Primitive slices and arrays are appended directly to arena-backed value storage while preserving their `fmt.Sprint` representation. Other values use `fmt.Append`, which provides the same representation without first creating a temporary string when the destination has reusable capacity.
+Primitive slices and arrays are appended directly to arena-backed value storage while preserving their `fmt.Sprint` representation. Other values use `fmt.Append` for the same representation. Reusable destination capacity avoids an intermediate string.
 
 Missingness is retained when the value is resolved rather than inferred later by comparing strings with the placeholder. Text expands tabs after selecting the displayed value and before comparing spans, so equal visible strings produce equal spans. The compiler passes known printable ASCII widths forward instead of making the solver scan those values again. Format-specific escaping and markup remain outside shared value conversion.
 
 ### Separate logical columns from display geometry
 
-The logical column count determined by `config` is distinct from display widths and span counts determined by `solver`. Short rows are extended to the established columns, but a wider later row never expands the table. Otherwise `Table`, which can inspect all rows, and `Stream`, which cannot revise prior output, would derive different logical column counts.
+The logical column count determined by `config` is distinct from display widths and span counts determined by `solver`. Short rows are extended to the established columns, but a wider later row never expands the table. Otherwise `Table` and `Stream` would derive different logical column counts. Only `Table` can inspect all rows before writing output.
 
 Column selectors are retained independently of the logical column count and applied only after `config` determines the actual input columns. Settings for nearby columns use a contiguous prefix, while settings separated by large gaps remain sparse until that point. A numeric selector therefore cannot allocate storage in proportion to its index or create a column that is absent from the input.
 
 Display width is measured without changing the logical column count. `Table` can measure the complete pass, while `Stream` emits later rows within the conditions established at startup. Keeping validation separate from display adjustment prevents width optimization from changing the input contract.
 
-When a text stream starts rendering body rows with a column whose content has zero display width, the solver reserves one display cell before freezing the geometry. This gives later values a usable wrapping boundary without changing columns after output has begun. A stream closed before its first body row has complete input and does not freeze its geometry.
+A text stream may start with a column whose content has zero display width. The solver reserves one display cell before freezing the body geometry. This gives later values a usable wrapping boundary without changing columns after output has begun. A stream closed before its first body row has complete input and does not freeze its geometry.
 
 ### Preserve grapheme clusters when wrapping
 
@@ -139,6 +139,6 @@ GFM normalizes code-span line endings to spaces, then removes one space from eac
 
 ### Match error retention to execution state
 
-A column-count error from `Stream.Render` rejects only the current row, so it is not retained and the stream can accept a subsequent valid row. A write error cannot be undone after output has been emitted, so `Stream` retains the first write error and returns it from later calls to both `Render` and `Close`. Errors raised during `Close` are also retained because execution has already ended.
+A column-count error from `Stream.Render` rejects only the current row, so it is not retained and the stream can accept a subsequent valid row. A write error cannot be undone after output has been emitted. `Stream` retains the first write error and returns it from later calls to both `Render` and `Close`. Errors raised during `Close` are also retained because execution has already ended.
 
-When an HTML stream detects a footer column-count error after opening the table, `Close` omits the invalid footer but still calls `paintFooter` to close the open elements. The footer error occurred first and remains the retained result if closing also produces a write error. Without a footer error, the same closing failure is retained as a write error.
+An HTML stream may detect a footer column-count error after opening the table. `Close` omits the invalid footer but calls `paintFooter` to close the open elements. The footer error occurred first and remains the retained result if closing also produces a write error. Without a footer error, the same closing failure is retained as a write error.

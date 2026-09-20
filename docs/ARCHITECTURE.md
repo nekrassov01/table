@@ -98,17 +98,17 @@ Text options determine terminal status once during construction. The constructor
 
 ### Config
 
-`newConfig` builds `config` from a reference to `option`, its headers, and the number of body rows. In `text`, `html`, `backlog`, and `csv`, it also receives footer rows returned by the footer function and the body column count. It does not retain body values.
+`newConfig` builds `config` from a reference to `option`, its headers, and the number of body rows. All formats except Markdown also receive footer rows returned by the footer function and the body column count. It does not retain body values.
 
 `prepare` combines this data with `configState` to determine logical columns. Markdown requires one header row and therefore uses its header width. Other formats use the widest non-empty header row when a header has at least one column. Without a header, they use the greater of the body column count and the widest footer row. The stage then adds an index column when enabled and applies `AllColumns` and `Columns` settings only to the resolved input columns. A selected index cannot expand the column count. The stage also detects configuration errors such as Markdown's `ErrHeaderRequired` and CSV's `ErrDelimiter`.
 
-`configResult` retains the `option` reference, headers, body row count, and resolved column settings. In `text`, `html`, `backlog`, and `csv`, it also retains the current pass's footer and `footerColumns`. `compiler` uses that count to ensure the footer does not exceed the resolved column count.
+`configResult` retains the `option` reference, headers, body row count, and resolved column settings. All formats except Markdown also retain the current pass's footer and `footerColumns`. `compiler` uses that count to ensure the footer does not exceed the resolved column count.
 
 ### Compiler
 
 The root package exposes `table.Value` as an alias for the compact value representation in `internal/value`, with primitive constructors in `value.go`. All output packages, common interfaces, and row adapters use `table.Value`. Primitive constructors retain numeric bits or borrowed string and byte pointers without boxing. The compiler formats input values through `value.Format`. `Format` uses a direct string fast path followed by one type dispatch for both compact values and values retained by `Any`. Both representations use the same typed `Store` append methods. Only types outside these direct cases use reflection to resolve references, named values, and collections. The output packages retain their own `cell` types for resolved display text and format-specific attributes. Transformers receive the input `table.Value` directly. Typed accessors avoid boxing; only callbacks that explicitly call `AsAny()` restore an interface value. Transformer results and configuration semantics are unchanged. Table and Stream retain their existing pipeline and workspace ownership.
 
-`prepare` uses `configResult` and `compilerState` to reserve the required row and cell storage. In `text`, `html`, `markdown`, and `backlog`, it initializes per-column span settings. It also prepares scratch storage for escaping in `html`, `markdown`, and `backlog`, or quoting in `csv`. HTML escapes its caption at this stage.
+`prepare` uses `configResult` and `compilerState` to reserve the required row and cell storage. For formats with spans, it initializes per-column span settings. It also prepares scratch storage for escaping in `html`, `markdown`, and `backlog`, or quoting in `csv`. HTML escapes its caption at this stage.
 
 `compileHeader` and `compileBody` convert headers and body values into logical rows and cells. `compileFooter` does the same for footers in `text`, `html`, `backlog`, and `csv`. Headers and footers use their configured labels. Formats other than CSV also select the attributes, colors, or decorations for the corresponding section. `compileBody` iterates the complete body, while `Stream` calls `compileRow` for one body row. Each row performs the following work as needed:
 
@@ -119,7 +119,7 @@ The root package exposes `table.Value` as an alias for the compact value represe
 
 Formats with spans compare these resolved strings and record where equal values continue. Escaped strings and markup are not used for comparison. Each value is then escaped or quoted according to its format, and the selected attributes, colors, and decorations are retained in the cell. Formats that need byte sizes or display widths for later capacity or geometry calculations record them here. A body row or footer wider than the resolved column count produces `ErrColumnCount` at this stage.
 
-`compilerResult` retains `configResult` and the compiled header and body. In `text`, `html`, `backlog`, and `csv`, it also retains the footer. Text additionally retains the normalized placeholder so its solver measures the value that later rows may display. Cell strings and span continuation positions or candidates are resolved at this point. Column widths and the `rowspan` and `colspan` counts written by HTML remain unresolved.
+`compilerResult` retains `configResult` and the compiled header and body. All formats except Markdown also retain the footer. Text additionally retains the normalized placeholder so its solver measures the value that later rows may display. Cell strings and span continuation positions or candidates are resolved at this point. Column widths and the `rowspan` and `colspan` counts written by HTML remain unresolved.
 
 ### Solver
 
@@ -127,7 +127,7 @@ CSV has no `solver` because it has no column widths or span geometry to determin
 
 `solve` resolves format-specific information:
 
-- `text` reuses compiled printable ASCII widths, measures the remaining cell widths and span width requirements, retains each cell's widest physical-line width and line-break status, then applies column settings, padding, and terminal width to determine each column's width and starting position.
+- `text` reuses compiled printable ASCII widths and measures the remaining cell widths and span width requirements. It retains each cell's widest physical-line width and line-break status. It then applies column settings, padding, and terminal width to determine each column's width and starting position.
 - `html` counts span candidates and sets `rowspan` and `colspan` on their leading cells. It assigns `colspan == 0` to absorbed cells so they are omitted from output.
 - `markdown` and `backlog` measure the widest cell in each column and determine the padding width.
 
@@ -169,12 +169,12 @@ A `Table` pass includes the header, complete body, and footer.
 `Stream` requires three phases.
 
 1. **Initial pass:** The first `Render` call that establishes at least one column acquires an `arena` and processes the header and first body row. Text calls `freeze` on the resulting geometry. Input that cannot establish a logical column does not start the stream.
-2. **Continuation:** Each later row resets row-scoped arena state and reuses the resolved configuration and any continuation state required across rows. `resumeConfig` pairs the current pass data with columns retained in the `arena`; `resumeCompiler` and the applicable solver constructor then rebuild the later results.
+2. **Continuation:** Each later row resets row-scoped arena state and reuses the resolved configuration and any continuation state required across rows. `resumeConfig` pairs the current pass data with columns retained in the `arena`. `resumeCompiler` and the applicable solver constructor then rebuild the later results.
 3. **Close:** `Close` resolves the footer function. If the body has already produced output, it compiles and paints the footer within the established column count and geometry. If no body was emitted, the header and footer can be resolved in one initial pass. Finally, it returns the `arena` to the pool and clears the stream's arena reference.
 
 ## Reusability
 
-An `arena` owns the workspace used by one `Table` render or one active `Stream`. It is not a data-transformation stage. It groups the state, slices, and buffers used by `config`, `compiler`, `solver`, and `painter`, making the current owner explicit. Each format defines its own arena because its state requirements differ. CSV has no `solverState`.
+An `arena` owns the workspace used by one `Table` render or one active `Stream`. It is not a data-transformation stage. It groups the state and storage used by the pipeline stages. This makes the current owner explicit. Each format defines its own arena because its state requirements differ. CSV has no `solverState`.
 
 The main owners and their lifetimes are as follows.
 
@@ -217,7 +217,7 @@ The reset preserves slice and buffer capacity, resolved columns, column measurem
 Before returning an arena to the pool, `release` performs the following work:
 
 - Clear elements from column-setting, row, cell, and value slices.
-- Remove references to option functions, attributes, and input-derived strings, and clear copied span-comparison values so input content cannot remain reachable through the pool.
+- Remove references to option functions, attributes, and input-derived strings. Clear copied span-comparison values so input content cannot remain reachable through the pool.
 - Detach row and horizontal-line views currently used by `painter`.
 - Retain reusable byte-buffer and slice capacity.
 
