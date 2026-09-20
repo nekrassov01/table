@@ -3,6 +3,7 @@ package markdown
 import (
 	"testing"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/internal/column"
 	"github.com/nekrassov01/table/internal/testutil"
 )
@@ -415,8 +416,8 @@ func TestWithDecoration(t *testing.T) {
 func TestWithTransformer(t *testing.T) {
 	type args struct {
 		columns     ColumnSelector
-		transformer func(any) (string, *Color, *Decoration)
-		value       any
+		transformer func(table.Value) (string, *Color, *Decoration)
+		value       table.Value
 	}
 	type want struct {
 		text       string
@@ -432,10 +433,10 @@ func TestWithTransformer(t *testing.T) {
 			name: "sets transformer",
 			args: args{
 				columns: Columns(0),
-				transformer: func(any) (string, *Color, *Decoration) {
+				transformer: func(table.Value) (string, *Color, *Decoration) {
 					return "transformed", ColorFgRed, DecorationBold
 				},
-				value: "raw",
+				value: table.String("raw"),
 			},
 			want: want{
 				text:       "transformed",

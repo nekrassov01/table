@@ -3,6 +3,7 @@ package csv
 import (
 	"testing"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/internal/column"
 	"github.com/nekrassov01/table/internal/testutil"
 )
@@ -274,8 +275,8 @@ func TestWithPlaceholder(t *testing.T) {
 func TestWithTransformer(t *testing.T) {
 	type args struct {
 		columns ColumnSelector
-		fn      func(any) string
-		value   any
+		fn      func(table.Value) string
+		value   table.Value
 	}
 	type want struct {
 		value string
@@ -290,10 +291,10 @@ func TestWithTransformer(t *testing.T) {
 			name: "sets function",
 			args: args{
 				columns: Columns(0),
-				fn: func(any) string {
+				fn: func(table.Value) string {
 					return "new"
 				},
-				value: "raw",
+				value: table.String("raw"),
 			},
 			want: want{
 				value: "new",
@@ -315,7 +316,7 @@ func TestWithTransformer(t *testing.T) {
 				columns: columnSet{
 					Values: []columnConfig{
 						{
-							transformer: func(any) string {
+							transformer: func(table.Value) string {
 								return "old"
 							},
 						},

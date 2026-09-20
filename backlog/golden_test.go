@@ -501,8 +501,8 @@ func TestGolden_StreamColspanTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
-		WithTransformer(Columns(1), func(v any) (string, *Color, *Decoration) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Color, *Decoration) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil, nil
 			}
 			return "", nil, nil
@@ -832,8 +832,8 @@ func TestGolden_StreamFooterTransformer(t *testing.T) {
 		WithFooter(func() [][]string {
 			return [][]string{{"t", "raw"}}
 		}),
-		WithTransformer(Columns(1), func(v any) (string, *Color, *Decoration) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Color, *Decoration) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil, nil
 			}
 			return "", nil, nil
@@ -1020,8 +1020,8 @@ func TestGolden_StreamIndexTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
 		WithIndex(),
-		WithTransformer(Columns(1), func(v any) (string, *Color, *Decoration) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Color, *Decoration) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil, nil
 			}
 			return "", nil, nil
@@ -1152,8 +1152,8 @@ func TestGolden_StreamPlaceholderTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
 		WithPlaceholder("-"),
-		WithTransformer(Columns(1), func(v any) (string, *Color, *Decoration) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Color, *Decoration) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil, nil
 			}
 			return "", nil, nil
@@ -1319,8 +1319,8 @@ func TestGolden_StreamRowspanTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(1)),
-		WithTransformer(Columns(1), func(v any) (string, *Color, *Decoration) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Color, *Decoration) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil, nil
 			}
 			return "", nil, nil
@@ -1491,8 +1491,8 @@ func TestGolden_StreamStringerError(t *testing.T) {
 func TestGolden_StreamTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
-		WithTransformer(Columns(1), func(v any) (string, *Color, *Decoration) {
-			n, ok := v.(int)
+		WithTransformer(Columns(1), func(v table.Value) (string, *Color, *Decoration) {
+			n, ok := v.AsAny().(int)
 			if !ok {
 				return "", nil, nil
 			}
@@ -1520,8 +1520,8 @@ func TestGolden_StreamTransformerColumnOverride(t *testing.T) {
 	s := NewStream(&buf,
 		WithColor(ScopeBody, Columns(1), ColorFgBlue),
 		WithDecoration(ScopeBody, Columns(1), DecorationBold),
-		WithTransformer(Columns(1), func(v any) (string, *Color, *Decoration) {
-			if s, ok := v.(string); ok && s == "warn" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Color, *Decoration) {
+			if s, ok := v.AsAny().(string); ok && s == "warn" {
 				return "", ColorFgYellow, DecorationItalic
 			}
 			return "", nil, nil
@@ -2049,8 +2049,8 @@ func TestGolden_TableColspanTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
-		WithTransformer(Columns(1), func(v any) (string, *Color, *Decoration) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Color, *Decoration) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil, nil
 			}
 			return "", nil, nil
@@ -2314,8 +2314,8 @@ func TestGolden_TableFooterTransformer(t *testing.T) {
 		WithFooter(func() [][]string {
 			return [][]string{{"t", "raw"}}
 		}),
-		WithTransformer(Columns(1), func(v any) (string, *Color, *Decoration) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Color, *Decoration) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil, nil
 			}
 			return "", nil, nil
@@ -2462,8 +2462,8 @@ func TestGolden_TableIndexTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
 		WithIndex(),
-		WithTransformer(Columns(1), func(v any) (string, *Color, *Decoration) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Color, *Decoration) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil, nil
 			}
 			return "", nil, nil
@@ -2579,8 +2579,8 @@ func TestGolden_TablePlaceholderTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
 		WithPlaceholder("-"),
-		WithTransformer(Columns(1), func(v any) (string, *Color, *Decoration) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Color, *Decoration) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil, nil
 			}
 			return "", nil, nil
@@ -2710,8 +2710,8 @@ func TestGolden_TableRowspanTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(1)),
-		WithTransformer(Columns(1), func(v any) (string, *Color, *Decoration) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Color, *Decoration) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil, nil
 			}
 			return "", nil, nil
@@ -2831,8 +2831,8 @@ func TestGolden_TableStringerError(t *testing.T) {
 func TestGolden_TableTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
-		WithTransformer(Columns(1), func(v any) (string, *Color, *Decoration) {
-			n, ok := v.(int)
+		WithTransformer(Columns(1), func(v table.Value) (string, *Color, *Decoration) {
+			n, ok := v.AsAny().(int)
 			if !ok {
 				return "", nil, nil
 			}
@@ -2857,8 +2857,8 @@ func TestGolden_TableTransformerColumnOverride(t *testing.T) {
 	tb := NewTable(&buf,
 		WithColor(ScopeBody, Columns(1), ColorFgBlue),
 		WithDecoration(ScopeBody, Columns(1), DecorationBold),
-		WithTransformer(Columns(1), func(v any) (string, *Color, *Decoration) {
-			if s, ok := v.(string); ok && s == "warn" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Color, *Decoration) {
+			if s, ok := v.AsAny().(string); ok && s == "warn" {
 				return "", ColorFgYellow, DecorationItalic
 			}
 			return "", nil, nil

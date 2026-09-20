@@ -4,6 +4,7 @@ import (
 	"io"
 	"testing"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/internal/testutil"
 	"github.com/nekrassov01/table/internal/value"
 )
@@ -429,7 +430,7 @@ func Test_arena_release(t *testing.T) {
 						config: configState{
 							columns: []columnConfig{
 								{
-									transformer: func(any) string {
+									transformer: func(table.Value) string {
 										return "value"
 									},
 								},

@@ -3,6 +3,7 @@ package text
 import (
 	"io"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/internal/column"
 	"github.com/nekrassov01/table/internal/scope"
 )
@@ -130,7 +131,7 @@ type transformer struct {
 	// Attributes applied in each table part.
 	attrs scope.Scopes[*Attr]
 	// Per-cell transformer for body values.
-	fn func(any) (string, *Attr)
+	fn func(table.Value) (string, *Attr)
 }
 
 // defaultColumn returns an unconfigured input column.

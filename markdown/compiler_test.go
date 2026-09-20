@@ -363,7 +363,7 @@ func Test_compiler_compileRow(t *testing.T) {
 						{},
 						{
 							transformer: transformer{
-								fn: func(any) (string, *Color, *Decoration) {
+								fn: func(table.Value) (string, *Color, *Decoration) {
 									return "x|", ColorFgRed, DecorationBold
 								},
 							},

@@ -92,6 +92,8 @@ cd benchmarks
 go test -run '^$' -bench '^Benchmark(Text|HTML|Markdown|Backlog|CSV)(Table|Stream)ValueInput' -benchmem -benchtime=200ms -count=10
 ```
 
+The media-specific `TransformerValue` benchmarks measure 1000 rows with string and integer callbacks that return existing strings. `Table` constructs the table and prepares Values before timing; `Stream` constructs each row in a reusable buffer during the timed iteration. This separates callback input boxing from allocations needed to build formatted output strings.
+
 CI runs every regular and `Cold` benchmark once with `benchtime=1x` as a smoke check. These runs detect benchmark execution failures; use the comparison process in [`BASELINE.md`](BASELINE.md) to evaluate performance changes.
 
 ## Validation

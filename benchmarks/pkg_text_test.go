@@ -454,3 +454,79 @@ func BenchmarkTextStreamValueInputSmallInts(b *testing.B) {
 		}
 	}
 }
+
+// BenchmarkTextTableTransformerValue isolates callback input costs.
+// Callbacks return existing strings to exclude formatting allocations.
+func BenchmarkTextTableTransformerValue(b *testing.B) {
+	message := "request completed"
+	rows := make([][]table.Value, 1000)
+	cells := make([]table.Value, len(rows)*2)
+	for i := range rows {
+		cells[i*2] = table.String(message)
+		cells[i*2+1] = table.Int(1000 + i)
+		rows[i] = cells[i*2 : i*2+2]
+	}
+	messageText := func(v table.Value) string {
+		return v.AsString()
+	}
+	levelText := func(v table.Value) string {
+		if v.AsInt() >= 1500 {
+			return "warn"
+		}
+		return "info"
+	}
+	t := text.NewTable(io.Discard,
+		text.WithHeader([]string{"MESSAGE", "LEVEL"}),
+		text.WithTransformer(text.Columns(0), func(v table.Value) (string, *text.Attr) {
+			return messageText(v), nil
+		}),
+		text.WithTransformer(text.Columns(1), func(v table.Value) (string, *text.Attr) {
+			return levelText(v), nil
+		}),
+	)
+	b.ReportAllocs()
+	for b.Loop() {
+		if err := t.Render(rows); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+// BenchmarkTextStreamTransformerValue isolates callback input costs.
+// Callbacks return existing strings to exclude formatting allocations.
+func BenchmarkTextStreamTransformerValue(b *testing.B) {
+	message := "request completed"
+	const rowCount = 1000
+	messageText := func(v table.Value) string {
+		return v.AsString()
+	}
+	levelText := func(v table.Value) string {
+		if v.AsInt() >= 1500 {
+			return "warn"
+		}
+		return "info"
+	}
+	row := make([]table.Value, 2)
+	b.ReportAllocs()
+	for b.Loop() {
+		s := text.NewStream(io.Discard,
+			text.WithHeader([]string{"MESSAGE", "LEVEL"}),
+			text.WithTransformer(text.Columns(0), func(v table.Value) (string, *text.Attr) {
+				return messageText(v), nil
+			}),
+			text.WithTransformer(text.Columns(1), func(v table.Value) (string, *text.Attr) {
+				return levelText(v), nil
+			}),
+		)
+		for i := range rowCount {
+			row[0] = table.String(message)
+			row[1] = table.Int(1000 + i)
+			if err := s.Render(row); err != nil {
+				b.Fatal(err)
+			}
+		}
+		if err := s.Close(); err != nil {
+			b.Fatal(err)
+		}
+	}
+}

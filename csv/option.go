@@ -1,6 +1,9 @@
 package csv
 
-import "github.com/nekrassov01/table/internal/column"
+import (
+	"github.com/nekrassov01/table"
+	"github.com/nekrassov01/table/internal/column"
+)
 
 // Option configures a [Table] or [Stream] during construction. Column indexes
 // refer to positions in the input rows; a generated index column does not
@@ -69,10 +72,10 @@ func WithPlaceholder(s string) Option {
 }
 
 // WithTransformer sets a transformer for body cells in the selected columns.
-// The function receives the raw value and may return a replacement display
-// string. A non-empty string skips formatting the raw value; an empty string
-// uses the formatted raw value.
-func WithTransformer(columns ColumnSelector, fn func(any) string) Option {
+// The function receives the input [table.Value] and may return a replacement
+// display string. A non-empty string skips formatting the raw value; an empty
+// string uses the formatted raw value.
+func WithTransformer(columns ColumnSelector, fn func(table.Value) string) Option {
 	return func(o *option) {
 		o.columns.apply(columns, func(c *columnConfig) {
 			c.transformer = fn

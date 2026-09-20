@@ -378,3 +378,79 @@ func BenchmarkHTMLStreamValueInputSmallInts(b *testing.B) {
 		}
 	}
 }
+
+// BenchmarkHTMLTableTransformerValue isolates callback input costs.
+// Callbacks return existing strings to exclude formatting allocations.
+func BenchmarkHTMLTableTransformerValue(b *testing.B) {
+	message := "request completed"
+	rows := make([][]table.Value, 1000)
+	cells := make([]table.Value, len(rows)*2)
+	for i := range rows {
+		cells[i*2] = table.String(message)
+		cells[i*2+1] = table.Int(1000 + i)
+		rows[i] = cells[i*2 : i*2+2]
+	}
+	messageText := func(v table.Value) string {
+		return v.AsString()
+	}
+	levelText := func(v table.Value) string {
+		if v.AsInt() >= 1500 {
+			return "warn"
+		}
+		return "info"
+	}
+	t := html.NewTable(io.Discard,
+		html.WithHeader([]string{"MESSAGE", "LEVEL"}),
+		html.WithTransformer(html.Columns(0), func(v table.Value) (string, *html.Color, *html.Decoration) {
+			return messageText(v), nil, nil
+		}),
+		html.WithTransformer(html.Columns(1), func(v table.Value) (string, *html.Color, *html.Decoration) {
+			return levelText(v), nil, nil
+		}),
+	)
+	b.ReportAllocs()
+	for b.Loop() {
+		if err := t.Render(rows); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+// BenchmarkHTMLStreamTransformerValue isolates callback input costs.
+// Callbacks return existing strings to exclude formatting allocations.
+func BenchmarkHTMLStreamTransformerValue(b *testing.B) {
+	message := "request completed"
+	const rowCount = 1000
+	messageText := func(v table.Value) string {
+		return v.AsString()
+	}
+	levelText := func(v table.Value) string {
+		if v.AsInt() >= 1500 {
+			return "warn"
+		}
+		return "info"
+	}
+	row := make([]table.Value, 2)
+	b.ReportAllocs()
+	for b.Loop() {
+		s := html.NewStream(io.Discard,
+			html.WithHeader([]string{"MESSAGE", "LEVEL"}),
+			html.WithTransformer(html.Columns(0), func(v table.Value) (string, *html.Color, *html.Decoration) {
+				return messageText(v), nil, nil
+			}),
+			html.WithTransformer(html.Columns(1), func(v table.Value) (string, *html.Color, *html.Decoration) {
+				return levelText(v), nil, nil
+			}),
+		)
+		for i := range rowCount {
+			row[0] = table.String(message)
+			row[1] = table.Int(1000 + i)
+			if err := s.Render(row); err != nil {
+				b.Fatal(err)
+			}
+		}
+		if err := s.Close(); err != nil {
+			b.Fatal(err)
+		}
+	}
+}

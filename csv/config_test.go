@@ -53,13 +53,13 @@ func Test_config_prepare(t *testing.T) {
 							[]columnConfig{
 								{},
 								{
-									transformer: func(any) string {
+									transformer: func(table.Value) string {
 										return "explicit"
 									},
 								},
 							},
 							&columnConfig{
-								transformer: func(any) string {
+								transformer: func(table.Value) string {
 									return "default"
 								},
 							},
@@ -120,7 +120,7 @@ func Test_config_prepare(t *testing.T) {
 				transformed = make([]string, len(o.output.columns))
 				for index := range o.output.columns {
 					if fn := o.output.columns[index].transformer; fn != nil {
-						transformed[index] = fn(nil)
+						transformed[index] = fn(table.Value{})
 					}
 				}
 			}
@@ -273,7 +273,7 @@ func Test_columnSet_apply(t *testing.T) {
 			set := columnSetOf(test.fields.values, nil)
 			if test.fields.defaultValue != "" {
 				defaults := columnConfig{
-					transformer: func(any) string {
+					transformer: func(table.Value) string {
 						return test.fields.defaultValue
 					},
 				}
@@ -281,7 +281,7 @@ func Test_columnSet_apply(t *testing.T) {
 			}
 			set.apply(test.args.selector, func(c *columnConfig) {
 				value := test.args.value
-				c.transformer = func(any) string {
+				c.transformer = func(table.Value) string {
 					return value
 				}
 			})
@@ -289,12 +289,12 @@ func Test_columnSet_apply(t *testing.T) {
 			gotValues := make([]string, len(configs))
 			for index := range configs {
 				if fn := configs[index].transformer; fn != nil {
-					gotValues[index] = fn(nil)
+					gotValues[index] = fn(table.Value{})
 				}
 			}
 			defaultValue := ""
 			if defaults := (*column.Set[columnConfig])(&set).Default(); defaults != nil && defaults.transformer != nil {
-				defaultValue = defaults.transformer(nil)
+				defaultValue = defaults.transformer(table.Value{})
 			}
 			got := want{
 				values:       gotValues,

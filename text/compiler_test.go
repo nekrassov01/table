@@ -815,7 +815,7 @@ func Test_compiler_compileRow(t *testing.T) {
 					configuredAttr := NewAttr(CodeBold)
 					dynamicAttr := NewAttr(CodeFgRed)
 					dynamicColumn := defaultColumn()
-					dynamicColumn.transformer.fn = func(any) (string, *Attr) {
+					dynamicColumn.transformer.fn = func(table.Value) (string, *Attr) {
 						return "answer", dynamicAttr
 					}
 					emptyColumn := defaultColumn()
@@ -954,7 +954,7 @@ func Test_compiler_compileCells(t *testing.T) {
 				input: func() configResult {
 					attr := NewAttr(CodeFgRed)
 					configured := defaultColumn()
-					configured.transformer.fn = func(any) (string, *Attr) {
+					configured.transformer.fn = func(table.Value) (string, *Attr) {
 						return "ans\twer", attr
 					}
 					return configResult{
@@ -987,7 +987,7 @@ func Test_compiler_compileCells(t *testing.T) {
 				input: func() configResult {
 					configured := defaultColumn()
 					configured.transformer.attrs.Set(ScopeBody, NewAttr(CodeBold))
-					configured.transformer.fn = func(any) (string, *Attr) {
+					configured.transformer.fn = func(table.Value) (string, *Attr) {
 						return "transformed", NewAttr(CodeFgRed)
 					}
 					return configResult{
@@ -1020,7 +1020,7 @@ func Test_compiler_compileCells(t *testing.T) {
 				input: func() configResult {
 					configured := defaultColumn()
 					configured.transformer.attrs.Set(ScopeBody, NewAttr(CodeBold))
-					configured.transformer.fn = func(any) (string, *Attr) {
+					configured.transformer.fn = func(table.Value) (string, *Attr) {
 						return "", nil
 					}
 					return configResult{
@@ -1052,7 +1052,7 @@ func Test_compiler_compileCells(t *testing.T) {
 				input: func() configResult {
 					attr := NewAttr(CodeFgRed)
 					configured := defaultColumn()
-					configured.transformer.fn = func(any) (string, *Attr) {
+					configured.transformer.fn = func(table.Value) (string, *Attr) {
 						return "", attr
 					}
 					return configResult{

@@ -114,7 +114,7 @@ go get github.com/nekrassov01/table
 
 ## Quick start
 
-`TableOf` and `StreamOf` adapt typed application data to rows of `table.Value`. Primitive cell constructors avoid interface boxing. See [Value inputs and migration](docs/API.md#value-inputs-and-migration) for input types and transformer behavior.
+`TableOf` and `StreamOf` adapt typed application data to rows of `table.Value`. Primitive cell constructors avoid interface boxing. Transformers also receive `table.Value` and can use typed accessors such as `AsInt()`. See [Value inputs and migration](docs/API.md#value-inputs-and-migration) for input types and transformer behavior.
 
 ### Table
 

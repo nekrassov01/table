@@ -3,6 +3,7 @@ package backlog
 import (
 	"testing"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/internal/column"
 	"github.com/nekrassov01/table/internal/testutil"
 )
@@ -388,11 +389,11 @@ func TestWithDecoration(t *testing.T) {
 
 func TestWithTransformer(t *testing.T) {
 	type fields struct {
-		fn func(any) (string, *Color, *Decoration)
+		fn func(table.Value) (string, *Color, *Decoration)
 	}
 	type args struct {
 		columns ColumnSelector
-		fn      func(any) (string, *Color, *Decoration)
+		fn      func(table.Value) (string, *Color, *Decoration)
 	}
 	type want struct {
 		isNil      bool
@@ -400,7 +401,7 @@ func TestWithTransformer(t *testing.T) {
 		color      *Color
 		decoration *Decoration
 	}
-	oldTransformer := func(any) (string, *Color, *Decoration) {
+	oldTransformer := func(table.Value) (string, *Color, *Decoration) {
 		return "old", nil, nil
 	}
 	tests := []struct {
@@ -416,7 +417,7 @@ func TestWithTransformer(t *testing.T) {
 			},
 			args: args{
 				columns: Columns(0),
-				fn: func(any) (string, *Color, *Decoration) {
+				fn: func(table.Value) (string, *Color, *Decoration) {
 					return "new", ColorFgRed, DecorationBold
 				},
 			},
@@ -458,7 +459,7 @@ func TestWithTransformer(t *testing.T) {
 				isNil: gotFn == nil,
 			}
 			if gotFn != nil {
-				got.value, got.color, got.decoration = gotFn("input")
+				got.value, got.color, got.decoration = gotFn(table.String("input"))
 			}
 			testutil.AssertValue(t, got, test.want, "WithTransformer")
 		})

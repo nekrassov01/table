@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/html"
 )
 
@@ -45,24 +46,21 @@ var HTMLOptionTransformer = []html.Option{
 	html.WithAlign(html.ScopeBody, html.Columns(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13), html.AlignRight),
 	html.WithAlign(html.ScopeFooter, html.Columns(4, 5, 6, 7, 8, 9, 10, 11, 12, 13), html.AlignRight),
 	html.WithAlign(html.ScopeFooter, html.Columns(0), html.AlignCenter),
-	html.WithTransformer(html.Columns(5), func(v any) (string, *html.Color, *html.Decoration) {
-		n, ok := v.(int)
-		if !ok {
-			return "", nil, nil
-		}
+	html.WithTransformer(html.Columns(5), func(v table.Value) (string, *html.Color, *html.Decoration) {
+		n := v.AsInt()
 		if n >= 3000 {
 			return fmt.Sprintf("*%d", n), html.ColorFgRed, html.DecorationBold
 		}
 		return "", nil, nil
 	}),
-	html.WithTransformer(html.Columns(9), func(v any) (string, *html.Color, *html.Decoration) {
-		if n, ok := v.(int); ok && n >= 90 {
+	html.WithTransformer(html.Columns(9), func(v table.Value) (string, *html.Color, *html.Decoration) {
+		if n := v.AsInt(); n >= 90 {
 			return fmt.Sprintf("*%d", n), html.ColorFgYellow, html.DecorationBold
 		}
 		return "", nil, nil
 	}),
-	html.WithTransformer(html.Columns(13), func(v any) (string, *html.Color, *html.Decoration) {
-		if n, ok := v.(int); ok && n >= 60 {
+	html.WithTransformer(html.Columns(13), func(v table.Value) (string, *html.Color, *html.Decoration) {
+		if n := v.AsInt(); n >= 60 {
 			return fmt.Sprintf("*%d", n), html.ColorFgGreen, html.DecorationBold
 		}
 		return "", nil, nil
@@ -74,8 +72,8 @@ var HTMLOptionComplex = []html.Option{
 	html.WithHeader(ComplexData.Header...),
 	html.WithColor(html.ScopeBody, html.Columns(8, 9, 10), html.ColorFgBlack),
 	html.WithDecoration(html.ScopeBody, html.Columns(11), html.DecorationPreformatted),
-	html.WithTransformer(html.Columns(5), func(v any) (string, *html.Color, *html.Decoration) {
-		values, ok := v.([]string)
+	html.WithTransformer(html.Columns(5), func(v table.Value) (string, *html.Color, *html.Decoration) {
+		values, ok := v.AsAny().([]string)
 		if !ok {
 			return "", nil, nil
 		}
@@ -85,8 +83,8 @@ var HTMLOptionComplex = []html.Option{
 		}
 		return strings.Join(tokens, "\n"), html.ColorBgGreen, html.DecorationUnderline
 	}),
-	html.WithTransformer(html.Columns(6), func(v any) (string, *html.Color, *html.Decoration) {
-		values, ok := v.([3]string)
+	html.WithTransformer(html.Columns(6), func(v table.Value) (string, *html.Color, *html.Decoration) {
+		values, ok := v.AsAny().([3]string)
 		if !ok {
 			return "", nil, nil
 		}
@@ -96,8 +94,8 @@ var HTMLOptionComplex = []html.Option{
 		}
 		return strings.Join(tokens, "\n"), html.ColorBgMagenta, html.DecorationItalic
 	}),
-	html.WithTransformer(html.Columns(7), func(v any) (string, *html.Color, *html.Decoration) {
-		values, ok := v.([]int)
+	html.WithTransformer(html.Columns(7), func(v table.Value) (string, *html.Color, *html.Decoration) {
+		values, ok := v.AsAny().([]int)
 		if !ok {
 			return "", nil, nil
 		}

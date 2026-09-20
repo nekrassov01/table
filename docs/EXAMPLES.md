@@ -1884,24 +1884,21 @@ var TextOptionTransformer = []text.Option{
 	text.WithAlign(text.ScopeFooter, text.Columns(4, 5, 6, 7, 8, 9, 10, 11, 12, 13), text.AlignRight),
 	text.WithAlign(text.ScopeFooter, text.Columns(0), text.AlignCenter),
 	text.WithAutoFit(),
-	text.WithTransformer(text.Columns(5), func(v any) (string, *text.Attr) {
-		n, ok := v.(int)
-		if !ok {
-			return "", nil
-		}
+	text.WithTransformer(text.Columns(5), func(v table.Value) (string, *text.Attr) {
+		n := v.AsInt()
 		if n >= 3000 {
 			return fmt.Sprintf("*%d", n), textFgRedBold
 		}
 		return "", nil
 	}),
-	text.WithTransformer(text.Columns(9), func(v any) (string, *text.Attr) {
-		if n, ok := v.(int); ok && n >= 90 {
+	text.WithTransformer(text.Columns(9), func(v table.Value) (string, *text.Attr) {
+		if n := v.AsInt(); n >= 90 {
 			return fmt.Sprintf("*%d", n), textFgYellowBold
 		}
 		return "", nil
 	}),
-	text.WithTransformer(text.Columns(13), func(v any) (string, *text.Attr) {
-		if n, ok := v.(int); ok && n >= 60 {
+	text.WithTransformer(text.Columns(13), func(v table.Value) (string, *text.Attr) {
+		if n := v.AsInt(); n >= 60 {
 			return fmt.Sprintf("*%d", n), textFgGreenBold
 		}
 		return "", nil
@@ -1967,24 +1964,21 @@ var HTMLOptionTransformer = []html.Option{
 	html.WithAlign(html.ScopeBody, html.Columns(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13), html.AlignRight),
 	html.WithAlign(html.ScopeFooter, html.Columns(4, 5, 6, 7, 8, 9, 10, 11, 12, 13), html.AlignRight),
 	html.WithAlign(html.ScopeFooter, html.Columns(0), html.AlignCenter),
-	html.WithTransformer(html.Columns(5), func(v any) (string, *html.Color, *html.Decoration) {
-		n, ok := v.(int)
-		if !ok {
-			return "", nil, nil
-		}
+	html.WithTransformer(html.Columns(5), func(v table.Value) (string, *html.Color, *html.Decoration) {
+		n := v.AsInt()
 		if n >= 3000 {
 			return fmt.Sprintf("*%d", n), html.ColorFgRed, html.DecorationBold
 		}
 		return "", nil, nil
 	}),
-	html.WithTransformer(html.Columns(9), func(v any) (string, *html.Color, *html.Decoration) {
-		if n, ok := v.(int); ok && n >= 90 {
+	html.WithTransformer(html.Columns(9), func(v table.Value) (string, *html.Color, *html.Decoration) {
+		if n := v.AsInt(); n >= 90 {
 			return fmt.Sprintf("*%d", n), html.ColorFgYellow, html.DecorationBold
 		}
 		return "", nil, nil
 	}),
-	html.WithTransformer(html.Columns(13), func(v any) (string, *html.Color, *html.Decoration) {
-		if n, ok := v.(int); ok && n >= 60 {
+	html.WithTransformer(html.Columns(13), func(v table.Value) (string, *html.Color, *html.Decoration) {
+		if n := v.AsInt(); n >= 60 {
 			return fmt.Sprintf("*%d", n), html.ColorFgGreen, html.DecorationBold
 		}
 		return "", nil, nil
@@ -2219,24 +2213,21 @@ var MarkdownOptionTransformer = []markdown.Option{
 	markdown.WithRowspan(markdown.Columns(0)),
 	markdown.WithColspan(markdown.Columns(0, 1, 2, 3)),
 	markdown.WithAlign(markdown.Columns(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13), markdown.AlignRight),
-	markdown.WithTransformer(markdown.Columns(5), func(v any) (string, *markdown.Color, *markdown.Decoration) {
-		n, ok := v.(int)
-		if !ok {
-			return "", nil, nil
-		}
+	markdown.WithTransformer(markdown.Columns(5), func(v table.Value) (string, *markdown.Color, *markdown.Decoration) {
+		n := v.AsInt()
 		if n >= 3000 {
 			return fmt.Sprintf("*%d", n), markdown.ColorFgRed, markdown.DecorationBold
 		}
 		return "", nil, nil
 	}),
-	markdown.WithTransformer(markdown.Columns(9), func(v any) (string, *markdown.Color, *markdown.Decoration) {
-		if n, ok := v.(int); ok && n >= 90 {
+	markdown.WithTransformer(markdown.Columns(9), func(v table.Value) (string, *markdown.Color, *markdown.Decoration) {
+		if n := v.AsInt(); n >= 90 {
 			return fmt.Sprintf("*%d", n), markdown.ColorFgYellow, markdown.DecorationBold
 		}
 		return "", nil, nil
 	}),
-	markdown.WithTransformer(markdown.Columns(13), func(v any) (string, *markdown.Color, *markdown.Decoration) {
-		if n, ok := v.(int); ok && n >= 60 {
+	markdown.WithTransformer(markdown.Columns(13), func(v table.Value) (string, *markdown.Color, *markdown.Decoration) {
+		if n := v.AsInt(); n >= 60 {
 			return fmt.Sprintf("*%d", n), markdown.ColorFgGreen, markdown.DecorationBold
 		}
 		return "", nil, nil
@@ -2284,24 +2275,21 @@ var BacklogOptionTransformer = []backlog.Option{
 	backlog.WithFooter(FooterData.Footer),
 	backlog.WithRowspan(backlog.ScopeBody, backlog.Columns(0)),
 	backlog.WithColspan(backlog.ScopeFooter, backlog.Columns(0, 1, 2, 3)),
-	backlog.WithTransformer(backlog.Columns(5), func(v any) (string, *backlog.Color, *backlog.Decoration) {
-		n, ok := v.(int)
-		if !ok {
-			return "", nil, nil
-		}
+	backlog.WithTransformer(backlog.Columns(5), func(v table.Value) (string, *backlog.Color, *backlog.Decoration) {
+		n := v.AsInt()
 		if n >= 3000 {
 			return fmt.Sprintf("*%d", n), backlog.ColorFgRed, backlog.DecorationBold
 		}
 		return "", nil, nil
 	}),
-	backlog.WithTransformer(backlog.Columns(9), func(v any) (string, *backlog.Color, *backlog.Decoration) {
-		if n, ok := v.(int); ok && n >= 90 {
+	backlog.WithTransformer(backlog.Columns(9), func(v table.Value) (string, *backlog.Color, *backlog.Decoration) {
+		if n := v.AsInt(); n >= 90 {
 			return fmt.Sprintf("*%d", n), backlog.ColorFgYellow, backlog.DecorationBold
 		}
 		return "", nil, nil
 	}),
-	backlog.WithTransformer(backlog.Columns(13), func(v any) (string, *backlog.Color, *backlog.Decoration) {
-		if n, ok := v.(int); ok && n >= 60 {
+	backlog.WithTransformer(backlog.Columns(13), func(v table.Value) (string, *backlog.Color, *backlog.Decoration) {
+		if n := v.AsInt(); n >= 60 {
 			return fmt.Sprintf("*%d", n), backlog.ColorFgGreen, backlog.DecorationBold
 		}
 		return "", nil, nil
@@ -2347,24 +2335,21 @@ Configuration:
 var CSVOptionTransformer = []csv.Option{
 	csv.WithHeader(FooterData.Header[0]),
 	csv.WithFooter(FooterData.Footer),
-	csv.WithTransformer(csv.Columns(5), func(v any) string {
-		n, ok := v.(int)
-		if !ok {
-			return ""
-		}
+	csv.WithTransformer(csv.Columns(5), func(v table.Value) string {
+		n := v.AsInt()
 		if n >= 3000 {
 			return fmt.Sprintf("*%d", n)
 		}
 		return ""
 	}),
-	csv.WithTransformer(csv.Columns(9), func(v any) string {
-		if n, ok := v.(int); ok && n >= 90 {
+	csv.WithTransformer(csv.Columns(9), func(v table.Value) string {
+		if n := v.AsInt(); n >= 90 {
 			return fmt.Sprintf("*%d", n)
 		}
 		return ""
 	}),
-	csv.WithTransformer(csv.Columns(13), func(v any) string {
-		if n, ok := v.(int); ok && n >= 60 {
+	csv.WithTransformer(csv.Columns(13), func(v table.Value) string {
+		if n := v.AsInt(); n >= 60 {
 			return fmt.Sprintf("*%d", n)
 		}
 		return ""
@@ -2502,8 +2487,8 @@ var TextOptionComplex = []text.Option{
 	text.WithHeader(ComplexData.Header...),
 	text.WithAutoFit(),
 	text.WithAttr(text.ScopeBody, text.Columns(8, 9, 10), text.ColorFgBlack),
-	text.WithTransformer(text.Columns(5), func(v any) (string, *text.Attr) {
-		values, ok := v.([]string)
+	text.WithTransformer(text.Columns(5), func(v table.Value) (string, *text.Attr) {
+		values, ok := v.AsAny().([]string)
 		if !ok {
 			return "", nil
 		}
@@ -2513,8 +2498,8 @@ var TextOptionComplex = []text.Option{
 		}
 		return strings.Join(tokens, "\n"), textBgGreenUnderline
 	}),
-	text.WithTransformer(text.Columns(6), func(v any) (string, *text.Attr) {
-		values, ok := v.([3]string)
+	text.WithTransformer(text.Columns(6), func(v table.Value) (string, *text.Attr) {
+		values, ok := v.AsAny().([3]string)
 		if !ok {
 			return "", nil
 		}
@@ -2524,8 +2509,8 @@ var TextOptionComplex = []text.Option{
 		}
 		return strings.Join(tokens, "\n"), textBgMagentaItalic
 	}),
-	text.WithTransformer(text.Columns(7), func(v any) (string, *text.Attr) {
-		values, ok := v.([]int)
+	text.WithTransformer(text.Columns(7), func(v table.Value) (string, *text.Attr) {
+		values, ok := v.AsAny().([]int)
 		if !ok {
 			return "", nil
 		}
@@ -2610,8 +2595,8 @@ var HTMLOptionComplex = []html.Option{
 	html.WithHeader(ComplexData.Header...),
 	html.WithColor(html.ScopeBody, html.Columns(8, 9, 10), html.ColorFgBlack),
 	html.WithDecoration(html.ScopeBody, html.Columns(11), html.DecorationPreformatted),
-	html.WithTransformer(html.Columns(5), func(v any) (string, *html.Color, *html.Decoration) {
-		values, ok := v.([]string)
+	html.WithTransformer(html.Columns(5), func(v table.Value) (string, *html.Color, *html.Decoration) {
+		values, ok := v.AsAny().([]string)
 		if !ok {
 			return "", nil, nil
 		}
@@ -2621,8 +2606,8 @@ var HTMLOptionComplex = []html.Option{
 		}
 		return strings.Join(tokens, "\n"), html.ColorBgGreen, html.DecorationUnderline
 	}),
-	html.WithTransformer(html.Columns(6), func(v any) (string, *html.Color, *html.Decoration) {
-		values, ok := v.([3]string)
+	html.WithTransformer(html.Columns(6), func(v table.Value) (string, *html.Color, *html.Decoration) {
+		values, ok := v.AsAny().([3]string)
 		if !ok {
 			return "", nil, nil
 		}
@@ -2632,8 +2617,8 @@ var HTMLOptionComplex = []html.Option{
 		}
 		return strings.Join(tokens, "\n"), html.ColorBgMagenta, html.DecorationItalic
 	}),
-	html.WithTransformer(html.Columns(7), func(v any) (string, *html.Color, *html.Decoration) {
-		values, ok := v.([]int)
+	html.WithTransformer(html.Columns(7), func(v table.Value) (string, *html.Color, *html.Decoration) {
+		values, ok := v.AsAny().([]int)
 		if !ok {
 			return "", nil, nil
 		}
@@ -2718,8 +2703,8 @@ var MarkdownOptionComplex = []markdown.Option{
 	markdown.WithHeader(ComplexData.Header[0]),
 	markdown.WithColor(markdown.ScopeBody, markdown.Columns(8, 9, 10), markdown.ColorFgBlack),
 	markdown.WithDecoration(markdown.ScopeBody, markdown.Columns(11), markdown.DecorationUnderline),
-	markdown.WithTransformer(markdown.Columns(5), func(v any) (string, *markdown.Color, *markdown.Decoration) {
-		values, ok := v.([]string)
+	markdown.WithTransformer(markdown.Columns(5), func(v table.Value) (string, *markdown.Color, *markdown.Decoration) {
+		values, ok := v.AsAny().([]string)
 		if !ok {
 			return "", nil, nil
 		}
@@ -2729,8 +2714,8 @@ var MarkdownOptionComplex = []markdown.Option{
 		}
 		return strings.Join(tokens, "\n"), markdown.ColorBgGreen, markdown.DecorationBold
 	}),
-	markdown.WithTransformer(markdown.Columns(6), func(v any) (string, *markdown.Color, *markdown.Decoration) {
-		values, ok := v.([3]string)
+	markdown.WithTransformer(markdown.Columns(6), func(v table.Value) (string, *markdown.Color, *markdown.Decoration) {
+		values, ok := v.AsAny().([3]string)
 		if !ok {
 			return "", nil, nil
 		}
@@ -2740,8 +2725,8 @@ var MarkdownOptionComplex = []markdown.Option{
 		}
 		return strings.Join(tokens, "\n"), markdown.ColorBgMagenta, markdown.DecorationItalic
 	}),
-	markdown.WithTransformer(markdown.Columns(7), func(v any) (string, *markdown.Color, *markdown.Decoration) {
-		values, ok := v.([]int)
+	markdown.WithTransformer(markdown.Columns(7), func(v table.Value) (string, *markdown.Color, *markdown.Decoration) {
+		values, ok := v.AsAny().([]int)
 		if !ok {
 			return "", nil, nil
 		}
@@ -2789,8 +2774,8 @@ var BacklogOptionComplex = []backlog.Option{
 	backlog.WithHeader(ComplexData.Header...),
 	backlog.WithColor(backlog.ScopeBody, backlog.Columns(8, 9, 10), backlog.ColorFgBlack),
 	backlog.WithDecoration(backlog.ScopeBody, backlog.Columns(11), backlog.DecorationBold),
-	backlog.WithTransformer(backlog.Columns(5), func(v any) (string, *backlog.Color, *backlog.Decoration) {
-		values, ok := v.([]string)
+	backlog.WithTransformer(backlog.Columns(5), func(v table.Value) (string, *backlog.Color, *backlog.Decoration) {
+		values, ok := v.AsAny().([]string)
 		if !ok {
 			return "", nil, nil
 		}
@@ -2800,8 +2785,8 @@ var BacklogOptionComplex = []backlog.Option{
 		}
 		return strings.Join(tokens, "\n"), backlog.ColorBgGreen, backlog.DecorationBold
 	}),
-	backlog.WithTransformer(backlog.Columns(6), func(v any) (string, *backlog.Color, *backlog.Decoration) {
-		values, ok := v.([3]string)
+	backlog.WithTransformer(backlog.Columns(6), func(v table.Value) (string, *backlog.Color, *backlog.Decoration) {
+		values, ok := v.AsAny().([3]string)
 		if !ok {
 			return "", nil, nil
 		}
@@ -2811,8 +2796,8 @@ var BacklogOptionComplex = []backlog.Option{
 		}
 		return strings.Join(tokens, "\n"), backlog.ColorBgYellow, backlog.DecorationItalic
 	}),
-	backlog.WithTransformer(backlog.Columns(7), func(v any) (string, *backlog.Color, *backlog.Decoration) {
-		values, ok := v.([]int)
+	backlog.WithTransformer(backlog.Columns(7), func(v table.Value) (string, *backlog.Color, *backlog.Decoration) {
+		values, ok := v.AsAny().([]int)
 		if !ok {
 			return "", nil, nil
 		}
@@ -2856,8 +2841,8 @@ Configuration:
 // CSVOptionComplex configures the complex delimiter-separated table example.
 var CSVOptionComplex = []csv.Option{
 	csv.WithHeader(ComplexData.Header[0]),
-	csv.WithTransformer(csv.Columns(5), func(v any) string {
-		values, ok := v.([]string)
+	csv.WithTransformer(csv.Columns(5), func(v table.Value) string {
+		values, ok := v.AsAny().([]string)
 		if !ok {
 			return ""
 		}
@@ -2867,8 +2852,8 @@ var CSVOptionComplex = []csv.Option{
 		}
 		return strings.Join(tokens, "\n")
 	}),
-	csv.WithTransformer(csv.Columns(6), func(v any) string {
-		values, ok := v.([3]string)
+	csv.WithTransformer(csv.Columns(6), func(v table.Value) string {
+		values, ok := v.AsAny().([3]string)
 		if !ok {
 			return ""
 		}
@@ -2878,8 +2863,8 @@ var CSVOptionComplex = []csv.Option{
 		}
 		return strings.Join(tokens, "\n")
 	}),
-	csv.WithTransformer(csv.Columns(7), func(v any) string {
-		values, ok := v.([]int)
+	csv.WithTransformer(csv.Columns(7), func(v table.Value) string {
+		values, ok := v.AsAny().([]int)
 		if !ok {
 			return ""
 		}

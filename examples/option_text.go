@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/text"
 )
 
@@ -81,24 +82,21 @@ var TextOptionTransformer = []text.Option{
 	text.WithAlign(text.ScopeFooter, text.Columns(4, 5, 6, 7, 8, 9, 10, 11, 12, 13), text.AlignRight),
 	text.WithAlign(text.ScopeFooter, text.Columns(0), text.AlignCenter),
 	text.WithAutoFit(),
-	text.WithTransformer(text.Columns(5), func(v any) (string, *text.Attr) {
-		n, ok := v.(int)
-		if !ok {
-			return "", nil
-		}
+	text.WithTransformer(text.Columns(5), func(v table.Value) (string, *text.Attr) {
+		n := v.AsInt()
 		if n >= 3000 {
 			return fmt.Sprintf("*%d", n), textFgRedBold
 		}
 		return "", nil
 	}),
-	text.WithTransformer(text.Columns(9), func(v any) (string, *text.Attr) {
-		if n, ok := v.(int); ok && n >= 90 {
+	text.WithTransformer(text.Columns(9), func(v table.Value) (string, *text.Attr) {
+		if n := v.AsInt(); n >= 90 {
 			return fmt.Sprintf("*%d", n), textFgYellowBold
 		}
 		return "", nil
 	}),
-	text.WithTransformer(text.Columns(13), func(v any) (string, *text.Attr) {
-		if n, ok := v.(int); ok && n >= 60 {
+	text.WithTransformer(text.Columns(13), func(v table.Value) (string, *text.Attr) {
+		if n := v.AsInt(); n >= 60 {
 			return fmt.Sprintf("*%d", n), textFgGreenBold
 		}
 		return "", nil
@@ -111,8 +109,8 @@ var TextOptionComplex = []text.Option{
 	text.WithHeader(ComplexData.Header...),
 	text.WithAutoFit(),
 	text.WithAttr(text.ScopeBody, text.Columns(8, 9, 10), text.ColorFgBlack),
-	text.WithTransformer(text.Columns(5), func(v any) (string, *text.Attr) {
-		values, ok := v.([]string)
+	text.WithTransformer(text.Columns(5), func(v table.Value) (string, *text.Attr) {
+		values, ok := v.AsAny().([]string)
 		if !ok {
 			return "", nil
 		}
@@ -122,8 +120,8 @@ var TextOptionComplex = []text.Option{
 		}
 		return strings.Join(tokens, "\n"), textBgGreenUnderline
 	}),
-	text.WithTransformer(text.Columns(6), func(v any) (string, *text.Attr) {
-		values, ok := v.([3]string)
+	text.WithTransformer(text.Columns(6), func(v table.Value) (string, *text.Attr) {
+		values, ok := v.AsAny().([3]string)
 		if !ok {
 			return "", nil
 		}
@@ -133,8 +131,8 @@ var TextOptionComplex = []text.Option{
 		}
 		return strings.Join(tokens, "\n"), textBgMagentaItalic
 	}),
-	text.WithTransformer(text.Columns(7), func(v any) (string, *text.Attr) {
-		values, ok := v.([]int)
+	text.WithTransformer(text.Columns(7), func(v table.Value) (string, *text.Attr) {
+		values, ok := v.AsAny().([]int)
 		if !ok {
 			return "", nil
 		}

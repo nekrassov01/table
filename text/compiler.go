@@ -193,7 +193,7 @@ func (o *compiler) compileCells(r row, source []table.Value, rowIndex int) {
 		text := ""
 		attr := transformer.attrs.Resolve(ScopeBody)
 		if transformer.fn != nil {
-			transformed, transformedAttr := transformer.fn(rawValue.AsAny())
+			transformed, transformedAttr := transformer.fn(rawValue)
 			if transformed != "" {
 				text = transformed
 			}

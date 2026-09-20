@@ -484,12 +484,12 @@ func Test_compiler_compileRow(t *testing.T) {
 					columns: []columnConfig{
 						{},
 						{
-							transformer: func(any) string {
+							transformer: func(table.Value) string {
 								return "new,value"
 							},
 						},
 						{
-							transformer: func(any) string {
+							transformer: func(table.Value) string {
 								return ""
 							},
 						},

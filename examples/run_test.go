@@ -623,7 +623,9 @@ func testRunnerTarget(t *testing.T, target, data string, run func(runner, [][]ta
 			fields: fields{
 				mode: modeTable,
 				data: dataTransformer,
-				rows: [][]table.Value{make([]table.Value, len(FooterData.Header[0]))},
+				rows: [][]table.Value{
+					{5: table.Int(0), 9: table.Int(0), 13: table.Int(0)},
+				},
 			},
 		},
 		{

@@ -306,7 +306,7 @@ func TestGolden_TableDelimiterTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
 		WithDelimiter(';'),
-		WithTransformer(Columns(1), func(any) string {
+		WithTransformer(Columns(1), func(table.Value) string {
 			return `a;b"c`
 		}),
 		WithHeader([]string{"A", "B"}),
@@ -321,7 +321,7 @@ func TestGolden_StreamDelimiterTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
 		WithDelimiter(';'),
-		WithTransformer(Columns(1), func(any) string {
+		WithTransformer(Columns(1), func(table.Value) string {
 			return `a;b"c`
 		}),
 		WithHeader([]string{"A", "B"}),
@@ -562,8 +562,8 @@ func TestGolden_TableFooterTransformer(t *testing.T) {
 		WithFooter(func() [][]string {
 			return [][]string{{"t", "raw"}}
 		}),
-		WithTransformer(Columns(1), func(v any) string {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) string {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T"
 			}
 			return ""
@@ -582,8 +582,8 @@ func TestGolden_StreamFooterTransformer(t *testing.T) {
 		WithFooter(func() [][]string {
 			return [][]string{{"t", "raw"}}
 		}),
-		WithTransformer(Columns(1), func(v any) string {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) string {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T"
 			}
 			return ""
@@ -689,8 +689,8 @@ func TestGolden_TableIndexTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
 		WithIndex(),
-		WithTransformer(Columns(1), func(v any) string {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) string {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T"
 			}
 			return ""
@@ -707,8 +707,8 @@ func TestGolden_StreamIndexTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
 		WithIndex(),
-		WithTransformer(Columns(1), func(v any) string {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) string {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T"
 			}
 			return ""
@@ -889,8 +889,8 @@ func TestGolden_TablePlaceholderTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
 		WithPlaceholder("-"),
-		WithTransformer(Columns(1), func(v any) string {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) string {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T"
 			}
 			return ""
@@ -907,8 +907,8 @@ func TestGolden_StreamPlaceholderTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
 		WithPlaceholder("-"),
-		WithTransformer(Columns(1), func(v any) string {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) string {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T"
 			}
 			return ""
@@ -1281,8 +1281,8 @@ func TestGolden_StreamStringerError(t *testing.T) {
 func TestGolden_TableTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
-		WithTransformer(Columns(1), func(v any) string {
-			n, ok := v.(int)
+		WithTransformer(Columns(1), func(v table.Value) string {
+			n, ok := v.AsAny().(int)
 			if !ok {
 				return ""
 			}
@@ -1305,8 +1305,8 @@ func TestGolden_TableTransformer(t *testing.T) {
 func TestGolden_StreamTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
-		WithTransformer(Columns(1), func(v any) string {
-			n, ok := v.(int)
+		WithTransformer(Columns(1), func(v table.Value) string {
+			n, ok := v.AsAny().(int)
 			if !ok {
 				return ""
 			}

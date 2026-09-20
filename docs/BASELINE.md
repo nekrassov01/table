@@ -44,7 +44,7 @@ The `benchmarks` module uses shared sample data and the corresponding format-spe
 - `Fresh` and `Reuse` indicate whether a `Table` is reconstructed for each iteration or reused between iterations.
 - `Cold` runs garbage collection twice per iteration to discard workspace retained by `sync.Pool`.
 
-The `ValueInputMixed` and `ValueInputSmallInts` cases omit the `Fresh` and `Reuse` suffixes because they measure input construction costs rather than compare table construction strategies. Their Table cases construct the table before timing. See [Development](DEVELOPMENT.md#benchmarks) for the input preparation included in each case.
+The `ValueInputMixed`, `ValueInputSmallInts`, and `TransformerValue` cases omit the `Fresh` and `Reuse` suffixes because they measure input construction or callback input costs rather than compare table construction strategies. Their Table cases construct the table before timing. See [Development](DEVELOPMENT.md#benchmarks) for the input preparation included in each case.
 
 ## Comparing changes
 

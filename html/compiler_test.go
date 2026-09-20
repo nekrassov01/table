@@ -552,12 +552,12 @@ func Test_compiler_compileRow(t *testing.T) {
 					},
 					columns: func() []columnConfig {
 						columns := make([]columnConfig, 3)
-						columns[0].transformer.fn = func(any) (string, *Color, *Decoration) {
+						columns[0].transformer.fn = func(table.Value) (string, *Color, *Decoration) {
 							return "new", ColorFgRed, DecorationBold
 						}
 						columns[1].transformer.colors.Set(ScopeBody, ColorFgRed)
 						columns[1].transformer.decorations.Set(ScopeBody, DecorationBold)
-						columns[1].transformer.fn = func(any) (string, *Color, *Decoration) {
+						columns[1].transformer.fn = func(table.Value) (string, *Color, *Decoration) {
 							return "", nil, nil
 						}
 						return columns

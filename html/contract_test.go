@@ -691,6 +691,133 @@ func TestContract_ConcurrentInstances(t *testing.T) {
 	wg.Wait()
 }
 
+func TestContract_TransformerValue(t *testing.T) {
+	type args struct {
+		input table.Value
+		read  func(table.Value) any
+	}
+	type want struct {
+		value any
+		calls int
+	}
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "string",
+			args: args{
+				input: table.String("text"),
+				read: func(v table.Value) any {
+					return v.AsString()
+				},
+			},
+			want: want{
+				value: "text",
+				calls: 1,
+			},
+		},
+		{
+			name: "int",
+			args: args{
+				input: table.Int(1000),
+				read: func(v table.Value) any {
+					return v.AsInt()
+				},
+			},
+			want: want{
+				value: 1000,
+				calls: 1,
+			},
+		},
+		{
+			name: "bytes capacity",
+			args: args{
+				input: table.Bytes(make([]byte, 2, 8)),
+				read: func(v table.Value) any {
+					return cap(v.AsBytes())
+				},
+			},
+			want: want{
+				value: 2,
+				calls: 1,
+			},
+		},
+		{
+			name: "Any capacity",
+			args: args{
+				input: table.Any(make([]byte, 2, 8)),
+				read: func(v table.Value) any {
+					return cap(v.AsBytes())
+				},
+			},
+			want: want{
+				value: 8,
+				calls: 1,
+			},
+		},
+		{
+			name: "typed nil",
+			args: args{
+				input: table.Any((*int)(nil)),
+				read: func(v table.Value) any {
+					return v.AsAny()
+				},
+			},
+			want: want{
+				value: (*int)(nil),
+				calls: 1,
+			},
+		},
+		{
+			name: "zero",
+			args: args{
+				input: table.Value{},
+				read: func(v table.Value) any {
+					return v.AsAny()
+				},
+			},
+			want: want{
+				value: nil,
+				calls: 1,
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run("Table/"+test.name, func(t *testing.T) {
+			got := want{}
+			output := NewTable(io.Discard,
+				WithHeader([]string{"VALUE"}),
+				WithTransformer(Columns(0), func(v table.Value) (string, *Color, *Decoration) {
+					got.value = test.args.read(v)
+					got.calls++
+					return "transformed", nil, nil
+				}),
+			)
+			err := output.Render([][]table.Value{{test.args.input}})
+			testutil.AssertValue(t, err, nil, "Render")
+			testutil.AssertValue(t, got, test.want, "transformer input")
+		})
+		t.Run("Stream/"+test.name, func(t *testing.T) {
+			got := want{}
+			output := NewStream(io.Discard,
+				WithHeader([]string{"VALUE"}),
+				WithTransformer(Columns(0), func(v table.Value) (string, *Color, *Decoration) {
+					got.value = test.args.read(v)
+					got.calls++
+					return "transformed", nil, nil
+				}),
+			)
+			err := output.Render([]table.Value{test.args.input})
+			closeErr := output.Close()
+			testutil.AssertValue(t, err, nil, "Render")
+			testutil.AssertValue(t, closeErr, nil, "Close")
+			testutil.AssertValue(t, got, test.want, "transformer input")
+		})
+	}
+}
+
 func contractCases() []contractCase {
 	return []contractCase{
 		{

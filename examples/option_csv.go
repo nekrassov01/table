@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/csv"
 )
 
@@ -22,24 +23,21 @@ var CSVOptionFooter = []csv.Option{
 var CSVOptionTransformer = []csv.Option{
 	csv.WithHeader(FooterData.Header[0]),
 	csv.WithFooter(FooterData.Footer),
-	csv.WithTransformer(csv.Columns(5), func(v any) string {
-		n, ok := v.(int)
-		if !ok {
-			return ""
-		}
+	csv.WithTransformer(csv.Columns(5), func(v table.Value) string {
+		n := v.AsInt()
 		if n >= 3000 {
 			return fmt.Sprintf("*%d", n)
 		}
 		return ""
 	}),
-	csv.WithTransformer(csv.Columns(9), func(v any) string {
-		if n, ok := v.(int); ok && n >= 90 {
+	csv.WithTransformer(csv.Columns(9), func(v table.Value) string {
+		if n := v.AsInt(); n >= 90 {
 			return fmt.Sprintf("*%d", n)
 		}
 		return ""
 	}),
-	csv.WithTransformer(csv.Columns(13), func(v any) string {
-		if n, ok := v.(int); ok && n >= 60 {
+	csv.WithTransformer(csv.Columns(13), func(v table.Value) string {
+		if n := v.AsInt(); n >= 60 {
 			return fmt.Sprintf("*%d", n)
 		}
 		return ""
@@ -49,8 +47,8 @@ var CSVOptionTransformer = []csv.Option{
 // CSVOptionComplex configures the complex delimiter-separated table example.
 var CSVOptionComplex = []csv.Option{
 	csv.WithHeader(ComplexData.Header[0]),
-	csv.WithTransformer(csv.Columns(5), func(v any) string {
-		values, ok := v.([]string)
+	csv.WithTransformer(csv.Columns(5), func(v table.Value) string {
+		values, ok := v.AsAny().([]string)
 		if !ok {
 			return ""
 		}
@@ -60,8 +58,8 @@ var CSVOptionComplex = []csv.Option{
 		}
 		return strings.Join(tokens, "\n")
 	}),
-	csv.WithTransformer(csv.Columns(6), func(v any) string {
-		values, ok := v.([3]string)
+	csv.WithTransformer(csv.Columns(6), func(v table.Value) string {
+		values, ok := v.AsAny().([3]string)
 		if !ok {
 			return ""
 		}
@@ -71,8 +69,8 @@ var CSVOptionComplex = []csv.Option{
 		}
 		return strings.Join(tokens, "\n")
 	}),
-	csv.WithTransformer(csv.Columns(7), func(v any) string {
-		values, ok := v.([]int)
+	csv.WithTransformer(csv.Columns(7), func(v table.Value) string {
+		values, ok := v.AsAny().([]int)
 		if !ok {
 			return ""
 		}

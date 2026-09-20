@@ -475,7 +475,7 @@ func Test_compiler_compileRow(t *testing.T) {
 					columns: []columnConfig{
 						{},
 						{},
-						{transformer: transformer{fn: func(any) (string, *Color, *Decoration) {
+						{transformer: transformer{fn: func(table.Value) (string, *Color, *Decoration) {
 							return "two", ColorFgRed, DecorationBold
 						}}},
 						{},

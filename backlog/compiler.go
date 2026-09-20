@@ -173,7 +173,7 @@ func (o *compiler) compileRow(source []table.Value, rowIndex int) {
 		color := transformer.colors.Resolve(ScopeBody)
 		decoration := transformer.decorations.Resolve(ScopeBody)
 		if transformer.fn != nil {
-			transformed, transformedColor, transformedDecoration := transformer.fn(rawValue.AsAny())
+			transformed, transformedColor, transformedDecoration := transformer.fn(rawValue)
 			if transformed != "" {
 				text = transformed
 			}

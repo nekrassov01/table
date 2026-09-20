@@ -23,8 +23,8 @@ func TestGolden_TableAlignAttrPaddingTransformerTruncate(t *testing.T) {
 		WithPadding(Columns(1), 2, 1),
 		WithAlign(ScopeBody, Columns(1), AlignRight),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
-		WithTransformer(Columns(1), func(v any) (string, *Attr) {
-			if v == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Attr) {
+			if v.AsAny() == "raw" {
 				return "transformed", nil
 			}
 			return "", nil
@@ -49,8 +49,8 @@ func TestGolden_StreamAlignAttrPaddingTransformerTruncate(t *testing.T) {
 		WithPadding(Columns(1), 2, 1),
 		WithAlign(ScopeBody, Columns(1), AlignRight),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
-		WithTransformer(Columns(1), func(v any) (string, *Attr) {
-			if v == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Attr) {
+			if v.AsAny() == "raw" {
 				return "transformed", nil
 			}
 			return "", nil
@@ -241,8 +241,8 @@ func TestGolden_TableAttr(t *testing.T) {
 		}),
 		WithCaption("caption", CaptionDefault),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
-		WithTransformer(Columns(0), func(v any) (string, *Attr) {
-			if s, ok := v.(string); ok && s == "bar" {
+		WithTransformer(Columns(0), func(v table.Value) (string, *Attr) {
+			if s, ok := v.AsAny().(string); ok && s == "bar" {
 				return "", NewAttr(CodeFgGreen)
 			}
 			return "", nil
@@ -278,8 +278,8 @@ func TestGolden_StreamAttr(t *testing.T) {
 		}),
 		WithCaption("caption", CaptionDefault),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
-		WithTransformer(Columns(0), func(v any) (string, *Attr) {
-			if s, ok := v.(string); ok && s == "bar" {
+		WithTransformer(Columns(0), func(v table.Value) (string, *Attr) {
+			if s, ok := v.AsAny().(string); ok && s == "bar" {
 				return "", NewAttr(CodeFgGreen)
 			}
 			return "", nil
@@ -726,8 +726,8 @@ func TestGolden_TableAutoFitTransformer(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"A", "B"}),
 		WithAutoFit(),
-		WithTransformer(Columns(1), func(v any) (string, *Attr) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Attr) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil
 			}
 			return "", nil
@@ -748,8 +748,8 @@ func TestGolden_StreamAutoFitTransformer(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"A", "B"}),
 		WithAutoFit(),
-		WithTransformer(Columns(1), func(v any) (string, *Attr) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Attr) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil
 			}
 			return "", nil
@@ -1255,7 +1255,7 @@ func TestGolden_TableColspanTransformerAttr(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(1, 2)),
-		WithTransformer(Columns(1, 2), func(_ any) (string, *Attr) {
+		WithTransformer(Columns(1, 2), func(_ table.Value) (string, *Attr) {
 			return "", ColorFgRed
 		}),
 	)
@@ -1276,7 +1276,7 @@ func TestGolden_StreamColspanTransformerAttr(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(1, 2)),
-		WithTransformer(Columns(1, 2), func(_ any) (string, *Attr) {
+		WithTransformer(Columns(1, 2), func(_ table.Value) (string, *Attr) {
 			return "", ColorFgRed
 		}),
 	)
@@ -1756,8 +1756,8 @@ func TestGolden_TableCompactTransformer(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"A", "B"}),
 		WithCompact(),
-		WithTransformer(Columns(1), func(v any) (string, *Attr) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Attr) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil
 			}
 			return "", nil
@@ -1775,8 +1775,8 @@ func TestGolden_StreamCompactTransformer(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"A", "B"}),
 		WithCompact(),
-		WithTransformer(Columns(1), func(v any) (string, *Attr) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Attr) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil
 			}
 			return "", nil
@@ -2916,8 +2916,8 @@ func TestGolden_TablePlaceholderTransformerTruncate(t *testing.T) {
 		WithHeader([]string{"A", "B"}),
 		WithPlaceholder("missing"),
 		WithWidth(Columns(1), 4),
-		WithTransformer(Columns(1), func(v any) (string, *Attr) {
-			if v == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Attr) {
+			if v.AsAny() == "raw" {
 				return "replacement", nil
 			}
 			return "", nil
@@ -2937,8 +2937,8 @@ func TestGolden_StreamPlaceholderTransformerTruncate(t *testing.T) {
 		WithHeader([]string{"A", "B"}),
 		WithPlaceholder("missing"),
 		WithWidth(Columns(1), 4),
-		WithTransformer(Columns(1), func(v any) (string, *Attr) {
-			if v == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Attr) {
+			if v.AsAny() == "raw" {
 				return "replacement", nil
 			}
 			return "", nil
@@ -3485,8 +3485,8 @@ func TestGolden_TableRowspanTransformer(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"A", "B"}),
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(1)),
-		WithTransformer(Columns(1), func(v any) (string, *Attr) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Attr) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil
 			}
 			return "", nil
@@ -3504,8 +3504,8 @@ func TestGolden_StreamRowspanTransformer(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"A", "B"}),
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(1)),
-		WithTransformer(Columns(1), func(v any) (string, *Attr) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Attr) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil
 			}
 			return "", nil
@@ -4178,8 +4178,8 @@ func TestGolden_TableTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
 		WithStyle(StyleLight),
-		WithTransformer(Columns(1), func(v any) (string, *Attr) {
-			n, ok := v.(int)
+		WithTransformer(Columns(1), func(v table.Value) (string, *Attr) {
+			n, ok := v.AsAny().(int)
 			if !ok {
 				return "", nil
 			}
@@ -4203,8 +4203,8 @@ func TestGolden_StreamTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
 		WithStyle(StyleLight),
-		WithTransformer(Columns(1), func(v any) (string, *Attr) {
-			n, ok := v.(int)
+		WithTransformer(Columns(1), func(v table.Value) (string, *Attr) {
+			n, ok := v.AsAny().(int)
 			if !ok {
 				return "", nil
 			}
@@ -4235,8 +4235,8 @@ func TestGolden_TableTransformerColumnOverride(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"Level", "Message"}),
 		WithAttr(ScopeBody, Columns(1), ColorFgBlue),
-		WithTransformer(Columns(1), func(v any) (string, *Attr) {
-			if s, ok := v.(string); ok && s == "warn" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Attr) {
+			if s, ok := v.AsAny().(string); ok && s == "warn" {
 				return "", ColorFgYellow
 			}
 			return "", nil
@@ -4259,8 +4259,8 @@ func TestGolden_StreamTransformerColumnOverride(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"Level", "Message"}),
 		WithAttr(ScopeBody, Columns(1), ColorFgBlue),
-		WithTransformer(Columns(1), func(v any) (string, *Attr) {
-			if s, ok := v.(string); ok && s == "warn" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Attr) {
+			if s, ok := v.AsAny().(string); ok && s == "warn" {
 				return "", ColorFgYellow
 			}
 			return "", nil
@@ -4855,8 +4855,8 @@ func TestGolden_TableWidthTransformer(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"A", "B"}),
 		WithWidth(Columns(0), 5),
-		WithTransformer(Columns(1), func(v any) (string, *Attr) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Attr) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil
 			}
 			return "", nil
@@ -4874,8 +4874,8 @@ func TestGolden_StreamWidthTransformer(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"A", "B"}),
 		WithWidth(Columns(0), 5),
-		WithTransformer(Columns(1), func(v any) (string, *Attr) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Attr) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil
 			}
 			return "", nil
@@ -5254,8 +5254,8 @@ func TestGolden_StreamIndexTransformer(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"A", "B"}),
 		WithIndex(),
-		WithTransformer(Columns(1), func(v any) (string, *Attr) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Attr) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil
 			}
 			return "", nil
@@ -5757,8 +5757,8 @@ func TestGolden_TableIndexTransformer(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"A", "B"}),
 		WithIndex(),
-		WithTransformer(Columns(1), func(v any) (string, *Attr) {
-			if s, ok := v.(string); ok && s == "raw" {
+		WithTransformer(Columns(1), func(v table.Value) (string, *Attr) {
+			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil
 			}
 			return "", nil

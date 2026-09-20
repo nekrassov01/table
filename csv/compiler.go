@@ -134,7 +134,7 @@ func (o *compiler) compileRow(source []table.Value, rowIndex int) {
 		rawValue := source[sourceIndex]
 		text := ""
 		if transformer := config.columns[index].transformer; transformer != nil {
-			text = transformer(rawValue.AsAny())
+			text = transformer(rawValue)
 		}
 		if text == "" {
 			text = value.Format(o.strings, rawValue)

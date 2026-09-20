@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/markdown"
 )
 
@@ -31,24 +32,21 @@ var MarkdownOptionTransformer = []markdown.Option{
 	markdown.WithRowspan(markdown.Columns(0)),
 	markdown.WithColspan(markdown.Columns(0, 1, 2, 3)),
 	markdown.WithAlign(markdown.Columns(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13), markdown.AlignRight),
-	markdown.WithTransformer(markdown.Columns(5), func(v any) (string, *markdown.Color, *markdown.Decoration) {
-		n, ok := v.(int)
-		if !ok {
-			return "", nil, nil
-		}
+	markdown.WithTransformer(markdown.Columns(5), func(v table.Value) (string, *markdown.Color, *markdown.Decoration) {
+		n := v.AsInt()
 		if n >= 3000 {
 			return fmt.Sprintf("*%d", n), markdown.ColorFgRed, markdown.DecorationBold
 		}
 		return "", nil, nil
 	}),
-	markdown.WithTransformer(markdown.Columns(9), func(v any) (string, *markdown.Color, *markdown.Decoration) {
-		if n, ok := v.(int); ok && n >= 90 {
+	markdown.WithTransformer(markdown.Columns(9), func(v table.Value) (string, *markdown.Color, *markdown.Decoration) {
+		if n := v.AsInt(); n >= 90 {
 			return fmt.Sprintf("*%d", n), markdown.ColorFgYellow, markdown.DecorationBold
 		}
 		return "", nil, nil
 	}),
-	markdown.WithTransformer(markdown.Columns(13), func(v any) (string, *markdown.Color, *markdown.Decoration) {
-		if n, ok := v.(int); ok && n >= 60 {
+	markdown.WithTransformer(markdown.Columns(13), func(v table.Value) (string, *markdown.Color, *markdown.Decoration) {
+		if n := v.AsInt(); n >= 60 {
 			return fmt.Sprintf("*%d", n), markdown.ColorFgGreen, markdown.DecorationBold
 		}
 		return "", nil, nil
@@ -60,8 +58,8 @@ var MarkdownOptionComplex = []markdown.Option{
 	markdown.WithHeader(ComplexData.Header[0]),
 	markdown.WithColor(markdown.ScopeBody, markdown.Columns(8, 9, 10), markdown.ColorFgBlack),
 	markdown.WithDecoration(markdown.ScopeBody, markdown.Columns(11), markdown.DecorationUnderline),
-	markdown.WithTransformer(markdown.Columns(5), func(v any) (string, *markdown.Color, *markdown.Decoration) {
-		values, ok := v.([]string)
+	markdown.WithTransformer(markdown.Columns(5), func(v table.Value) (string, *markdown.Color, *markdown.Decoration) {
+		values, ok := v.AsAny().([]string)
 		if !ok {
 			return "", nil, nil
 		}
@@ -71,8 +69,8 @@ var MarkdownOptionComplex = []markdown.Option{
 		}
 		return strings.Join(tokens, "\n"), markdown.ColorBgGreen, markdown.DecorationBold
 	}),
-	markdown.WithTransformer(markdown.Columns(6), func(v any) (string, *markdown.Color, *markdown.Decoration) {
-		values, ok := v.([3]string)
+	markdown.WithTransformer(markdown.Columns(6), func(v table.Value) (string, *markdown.Color, *markdown.Decoration) {
+		values, ok := v.AsAny().([3]string)
 		if !ok {
 			return "", nil, nil
 		}
@@ -82,8 +80,8 @@ var MarkdownOptionComplex = []markdown.Option{
 		}
 		return strings.Join(tokens, "\n"), markdown.ColorBgMagenta, markdown.DecorationItalic
 	}),
-	markdown.WithTransformer(markdown.Columns(7), func(v any) (string, *markdown.Color, *markdown.Decoration) {
-		values, ok := v.([]int)
+	markdown.WithTransformer(markdown.Columns(7), func(v table.Value) (string, *markdown.Color, *markdown.Decoration) {
+		values, ok := v.AsAny().([]int)
 		if !ok {
 			return "", nil, nil
 		}
