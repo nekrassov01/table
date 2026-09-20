@@ -278,29 +278,38 @@ This table records whether each library exposes a direct public API for a capabi
 
 | Feature                         | `table` | [`go-pretty` v6.8.3](https://github.com/jedib0t/go-pretty/tree/v6.8.3) | [`tablewriter` v1.1.4](https://github.com/olekukonko/tablewriter/tree/v1.1.4) | [`simpletable` v1.0.0](https://github.com/alexeyco/simpletable/tree/v1.0.0) |
 | ------------------------------- | ------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| Streaming API                   | ✓ (All) | -                                                                      | ✓                                                                             | -                                                                           |
-| Header                          | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
-| Footer                          | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
-| Placeholder                     | ✓       | ✓ (HTML)                                                               | -                                                                             | -                                                                           |
-| Index column                    | ✓       | ✓                                                                      | -                                                                             | -                                                                           |
-| Vertical merge                  | ✓       | ✓                                                                      | ✓                                                                             | -                                                                           |
-| Horizontal merge                | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
+| Typed value input               | ✓       | -                                                                      | -                                                                             | -                                                                           |
 | Caller-defined row adapter      | ✓       | -                                                                      | ✓                                                                             | -                                                                           |
 | Reflection-based struct input   | -       | -                                                                      | ✓                                                                             | -                                                                           |
 | CSV input                       | -       | -                                                                      | ✓                                                                             | -                                                                           |
 | Per-column transformation       | ✓       | ✓                                                                      | ✓                                                                             | -                                                                           |
 | Built-in sorting and filtering  | -       | ✓                                                                      | -                                                                             | -                                                                           |
-| Pagination                      | -       | ✓                                                                      | -                                                                             | -                                                                           |
 | Column hiding                   | -       | ✓                                                                      | ✓                                                                             | -                                                                           |
+| Header                          | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
+| Footer                          | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
+| Index column                    | ✓       | ✓                                                                      | -                                                                             | -                                                                           |
+| Vertical merge                  | ✓       | ✓                                                                      | ✓                                                                             | -                                                                           |
+| Horizontal merge                | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
+| Placeholder                     | ✓       | ✓ (HTML)                                                               | -                                                                             | -                                                                           |
 | Width, wrapping, and truncation | ✓       | ✓                                                                      | ✓                                                                             | -                                                                           |
 | Automatic terminal fit          | ✓       | -                                                                      | -                                                                             | -                                                                           |
 | Title or caption                | ✓       | ✓                                                                      | ✓                                                                             | -                                                                           |
+| Streaming API                   | ✓ (All) | -                                                                      | ✓                                                                             | -                                                                           |
+| Pagination                      | -       | ✓                                                                      | -                                                                             | -                                                                           |
 | Pluggable output implementation | -       | -                                                                      | ✓                                                                             | -                                                                           |
+
+Typed value input means constructors such as `table.String()` and `table.Int()` preserve primitive types without interface boxing. `table.Any()` remains available for arbitrary values. See [Value inputs and migration](./docs/API.md#value-inputs-and-migration).
+
+The compared versions use these input APIs:
+
+- [`go-pretty`](https://github.com/jedib0t/go-pretty/blob/v6.8.3/table/row.go) defines `Row` as `[]interface{}`.
+- [`tablewriter`](https://github.com/olekukonko/tablewriter/blob/v1.1.4/tablewriter.go) accepts `Append(...interface{})` and `Bulk(interface{})`.
+- [`simpletable`](https://github.com/alexeyco/simpletable/blob/v1.0.0/cell.go) accepts strings through `Cell.Text`. Callers must format numeric values before assigning them.
 
 For `table`, the feature matrix has the following qualifications:
 
-- Footer callbacks derive values such as totals and averages from captured state.
 - Column hiding is intentionally left to input adaptation, so `TableOf` and `StreamOf` can omit fields before rows reach the output package.
+- Footer callbacks derive values such as totals and averages from captured state.
 - Merge behavior depends on the selected output format and is documented in the [Public API guide](./docs/API.md).
 
 The `go-pretty` placeholder entry refers to its HTML `EmptyColumn` setting.
