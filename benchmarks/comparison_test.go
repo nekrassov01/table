@@ -20,6 +20,7 @@ import (
 	"github.com/alexeyco/simpletable"
 	goprettytable "github.com/jedib0t/go-pretty/v6/table"
 	goprettytext "github.com/jedib0t/go-pretty/v6/text"
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/examples"
 	"github.com/nekrassov01/table/text"
 	"github.com/olekukonko/tablewriter"
@@ -55,11 +56,12 @@ func BenchmarkComparisonGoPrettySimple(b *testing.B) {
 
 func BenchmarkComparisonTableWriterSimple(b *testing.B) {
 	w := &bytes.Buffer{}
+	r := tablewriterRows(examples.SimpleData.Body)
 	for b.Loop() {
 		w.Reset()
 		t := tablewriter.NewTable(w, tablewriter.WithHeaderAutoFormat(tw.Off))
 		t.Header(examples.SimpleData.Header[0])
-		if err := t.Bulk(examples.SimpleData.Body); err != nil {
+		if err := t.Bulk(r); err != nil {
 			b.Fatal(err)
 		}
 		if err := t.Render(); err != nil {
@@ -111,11 +113,12 @@ func BenchmarkComparisonGoPrettyComplex(b *testing.B) {
 
 func BenchmarkComparisonTableWriterComplex(b *testing.B) {
 	w := &bytes.Buffer{}
+	r := tablewriterRows(examples.ComplexData.Body)
 	for b.Loop() {
 		w.Reset()
 		t := tablewriter.NewTable(w, tablewriter.WithHeaderAutoFormat(tw.Off))
 		t.Header(examples.ComplexData.Header[0])
-		if err := t.Bulk(examples.ComplexData.Body); err != nil {
+		if err := t.Bulk(r); err != nil {
 			b.Fatal(err)
 		}
 		if err := t.Render(); err != nil {
@@ -134,10 +137,13 @@ func goprettyRow(cells []string) goprettytable.Row {
 }
 
 // goprettyRows converts data rows to go-pretty rows.
-func goprettyRows(rows [][]any) []goprettytable.Row {
+func goprettyRows(rows [][]table.Value) []goprettytable.Row {
 	r := make([]goprettytable.Row, len(rows))
 	for i, row := range rows {
-		r[i] = goprettytable.Row(row)
+		r[i] = make(goprettytable.Row, len(row))
+		for j, cell := range row {
+			r[i][j] = cell.AsAny()
+		}
 	}
 	return r
 }
@@ -151,6 +157,18 @@ func goprettyWriter(w io.Writer) goprettytable.Writer {
 	return t
 }
 
+// tablewriterRows restores input values before the timed row ingestion.
+func tablewriterRows(rows [][]table.Value) [][]any {
+	r := make([][]any, len(rows))
+	for i, row := range rows {
+		r[i] = make([]any, len(row))
+		for j, cell := range row {
+			r[i][j] = cell.AsAny()
+		}
+	}
+	return r
+}
+
 // simpletableHeader converts string cells to a simpletable header.
 func simpletableHeader(cells []string) []*simpletable.Cell {
 	h := make([]*simpletable.Cell, len(cells))
@@ -161,12 +179,12 @@ func simpletableHeader(cells []string) []*simpletable.Cell {
 }
 
 // simpletableRows converts string-valued data rows to simpletable rows.
-func simpletableRows(rows [][]any) [][]*simpletable.Cell {
+func simpletableRows(rows [][]table.Value) [][]*simpletable.Cell {
 	r := make([][]*simpletable.Cell, len(rows))
 	for rowIndex, row := range rows {
 		cells := make([]*simpletable.Cell, len(row))
 		for columnIndex, cell := range row {
-			cells[columnIndex] = &simpletable.Cell{Text: cell.(string)}
+			cells[columnIndex] = &simpletable.Cell{Text: cell.AsAny().(string)}
 		}
 		r[rowIndex] = cells
 	}

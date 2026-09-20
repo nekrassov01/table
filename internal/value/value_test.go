@@ -1,22 +1,21 @@
 package value
 
 import (
-	"errors"
-	"net"
 	"reflect"
+	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/nekrassov01/table/internal/testutil"
 )
 
-type cyclicPointer *cyclicPointer
-
-func TestNumber(t *testing.T) {
+func TestValue(t *testing.T) {
 	type args struct {
-		x int64
+		value    Value
+		original any
 	}
 	type want struct {
-		val string
+		value string
 	}
 	tests := []struct {
 		name string
@@ -24,1550 +23,1425 @@ func TestNumber(t *testing.T) {
 		want want
 	}{
 		{
-			name: "first",
+			name: "zero",
 			args: args{
-				x: 1,
+				value:    Value{},
+				original: nil,
 			},
 			want: want{
-				val: "1",
+				value: "",
 			},
 		},
 		{
-			name: "wide",
+			name: "String",
 			args: args{
-				x: 1000,
+				value:    String("abc"),
+				original: "abc",
 			},
 			want: want{
-				val: "1000",
+				value: "abc",
+			},
+		},
+		{
+			name: "Bytes",
+			args: args{
+				value:    Bytes([]byte("abc")),
+				original: []byte("abc"),
+			},
+			want: want{
+				value: "abc",
+			},
+		},
+		{
+			name: "Int",
+			args: args{
+				value:    Int(-1000),
+				original: int(-1000),
+			},
+			want: want{
+				value: "-1000",
+			},
+		},
+		{
+			name: "Int8",
+			args: args{
+				value:    Int8(-100),
+				original: int8(-100),
+			},
+			want: want{
+				value: "-100",
+			},
+		},
+		{
+			name: "Int16",
+			args: args{
+				value:    Int16(-1000),
+				original: int16(-1000),
+			},
+			want: want{
+				value: "-1000",
+			},
+		},
+		{
+			name: "Int32",
+			args: args{
+				value:    Int32(-1000),
+				original: int32(-1000),
+			},
+			want: want{
+				value: "-1000",
+			},
+		},
+		{
+			name: "Int64",
+			args: args{
+				value:    Int64(-1000),
+				original: int64(-1000),
+			},
+			want: want{
+				value: "-1000",
+			},
+		},
+		{
+			name: "Uint",
+			args: args{
+				value:    Uint(1000),
+				original: uint(1000),
+			},
+			want: want{
+				value: "1000",
+			},
+		},
+		{
+			name: "Uint8",
+			args: args{
+				value:    Uint8(200),
+				original: uint8(200),
+			},
+			want: want{
+				value: "200",
+			},
+		},
+		{
+			name: "Uint16",
+			args: args{
+				value:    Uint16(1000),
+				original: uint16(1000),
+			},
+			want: want{
+				value: "1000",
+			},
+		},
+		{
+			name: "Uint32",
+			args: args{
+				value:    Uint32(1000),
+				original: uint32(1000),
+			},
+			want: want{
+				value: "1000",
+			},
+		},
+		{
+			name: "Uint64",
+			args: args{
+				value:    Uint64(1 << 63),
+				original: uint64(1 << 63),
+			},
+			want: want{
+				value: "9223372036854775808",
+			},
+		},
+		{
+			name: "Uintptr",
+			args: args{
+				value:    Uintptr(1000),
+				original: uintptr(1000),
+			},
+			want: want{
+				value: "1000",
+			},
+		},
+		{
+			name: "Float32",
+			args: args{
+				value:    Float32(1.2),
+				original: float32(1.2),
+			},
+			want: want{
+				value: "1.2",
+			},
+		},
+		{
+			name: "Float64",
+			args: args{
+				value:    Float64(1.2),
+				original: float64(1.2),
+			},
+			want: want{
+				value: "1.2",
+			},
+		},
+		{
+			name: "Bool",
+			args: args{
+				value:    Bool(true),
+				original: true,
+			},
+			want: want{
+				value: "true",
+			},
+		},
+		{
+			name: "nil",
+			args: args{
+				value:    Any(nil),
+				original: nil,
+			},
+			want: want{
+				value: "",
+			},
+		},
+		{
+			name: "Stringer",
+			args: args{
+				value: Any(testutil.Stringer{
+					Value: "named",
+				}),
+				original: testutil.Stringer{
+					Value: "named",
+				},
+			},
+			want: want{
+				value: "named",
+			},
+		},
+		{
+			name: "nil bytes",
+			args: args{
+				value:    Bytes([]byte(nil)),
+				original: []byte(nil),
+			},
+			want: want{
+				value: "",
+			},
+		},
+		{
+			name: "empty bytes",
+			args: args{
+				value:    Bytes([]byte{}),
+				original: []byte{},
+			},
+			want: want{
+				value: "",
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			var st Store
-			testutil.AssertValue(t, Number(&st, test.args.x), test.want.val, "Number")
+			var actual Store
+			got := test.args.value.AsAny()
+			testutil.AssertValue(t, reflect.TypeOf(got), reflect.TypeOf(test.args.original), "type")
+			testutil.AssertValue(t, got, test.args.original, "value")
+			testutil.AssertValue(t, Format(&actual, test.args.value), test.want.value, "format")
+			testutil.AssertValue(t, Format(&actual, Any(test.args.original)), test.want.value, "Any format")
 		})
 	}
 }
 
-func TestFormat(t *testing.T) {
+func TestValueBorrowedStorage(t *testing.T) {
 	type args struct {
-		v any
+		makeValue func() Value
 	}
 	type want struct {
-		text string
-	}
-	type blob []byte
-	type list []int
-	type dictionary map[string]int
-	type record struct {
-		first  int
-		second int
-	}
-	tests := []struct {
-		name string
-		args args
-		want want
-	}{
-		{
-			name: "nil is missing",
-			args: args{
-				v: nil,
-			},
-			want: want{
-				text: "",
-			},
-		},
-		{
-			name: "string",
-			args: args{
-				v: "hello",
-			},
-			want: want{
-				text: "hello",
-			},
-		},
-		{
-			name: "empty string is missing",
-			args: args{
-				v: "",
-			},
-			want: want{
-				text: "",
-			},
-		},
-		{
-			name: "int",
-			args: args{
-				v: -42,
-			},
-			want: want{
-				text: "-42",
-			},
-		},
-		{
-			name: "int8",
-			args: args{
-				v: int8(-8),
-			},
-			want: want{
-				text: "-8",
-			},
-		},
-		{
-			name: "int16",
-			args: args{
-				v: int16(-16),
-			},
-			want: want{
-				text: "-16",
-			},
-		},
-		{
-			name: "int32",
-			args: args{
-				v: int32(-32),
-			},
-			want: want{
-				text: "-32",
-			},
-		},
-		{
-			name: "int64",
-			args: args{
-				v: int64(-64),
-			},
-			want: want{
-				text: "-64",
-			},
-		},
-		{
-			name: "uint",
-			args: args{
-				v: uint(1),
-			},
-			want: want{
-				text: "1",
-			},
-		},
-		{
-			name: "uint8",
-			args: args{
-				v: uint8(255),
-			},
-			want: want{
-				text: "255",
-			},
-		},
-		{
-			name: "uint16",
-			args: args{
-				v: uint16(16),
-			},
-			want: want{
-				text: "16",
-			},
-		},
-		{
-			name: "uint32",
-			args: args{
-				v: uint32(32),
-			},
-			want: want{
-				text: "32",
-			},
-		},
-		{
-			name: "uint64",
-			args: args{
-				v: uint64(64),
-			},
-			want: want{
-				text: "64",
-			},
-		},
-		{
-			name: "uintptr",
-			args: args{
-				v: uintptr(128),
-			},
-			want: want{
-				text: "128",
-			},
-		},
-		{
-			name: "float64 shortest",
-			args: args{
-				v: 1.25,
-			},
-			want: want{
-				text: "1.25",
-			},
-		},
-		{
-			name: "float32 rounding",
-			args: args{
-				v: float32(0.1),
-			},
-			want: want{
-				text: "0.1",
-			},
-		},
-		{
-			name: "bool",
-			args: args{
-				v: true,
-			},
-			want: want{
-				text: "true",
-			},
-		},
-		{
-			name: "bytes as text",
-			args: args{
-				v: []byte("raw"),
-			},
-			want: want{
-				text: "raw",
-			},
-		},
-		{
-			name: "empty bytes are missing",
-			args: args{
-				v: []byte{},
-			},
-			want: want{
-				text: "",
-			},
-		},
-		{
-			name: "stringer",
-			args: args{
-				v: net.IPv4(127, 0, 0, 1),
-			},
-			want: want{
-				text: "127.0.0.1",
-			},
-		},
-		{
-			name: "typed-nil stringer is missing",
-			args: args{
-				v: net.IP(nil),
-			},
-			want: want{
-				text: "",
-			},
-		},
-		{
-			name: "error",
-			args: args{
-				v: errors.New("boom"),
-			},
-			want: want{
-				text: "boom",
-			},
-		},
-		{
-			name: "error takes precedence over stringer",
-			args: args{
-				v: stringerError{},
-			},
-			want: want{
-				text: "error",
-			},
-		},
-		{
-			name: "typed-nil error is missing",
-			args: args{
-				v: (*testutil.PtrError)(nil),
-			},
-			want: want{
-				text: "",
-			},
-		},
-		{
-			name: "pointer dereferences",
-			args: args{
-				v: func() any {
-					value := 3
-					return &value
-				}(),
-			},
-			want: want{
-				text: "3",
-			},
-		},
-		{
-			name: "nil pointer is missing",
-			args: args{
-				v: (*int)(nil),
-			},
-			want: want{
-				text: "",
-			},
-		},
-		{
-			name: "empty struct uses default formatting",
-			args: args{
-				v: struct{}{},
-			},
-			want: want{
-				text: "{}",
-			},
-		},
-		{
-			name: "anonymous struct uses default formatting",
-			args: args{
-				v: struct {
-					A int
-					B int
-				}{A: 1, B: 2},
-			},
-			want: want{
-				text: "{1 2}",
-			},
-		},
-		{
-			name: "named struct uses default formatting",
-			args: args{
-				v: record{first: 1, second: 2},
-			},
-			want: want{
-				text: "{1 2}",
-			},
-		},
-		{
-			name: "pointer to struct dereferences before default formatting",
-			args: args{
-				v: &record{first: 1, second: 2},
-			},
-			want: want{
-				text: "{1 2}",
-			},
-		},
-		{
-			name: "nil map is missing",
-			args: args{
-				v: map[string]int(nil),
-			},
-			want: want{
-				text: "",
-			},
-		},
-		{
-			name: "empty map uses default formatting",
-			args: args{
-				v: map[string]int{},
-			},
-			want: want{
-				text: "map[]",
-			},
-		},
-		{
-			name: "map with one key uses default formatting",
-			args: args{
-				v: map[string]int{"a": 1},
-			},
-			want: want{
-				text: "map[a:1]",
-			},
-		},
-		{
-			name: "map with multiple keys uses default formatting",
-			args: args{
-				v: map[string]int{
-					"a": 1,
-					"b": 2,
-				},
-			},
-			want: want{
-				text: "map[a:1 b:2]",
-			},
-		},
-		{
-			name: "named map uses default formatting",
-			args: args{
-				v: dictionary{
-					"a": 1,
-				},
-			},
-			want: want{
-				text: "map[a:1]",
-			},
-		},
-		{
-			name: "pointer to map dereferences before default formatting",
-			args: args{
-				v: func() any {
-					value := map[string]int{
-						"a": 1,
-					}
-					return &value
-				}(),
-			},
-			want: want{
-				text: "map[a:1]",
-			},
-		},
-		{
-			name: "nil slice is missing",
-			args: args{
-				v: []int(nil),
-			},
-			want: want{
-				text: "",
-			},
-		},
-		{
-			name: "slice of ints uses default formatting",
-			args: args{
-				v: []int{1, 2, 3},
-			},
-			want: want{
-				text: "[1 2 3]",
-			},
-		},
-		{
-			name: "named slice uses default formatting",
-			args: args{
-				v: list{1, 2},
-			},
-			want: want{
-				text: "[1 2]",
-			},
-		},
-		{
-			name: "slice of strings uses default formatting",
-			args: args{
-				v: []string{"a", "", "c"},
-			},
-			want: want{
-				text: "[a  c]",
-			},
-		},
-		{
-			name: "empty slice is missing",
-			args: args{
-				v: []int{},
-			},
-			want: want{
-				text: "",
-			},
-		},
-		{
-			name: "nested slices use default formatting",
-			args: args{
-				v: [][]int{{1}, {2}},
-			},
-			want: want{
-				text: "[[1] [2]]",
-			},
-		},
-		{
-			name: "empty array is missing",
-			args: args{
-				v: [0]int{},
-			},
-			want: want{
-				text: "",
-			},
-		},
-		{
-			name: "array uses default formatting",
-			args: args{
-				v: [2]int{1, 2},
-			},
-			want: want{
-				text: "[1 2]",
-			},
-		},
-		{
-			name: "byte array is not special",
-			args: args{
-				v: [2]byte{7, 200},
-			},
-			want: want{
-				text: "[7 200]",
-			},
-		},
-		{
-			name: "rune slice is not special",
-			args: args{
-				v: []rune("ab"),
-			},
-			want: want{
-				text: "[97 98]",
-			},
-		},
-		{
-			name: "named byte slice as text",
-			args: args{
-				v: blob("ab"),
-			},
-			want: want{
-				text: "ab",
-			},
-		},
-		{
-			name: "slice of any uses default formatting",
-			args: args{
-				v: []any{"x", 1, nil},
-			},
-			want: want{
-				text: "[x 1 <nil>]",
-			},
-		},
-		{
-			name: "slice of stringers uses default formatting",
-			args: args{
-				v: []testutil.Stringer{
-					{Value: "a"},
-					{Value: "b"},
-				},
-			},
-			want: want{
-				text: "[a b]",
-			},
-		},
-		{
-			name: "slice of errors and stringers uses error formatting",
-			args: args{
-				v: []stringerError{{}},
-			},
-			want: want{
-				text: "[error]",
-			},
-		},
-		{
-			name: "slice of complex values uses default formatting",
-			args: args{
-				v: []complex64{1 + 2i},
-			},
-			want: want{
-				text: "[(1+2i)]",
-			},
-		},
-		{
-			name: "pointer to slice dereferences before default formatting",
-			args: args{
-				v: &[]int{4, 5},
-			},
-			want: want{
-				text: "[4 5]",
-			},
-		},
-		{
-			name: "other kind uses default formatting",
-			args: args{
-				v: complex(1, 2),
-			},
-			want: want{
-				text: "(1+2i)",
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			var st Store
-			testutil.AssertValue(t, Format(&st, test.args.v), test.want.text, "text")
-		})
-	}
-}
-
-func Test_formatReflect(t *testing.T) {
-	type args struct {
 		value any
 	}
-	type want struct {
-		text string
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "string remains reachable",
+			args: args{
+				makeValue: func() Value {
+					return String(strings.Repeat("ab", 1000))
+				},
+			},
+			want: want{
+				value: strings.Repeat("ab", 1000),
+			},
+		},
+		{
+			name: "bytes remain reachable",
+			args: args{
+				makeValue: func() Value {
+					return Bytes([]byte(strings.Repeat("cd", 1000)))
+				},
+			},
+			want: want{
+				value: []byte(strings.Repeat("cd", 1000)),
+			},
+		},
 	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			value := test.args.makeValue()
+			runtime.GC()
+			testutil.AssertValue(t, value.AsAny(), test.want.value, "retained value")
+		})
+	}
+}
+
+func TestValueAccessors(t *testing.T) {
 	type namedInt int
-	type namedBytes []byte
-	type namedList []int
-	type namedMap map[string]int
-	tests := []struct {
-		name string
-		args args
-		want want
-	}{
-		{
-			name: "invalid value is missing",
-			want: want{
-				text: "",
-			},
-		},
-		{
-			name: "pointer stringer resolves",
-			args: args{
-				value: &testutil.PtrStringer{
-					Value: "stringer",
-				},
-			},
-			want: want{
-				text: "stringer",
-			},
-		},
-		{
-			name: "value stringer resolves after unwrapping",
-			args: args{
-				value: func() any {
-					var value any = testutil.Stringer{
-						Value: "stringer",
-					}
-					return &value
-				}(),
-			},
-			want: want{
-				text: "stringer",
-			},
-		},
-		{
-			name: "primitive kind resolves",
-			args: args{
-				value: namedInt(42),
-			},
-			want: want{
-				text: "42",
-			},
-		},
-		{
-			name: "empty struct uses default formatting",
-			args: args{
-				value: struct{}{},
-			},
-			want: want{
-				text: "{}",
-			},
-		},
-		{
-			name: "struct uses default formatting",
-			args: args{
-				value: struct {
-					First  int
-					Second int
-				}{First: 1, Second: 2},
-			},
-			want: want{
-				text: "{1 2}",
-			},
-		},
-		{
-			name: "nil map is missing",
-			args: args{
-				value: map[string]int(nil),
-			},
-			want: want{
-				text: "",
-			},
-		},
-		{
-			name: "empty map uses default formatting",
-			args: args{
-				value: map[string]int{},
-			},
-			want: want{
-				text: "map[]",
-			},
-		},
-		{
-			name: "map uses default formatting",
-			args: args{
-				value: map[string]int{
-					"key": 1,
-				},
-			},
-			want: want{
-				text: "map[key:1]",
-			},
-		},
-		{
-			name: "named map uses default formatting",
-			args: args{
-				value: namedMap{
-					"key": 1,
-				},
-			},
-			want: want{
-				text: "map[key:1]",
-			},
-		},
-		{
-			name: "nil list is missing",
-			args: args{
-				value: []int(nil),
-			},
-			want: want{
-				text: "",
-			},
-		},
-		{
-			name: "empty list is missing",
-			args: args{
-				value: []int{},
-			},
-			want: want{
-				text: "",
-			},
-		},
-		{
-			name: "slice uses default formatting",
-			args: args{
-				value: []int{1, 2},
-			},
-			want: want{
-				text: "[1 2]",
-			},
-		},
-		{
-			name: "named slice uses default formatting",
-			args: args{
-				value: namedList{1, 2},
-			},
-			want: want{
-				text: "[1 2]",
-			},
-		},
-		{
-			name: "named byte slice is text",
-			args: args{
-				value: namedBytes("bytes"),
-			},
-			want: want{
-				text: "bytes",
-			},
-		},
-		{
-			name: "empty array is missing",
-			args: args{
-				value: [0]int{},
-			},
-			want: want{
-				text: "",
-			},
-		},
-		{
-			name: "array uses default formatting",
-			args: args{
-				value: [2]int{1, 2},
-			},
-			want: want{
-				text: "[1 2]",
-			},
-		},
-		{
-			name: "other kind uses default formatting",
-			args: args{
-				value: complex(1, 2),
-			},
-			want: want{
-				text: "(1+2i)",
-			},
-		},
+	type namedString string
+	type fields struct {
+		value Value
 	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			var st Store
-			got := formatReflect(&st, test.args.value)
-			testutil.AssertValue(t, got, test.want.text, "formatReflect")
-		})
-	}
-}
-
-func Test_formatPrimitives(t *testing.T) {
 	type args struct {
-		value any
+		read func(Value) any
 	}
 	type want struct {
-		text    string
-		matched bool
+		value  any
+		panics bool
 	}
 	tests := []struct {
-		name string
-		args args
-		want want
+		name   string
+		fields fields
+		args   args
+		want   want
 	}{
 		{
-			name: "strings",
+			name: "String/primitive",
+			fields: fields{
+				value: String("abc"),
+			},
 			args: args{
-				value: []string{"a", "", "c"},
+				read: func(v Value) any {
+					return v.AsString()
+				},
 			},
 			want: want{
-				text:    "[a  c]",
-				matched: true,
+				value:  "abc",
+				panics: false,
 			},
 		},
 		{
-			name: "booleans",
+			name: "String/fallback",
+			fields: fields{
+				value: Any("abc"),
+			},
 			args: args{
-				value: []bool{true, false},
+				read: func(v Value) any {
+					return v.AsString()
+				},
 			},
 			want: want{
-				text:    "[true false]",
-				matched: true,
+				value:  "abc",
+				panics: false,
 			},
 		},
 		{
-			name: "signed integers",
+			name: "String/wrong type",
+			fields: fields{
+				value: Int(0),
+			},
 			args: args{
-				value: []int{-1, 2},
+				read: func(v Value) any {
+					return v.AsString()
+				},
 			},
 			want: want{
-				text:    "[-1 2]",
-				matched: true,
+				value:  nil,
+				panics: true,
 			},
 		},
 		{
-			name: "unsigned integers",
+			name: "String/zero",
+			fields: fields{
+				value: Value{},
+			},
 			args: args{
-				value: [2]uint{1, 2},
+				read: func(v Value) any {
+					return v.AsString()
+				},
 			},
 			want: want{
-				text:    "[1 2]",
-				matched: true,
+				value:  nil,
+				panics: true,
 			},
 		},
 		{
-			name: "float32 values",
+			name: "Bytes/primitive",
+			fields: fields{
+				value: Bytes([]byte("abc")),
+			},
 			args: args{
-				value: []float32{0.1, 1.25},
+				read: func(v Value) any {
+					return v.AsBytes()
+				},
 			},
 			want: want{
-				text:    "[0.1 1.25]",
-				matched: true,
+				value:  []byte("abc"),
+				panics: false,
 			},
 		},
 		{
-			name: "float64 values",
+			name: "Bytes/fallback",
+			fields: fields{
+				value: Any([]byte("abc")),
+			},
 			args: args{
-				value: []float64{0.1, 1.25},
+				read: func(v Value) any {
+					return v.AsBytes()
+				},
 			},
 			want: want{
-				text:    "[0.1 1.25]",
-				matched: true,
+				value:  []byte("abc"),
+				panics: false,
 			},
 		},
 		{
-			name: "byte array",
+			name: "Bytes/wrong type",
+			fields: fields{
+				value: Int(0),
+			},
 			args: args{
-				value: [2]byte{7, 200},
+				read: func(v Value) any {
+					return v.AsBytes()
+				},
 			},
 			want: want{
-				text:    "[7 200]",
-				matched: true,
+				value:  nil,
+				panics: true,
 			},
 		},
 		{
-			name: "stringer elements use default formatting",
+			name: "Bytes/zero",
+			fields: fields{
+				value: Value{},
+			},
 			args: args{
-				value: []testutil.Stringer{{Value: "a"}},
+				read: func(v Value) any {
+					return v.AsBytes()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
 			},
 		},
 		{
-			name: "nested elements use default formatting",
+			name: "Int/positive primitive",
+			fields: fields{
+				value: Int(1000),
+			},
 			args: args{
-				value: [][]int{{1}},
+				read: func(v Value) any {
+					return v.AsInt()
+				},
+			},
+			want: want{
+				value: 1000,
+			},
+		},
+		{
+			name: "Int/positive fallback",
+			fields: fields{
+				value: Any(1000),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt()
+				},
+			},
+			want: want{
+				value: 1000,
+			},
+		},
+		{
+			name: "Int/primitive",
+			fields: fields{
+				value: Int(-1000),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt()
+				},
+			},
+			want: want{
+				value:  int(-1000),
+				panics: false,
+			},
+		},
+		{
+			name: "Int/fallback",
+			fields: fields{
+				value: Any(int(-1000)),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt()
+				},
+			},
+			want: want{
+				value:  int(-1000),
+				panics: false,
+			},
+		},
+		{
+			name: "Int/wrong type",
+			fields: fields{
+				value: Int8(0),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Int/zero",
+			fields: fields{
+				value: Value{},
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Int8/primitive",
+			fields: fields{
+				value: Int8(-100),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt8()
+				},
+			},
+			want: want{
+				value:  int8(-100),
+				panics: false,
+			},
+		},
+		{
+			name: "Int8/fallback",
+			fields: fields{
+				value: Any(int8(-100)),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt8()
+				},
+			},
+			want: want{
+				value:  int8(-100),
+				panics: false,
+			},
+		},
+		{
+			name: "Int8/wrong type",
+			fields: fields{
+				value: Int(0),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt8()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Int8/zero",
+			fields: fields{
+				value: Value{},
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt8()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Int16/primitive",
+			fields: fields{
+				value: Int16(-1000),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt16()
+				},
+			},
+			want: want{
+				value:  int16(-1000),
+				panics: false,
+			},
+		},
+		{
+			name: "Int16/fallback",
+			fields: fields{
+				value: Any(int16(-1000)),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt16()
+				},
+			},
+			want: want{
+				value:  int16(-1000),
+				panics: false,
+			},
+		},
+		{
+			name: "Int16/wrong type",
+			fields: fields{
+				value: Int(0),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt16()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Int16/zero",
+			fields: fields{
+				value: Value{},
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt16()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Int32/primitive",
+			fields: fields{
+				value: Int32(-1000),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt32()
+				},
+			},
+			want: want{
+				value:  int32(-1000),
+				panics: false,
+			},
+		},
+		{
+			name: "Int32/fallback",
+			fields: fields{
+				value: Any(int32(-1000)),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt32()
+				},
+			},
+			want: want{
+				value:  int32(-1000),
+				panics: false,
+			},
+		},
+		{
+			name: "Int32/wrong type",
+			fields: fields{
+				value: Int(0),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt32()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Int32/zero",
+			fields: fields{
+				value: Value{},
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt32()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Int64/primitive",
+			fields: fields{
+				value: Int64(-1000),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt64()
+				},
+			},
+			want: want{
+				value:  int64(-1000),
+				panics: false,
+			},
+		},
+		{
+			name: "Int64/fallback",
+			fields: fields{
+				value: Any(int64(-1000)),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt64()
+				},
+			},
+			want: want{
+				value:  int64(-1000),
+				panics: false,
+			},
+		},
+		{
+			name: "Int64/wrong type",
+			fields: fields{
+				value: Int(0),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt64()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Int64/zero",
+			fields: fields{
+				value: Value{},
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt64()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Uint/primitive",
+			fields: fields{
+				value: Uint(1000),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint()
+				},
+			},
+			want: want{
+				value:  uint(1000),
+				panics: false,
+			},
+		},
+		{
+			name: "Uint/fallback",
+			fields: fields{
+				value: Any(uint(1000)),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint()
+				},
+			},
+			want: want{
+				value:  uint(1000),
+				panics: false,
+			},
+		},
+		{
+			name: "Uint/wrong type",
+			fields: fields{
+				value: Int(0),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Uint/zero",
+			fields: fields{
+				value: Value{},
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Uint8/primitive",
+			fields: fields{
+				value: Uint8(200),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint8()
+				},
+			},
+			want: want{
+				value:  uint8(200),
+				panics: false,
+			},
+		},
+		{
+			name: "Uint8/fallback",
+			fields: fields{
+				value: Any(uint8(200)),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint8()
+				},
+			},
+			want: want{
+				value:  uint8(200),
+				panics: false,
+			},
+		},
+		{
+			name: "Uint8/wrong type",
+			fields: fields{
+				value: Int(0),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint8()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Uint8/zero",
+			fields: fields{
+				value: Value{},
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint8()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Uint16/primitive",
+			fields: fields{
+				value: Uint16(1000),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint16()
+				},
+			},
+			want: want{
+				value:  uint16(1000),
+				panics: false,
+			},
+		},
+		{
+			name: "Uint16/fallback",
+			fields: fields{
+				value: Any(uint16(1000)),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint16()
+				},
+			},
+			want: want{
+				value:  uint16(1000),
+				panics: false,
+			},
+		},
+		{
+			name: "Uint16/wrong type",
+			fields: fields{
+				value: Int(0),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint16()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Uint16/zero",
+			fields: fields{
+				value: Value{},
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint16()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Uint32/primitive",
+			fields: fields{
+				value: Uint32(1000),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint32()
+				},
+			},
+			want: want{
+				value:  uint32(1000),
+				panics: false,
+			},
+		},
+		{
+			name: "Uint32/fallback",
+			fields: fields{
+				value: Any(uint32(1000)),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint32()
+				},
+			},
+			want: want{
+				value:  uint32(1000),
+				panics: false,
+			},
+		},
+		{
+			name: "Uint32/wrong type",
+			fields: fields{
+				value: Int(0),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint32()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Uint32/zero",
+			fields: fields{
+				value: Value{},
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint32()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Uint64/primitive",
+			fields: fields{
+				value: Uint64(1 << 63),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint64()
+				},
+			},
+			want: want{
+				value:  uint64(1 << 63),
+				panics: false,
+			},
+		},
+		{
+			name: "Uint64/fallback",
+			fields: fields{
+				value: Any(uint64(1 << 63)),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint64()
+				},
+			},
+			want: want{
+				value:  uint64(1 << 63),
+				panics: false,
+			},
+		},
+		{
+			name: "Uint64/wrong type",
+			fields: fields{
+				value: Int(0),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint64()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Uint64/zero",
+			fields: fields{
+				value: Value{},
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUint64()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Uintptr/primitive",
+			fields: fields{
+				value: Uintptr(1000),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUintptr()
+				},
+			},
+			want: want{
+				value:  uintptr(1000),
+				panics: false,
+			},
+		},
+		{
+			name: "Uintptr/fallback",
+			fields: fields{
+				value: Any(uintptr(1000)),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUintptr()
+				},
+			},
+			want: want{
+				value:  uintptr(1000),
+				panics: false,
+			},
+		},
+		{
+			name: "Uintptr/wrong type",
+			fields: fields{
+				value: Int(0),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUintptr()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Uintptr/zero",
+			fields: fields{
+				value: Value{},
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsUintptr()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Float32/primitive",
+			fields: fields{
+				value: Float32(1.25),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsFloat32()
+				},
+			},
+			want: want{
+				value:  float32(1.25),
+				panics: false,
+			},
+		},
+		{
+			name: "Float32/fallback",
+			fields: fields{
+				value: Any(float32(1.25)),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsFloat32()
+				},
+			},
+			want: want{
+				value:  float32(1.25),
+				panics: false,
+			},
+		},
+		{
+			name: "Float32/wrong type",
+			fields: fields{
+				value: Int(0),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsFloat32()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Float32/zero",
+			fields: fields{
+				value: Value{},
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsFloat32()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Float64/primitive",
+			fields: fields{
+				value: Float64(1.25),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsFloat64()
+				},
+			},
+			want: want{
+				value:  float64(1.25),
+				panics: false,
+			},
+		},
+		{
+			name: "Float64/fallback",
+			fields: fields{
+				value: Any(float64(1.25)),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsFloat64()
+				},
+			},
+			want: want{
+				value:  float64(1.25),
+				panics: false,
+			},
+		},
+		{
+			name: "Float64/wrong type",
+			fields: fields{
+				value: Int(0),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsFloat64()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Float64/zero",
+			fields: fields{
+				value: Value{},
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsFloat64()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Bool/primitive",
+			fields: fields{
+				value: Bool(true),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsBool()
+				},
+			},
+			want: want{
+				value:  true,
+				panics: false,
+			},
+		},
+		{
+			name: "Bool/fallback",
+			fields: fields{
+				value: Any(true),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsBool()
+				},
+			},
+			want: want{
+				value:  true,
+				panics: false,
+			},
+		},
+		{
+			name: "Bool/wrong type",
+			fields: fields{
+				value: Int(0),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsBool()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Bool/zero",
+			fields: fields{
+				value: Value{},
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsBool()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Int/narrow integer",
+			fields: fields{
+				value: Int16(1),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Int/fallback mismatch",
+			fields: fields{
+				value: Any(int64(1)),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "String/fallback mismatch",
+			fields: fields{
+				value: Any([]byte("x")),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsString()
+				},
+			},
+			want: want{
+				value:  nil,
+				panics: true,
+			},
+		},
+		{
+			name: "Bytes/nil",
+			fields: fields{
+				value: Bytes(nil),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsBytes()
+				},
+			},
+			want: want{
+				value:  []byte(nil),
+				panics: false,
+			},
+		},
+		{
+			name: "Bytes/fallback nil",
+			fields: fields{
+				value: Any([]byte(nil)),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsBytes()
+				},
+			},
+			want: want{
+				value:  []byte(nil),
+				panics: false,
+			},
+		},
+		{
+			name: "Int/named type",
+			fields: fields{
+				value: Any(namedInt(1)),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsInt()
+				},
+			},
+			want: want{
+				panics: true,
+			},
+		},
+		{
+			name: "String/named type",
+			fields: fields{
+				value: Any(namedString("x")),
+			},
+			args: args{
+				read: func(v Value) any {
+					return v.AsString()
+				},
+			},
+			want: want{
+				panics: true,
+			},
+		},
+		{
+			name: "Bytes/primitive capacity",
+			fields: fields{
+				value: Bytes(make([]byte, 2, 8)),
+			},
+			args: args{
+				read: func(v Value) any {
+					return cap(v.AsBytes())
+				},
+			},
+			want: want{
+				value: 2,
+			},
+		},
+		{
+			name: "Bytes/fallback capacity",
+			fields: fields{
+				value: Any(make([]byte, 2, 8)),
+			},
+			args: args{
+				read: func(v Value) any {
+					return cap(v.AsBytes())
+				},
+			},
+			want: want{
+				value: 8,
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			var st Store
-			gotText, gotMatched := formatPrimitives(&st, reflect.ValueOf(test.args.value))
-			got := want{
-				text:    gotText,
-				matched: gotMatched,
-			}
-			testutil.AssertValue(t, got, test.want, "formatPrimitives")
+			got, panicked := func() (got any, panicked bool) {
+				defer func() {
+					panicked = recover() != nil
+				}()
+				return test.args.read(test.fields.value), false
+			}()
+			testutil.AssertValue(t, got, test.want.value, "value")
+			testutil.AssertValue(t, panicked, test.want.panics, "panic")
 		})
 	}
-}
-
-func Test_resolveReference(t *testing.T) {
-	type args struct {
-		value func() reflect.Value
-	}
-	type want struct {
-		kind     reflect.Kind
-		text     string
-		resolved bool
-	}
-	tests := []struct {
-		name string
-		args args
-		want want
-	}{
-		{
-			name: "nil pointer is missing",
-			args: args{
-				value: func() reflect.Value {
-					return reflect.ValueOf((*int)(nil))
-				},
-			},
-			want: want{
-				kind:     reflect.Pointer,
-				resolved: true,
-			},
-		},
-		{
-			name: "nil map after dereference is missing",
-			args: args{
-				value: func() reflect.Value {
-					value := map[string]int(nil)
-					return reflect.ValueOf(&value)
-				},
-			},
-			want: want{
-				kind:     reflect.Map,
-				resolved: true,
-			},
-		},
-		{
-			name: "pointer stringer resolves before dereference",
-			args: args{
-				value: func() reflect.Value {
-					return reflect.ValueOf(&testutil.PtrStringer{
-						Value: "stringer",
-					})
-				},
-			},
-			want: want{
-				kind:     reflect.Pointer,
-				text:     "stringer",
-				resolved: true,
-			},
-		},
-		{
-			name: "interface and pointer chain unwraps",
-			args: args{
-				value: func() reflect.Value {
-					value := 42
-					var wrapped any = &value
-					return reflect.ValueOf(&wrapped).Elem()
-				},
-			},
-			want: want{
-				kind: reflect.Int,
-			},
-		},
-		{
-			name: "terminal stringer resolves",
-			args: args{
-				value: func() reflect.Value {
-					return reflect.ValueOf(testutil.Stringer{
-						Value: "stringer",
-					})
-				},
-			},
-			want: want{
-				kind:     reflect.Struct,
-				text:     "stringer",
-				resolved: true,
-			},
-		},
-		{
-			name: "self-referential pointer remains unresolved",
-			args: args{
-				value: func() reflect.Value {
-					var value cyclicPointer
-					value = cyclicPointer(&value)
-					return reflect.ValueOf(value)
-				},
-			},
-			want: want{
-				kind: reflect.Pointer,
-			},
-		},
-		{
-			name: "pointer pair remains unresolved",
-			args: args{
-				value: func() reflect.Value {
-					var first cyclicPointer
-					var second cyclicPointer
-					first = cyclicPointer(&second)
-					second = cyclicPointer(&first)
-					return reflect.ValueOf(first)
-				},
-			},
-			want: want{
-				kind: reflect.Pointer,
-			},
-		},
-		{
-			name: "interface cycle remains unresolved",
-			args: args{
-				value: func() reflect.Value {
-					var value any
-					value = &value
-					return reflect.ValueOf(value)
-				},
-			},
-			want: want{
-				kind: reflect.Pointer,
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			gotValue, gotText, gotResolved := resolveReference(test.args.value())
-			got := want{
-				kind:     gotValue.Kind(),
-				text:     gotText,
-				resolved: gotResolved,
-			}
-			testutil.AssertValue(t, got, test.want, "resolveReference")
-		})
-	}
-}
-
-func Test_resolveReferenceChain(t *testing.T) {
-	type args struct {
-		value func() reflect.Value
-	}
-	type want struct {
-		kind     reflect.Kind
-		text     string
-		resolved bool
-	}
-	tests := []struct {
-		name string
-		args args
-		want want
-	}{
-		{
-			name: "nil reference is missing",
-			args: args{
-				value: func() reflect.Value {
-					return reflect.ValueOf((*int)(nil))
-				},
-			},
-			want: want{
-				kind:     reflect.Pointer,
-				resolved: true,
-			},
-		},
-		{
-			name: "reference stringer resolves",
-			args: args{
-				value: func() reflect.Value {
-					return reflect.ValueOf(&testutil.PtrStringer{
-						Value: "stringer",
-					})
-				},
-			},
-			want: want{
-				kind:     reflect.Pointer,
-				text:     "stringer",
-				resolved: true,
-			},
-		},
-		{
-			name: "terminal nil map is missing",
-			args: args{
-				value: func() reflect.Value {
-					value := map[string]int(nil)
-					return reflect.ValueOf(&value)
-				},
-			},
-			want: want{
-				kind:     reflect.Map,
-				resolved: true,
-			},
-		},
-		{
-			name: "terminal stringer resolves",
-			args: args{
-				value: func() reflect.Value {
-					var value any = testutil.Stringer{
-						Value: "stringer",
-					}
-					return reflect.ValueOf(&value)
-				},
-			},
-			want: want{
-				kind:     reflect.Struct,
-				text:     "stringer",
-				resolved: true,
-			},
-		},
-		{
-			name: "deep chain unwraps",
-			args: args{
-				value: func() reflect.Value {
-					value := reflect.ValueOf(42)
-					for range 12 {
-						pointer := reflect.New(value.Type())
-						pointer.Elem().Set(value)
-						value = pointer
-					}
-					return value
-				},
-			},
-			want: want{
-				kind: reflect.Int,
-			},
-		},
-		{
-			name: "long cycle remains unresolved",
-			args: args{
-				value: func() reflect.Value {
-					values := make([]cyclicPointer, 12)
-					for index := range len(values) - 1 {
-						values[index] = cyclicPointer(&values[index+1])
-					}
-					values[len(values)-1] = cyclicPointer(&values[4])
-					return reflect.ValueOf(values[0])
-				},
-			},
-			want: want{
-				kind: reflect.Pointer,
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			gotValue, gotText, gotResolved := resolveReferenceChain(test.args.value())
-			got := want{
-				kind:     gotValue.Kind(),
-				text:     gotText,
-				resolved: gotResolved,
-			}
-			testutil.AssertValue(t, got, test.want, "resolveReferenceChain")
-		})
-	}
-}
-
-func Test_resolveStringerOrError(t *testing.T) {
-	type args struct {
-		value func() reflect.Value
-	}
-	type want struct {
-		text     string
-		resolved bool
-	}
-	tests := []struct {
-		name string
-		args args
-		want want
-	}{
-		{
-			name: "inaccessible value remains unresolved",
-			args: args{
-				value: func() reflect.Value {
-					return reflect.ValueOf(struct {
-						value string
-					}{
-						value: "hidden",
-					}).Field(0)
-				},
-			},
-		},
-		{
-			name: "stringer resolves",
-			args: args{
-				value: func() reflect.Value {
-					return reflect.ValueOf(testutil.Stringer{
-						Value: "stringer",
-					})
-				},
-			},
-			want: want{
-				text:     "stringer",
-				resolved: true,
-			},
-		},
-		{
-			name: "error resolves",
-			args: args{
-				value: func() reflect.Value {
-					return reflect.ValueOf(testutil.Error{
-						Value: "error",
-					})
-				},
-			},
-			want: want{
-				text:     "error",
-				resolved: true,
-			},
-		},
-		{
-			name: "error takes precedence over stringer",
-			args: args{
-				value: func() reflect.Value {
-					return reflect.ValueOf(stringerError{})
-				},
-			},
-			want: want{
-				text:     "error",
-				resolved: true,
-			},
-		},
-		{
-			name: "ordinary value remains unresolved",
-			args: args{
-				value: func() reflect.Value {
-					return reflect.ValueOf(42)
-				},
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			gotText, gotResolved := resolveStringerOrError(test.args.value())
-			got := want{
-				text:     gotText,
-				resolved: gotResolved,
-			}
-			testutil.AssertValue(t, got, test.want, "resolveStringerOrError")
-		})
-	}
-}
-
-func Test_resolveKind(t *testing.T) {
-	type args struct {
-		value any
-	}
-	type want struct {
-		text     string
-		resolved bool
-	}
-	tests := []struct {
-		name string
-		args args
-		want want
-	}{
-		{
-			name: "string",
-			args: args{
-				value: "value",
-			},
-			want: want{
-				text:     "value",
-				resolved: true,
-			},
-		},
-		{
-			name: "bool",
-			args: args{
-				value: true,
-			},
-			want: want{
-				text:     "true",
-				resolved: true,
-			},
-		},
-		{
-			name: "int",
-			args: args{
-				value: int16(-16),
-			},
-			want: want{
-				text:     "-16",
-				resolved: true,
-			},
-		},
-		{
-			name: "uint",
-			args: args{
-				value: uint16(16),
-			},
-			want: want{
-				text:     "16",
-				resolved: true,
-			},
-		},
-		{
-			name: "float32",
-			args: args{
-				value: float32(0.1),
-			},
-			want: want{
-				text:     "0.1",
-				resolved: true,
-			},
-		},
-		{
-			name: "float64",
-			args: args{
-				value: 1.25,
-			},
-			want: want{
-				text:     "1.25",
-				resolved: true,
-			},
-		},
-		{
-			name: "other kind remains unresolved",
-			args: args{
-				value: complex(1, 2),
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			var st Store
-			gotText, gotResolved := resolveKind(&st, reflect.ValueOf(test.args.value))
-			got := want{
-				text:     gotText,
-				resolved: gotResolved,
-			}
-			testutil.AssertValue(t, got, test.want, "resolveKind")
-		})
-	}
-}
-
-func Test_appendBytes(t *testing.T) {
-	type args struct {
-		value []byte
-	}
-	type want struct {
-		text string
-	}
-	tests := []struct {
-		name string
-		args args
-		want want
-	}{
-		{
-			name: "appends bytes",
-			args: args{
-				value: []byte("value"),
-			},
-			want: want{
-				text: "value",
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			var st Store
-			got := appendBytes(&st, test.args.value)
-			testutil.AssertValue(t, got, test.want.text, "appendBytes")
-		})
-	}
-}
-
-func Test_appendInt(t *testing.T) {
-	type args struct {
-		value int64
-	}
-	type want struct {
-		text string
-	}
-	tests := []struct {
-		name string
-		args args
-		want want
-	}{
-		{
-			name: "appends integer",
-			args: args{
-				value: -42,
-			},
-			want: want{
-				text: "-42",
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			var st Store
-			got := appendInt(&st, test.args.value)
-			testutil.AssertValue(t, got, test.want.text, "appendInt")
-		})
-	}
-}
-
-func Test_appendUint(t *testing.T) {
-	type args struct {
-		value uint64
-	}
-	type want struct {
-		text string
-	}
-	tests := []struct {
-		name string
-		args args
-		want want
-	}{
-		{
-			name: "appends unsigned integer",
-			args: args{
-				value: 42,
-			},
-			want: want{
-				text: "42",
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			var st Store
-			got := appendUint(&st, test.args.value)
-			testutil.AssertValue(t, got, test.want.text, "appendUint")
-		})
-	}
-}
-
-func Test_appendFloat(t *testing.T) {
-	type args struct {
-		value   float64
-		bitSize int
-	}
-	type want struct {
-		text string
-	}
-	tests := []struct {
-		name string
-		args args
-		want want
-	}{
-		{
-			name: "appends floating point",
-			args: args{
-				value:   1.25,
-				bitSize: 64,
-			},
-			want: want{
-				text: "1.25",
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			var st Store
-			got := appendFloat(&st, test.args.value, test.args.bitSize)
-			testutil.AssertValue(t, got, test.want.text, "appendFloat")
-		})
-	}
-}
-
-func Test_appendDefault(t *testing.T) {
-	type args struct {
-		value any
-	}
-	type want struct {
-		text string
-	}
-	tests := []struct {
-		name string
-		args args
-		want want
-	}{
-		{
-			name: "appends default representation",
-			args: args{
-				value: map[string]int{"key": 1},
-			},
-			want: want{
-				text: "map[key:1]",
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			var st Store
-			got := appendDefault(&st, test.args.value)
-			testutil.AssertValue(t, got, test.want.text, "appendDefault")
-		})
-	}
-}
-
-func Test_isTypedNil(t *testing.T) {
-	type args struct {
-		value any
-	}
-	type want struct {
-		val bool
-	}
-	tests := []struct {
-		name string
-		args args
-		want want
-	}{
-		{
-			name: "nil interface is not typed nil",
-			want: want{
-				val: false,
-			},
-		},
-		{
-			name: "nil pointer",
-			args: args{
-				value: (*int)(nil),
-			},
-			want: want{
-				val: true,
-			},
-		},
-		{
-			name: "nil map",
-			args: args{
-				value: map[string]int(nil),
-			},
-			want: want{
-				val: true,
-			},
-		},
-		{
-			name: "nil slice",
-			args: args{
-				value: []int(nil),
-			},
-			want: want{
-				val: true,
-			},
-		},
-		{
-			name: "nil channel",
-			args: args{
-				value: chan int(nil),
-			},
-			want: want{
-				val: true,
-			},
-		},
-		{
-			name: "nil function",
-			args: args{
-				value: (func())(nil),
-			},
-			want: want{
-				val: true,
-			},
-		},
-		{
-			name: "non-nil pointer",
-			args: args{
-				value: new(int),
-			},
-			want: want{
-				val: false,
-			},
-		},
-		{
-			name: "ordinary value",
-			args: args{
-				value: 42,
-			},
-			want: want{
-				val: false,
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			got := isTypedNil(test.args.value)
-			testutil.AssertValue(t, got, test.want.val, "isTypedNil")
-		})
-	}
-}
-
-type stringerError struct{}
-
-func (stringerError) Error() string {
-	return "error"
-}
-
-func (stringerError) String() string {
-	return "stringer"
 }

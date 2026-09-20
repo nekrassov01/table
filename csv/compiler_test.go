@@ -177,7 +177,7 @@ func Test_compiler_compileBody(t *testing.T) {
 		state compilerState
 	}
 	type args struct {
-		sources [][]any
+		sources [][]table.Value
 	}
 	type want struct {
 		values   [][]string
@@ -205,7 +205,7 @@ func Test_compiler_compileBody(t *testing.T) {
 				},
 			},
 			args: args{
-				sources: [][]any{{"a", 1}, {"b", 2}},
+				sources: [][]table.Value{{table.String("a"), table.Int(1)}, {table.String("b"), table.Int(2)}},
 			},
 			want: want{
 				values: [][]string{{"a", "1"}, {"b", "2"}},
@@ -227,7 +227,7 @@ func Test_compiler_compileBody(t *testing.T) {
 				},
 			},
 			args: args{
-				sources: [][]any{{"a", "b"}, {"c"}},
+				sources: [][]table.Value{{table.String("a"), table.String("b")}, {table.String("c")}},
 			},
 			want: want{
 				hasError: true,
@@ -457,7 +457,7 @@ func Test_compiler_compileRow(t *testing.T) {
 		bodyStart int
 	}
 	type args struct {
-		source   []any
+		source   []table.Value
 		rowIndex int
 	}
 	type want struct {
@@ -504,7 +504,7 @@ func Test_compiler_compileRow(t *testing.T) {
 				bodyStart: -1,
 			},
 			args: args{
-				source:   []any{testutil.PanicStringer{}, ""},
+				source:   []table.Value{table.Any(testutil.PanicStringer{}), table.String("")},
 				rowIndex: 2,
 			},
 			want: want{
@@ -523,7 +523,7 @@ func Test_compiler_compileRow(t *testing.T) {
 				bodyStart: -1,
 			},
 			args: args{
-				source: []any{"a", "b"},
+				source: []table.Value{table.String("a"), table.String("b")},
 			},
 			want: want{
 				bodyStart: -1,
@@ -547,7 +547,7 @@ func Test_compiler_compileRow(t *testing.T) {
 				bodyStart: 0,
 			},
 			args: args{
-				source: []any{"a"},
+				source: []table.Value{table.String("a")},
 			},
 			want: want{
 				values:      []string{"a"},

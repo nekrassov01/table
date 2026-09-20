@@ -27,7 +27,7 @@ func NewStream(w io.Writer, opts ...Option) *Stream {
 
 // Render writes one body row. The first row that establishes columns writes
 // the configured header before the body.
-func (o *Stream) Render(row []any) error {
+func (o *Stream) Render(row []table.Value) error {
 	if o.err != nil {
 		return o.err
 	}

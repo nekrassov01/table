@@ -3,6 +3,7 @@ package csv
 import (
 	"slices"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/internal/param"
 	"github.com/nekrassov01/table/internal/value"
 )
@@ -55,7 +56,7 @@ func (o *compiler) compileHeader() {
 }
 
 // compileBody compiles and retains body records in input order.
-func (o *compiler) compileBody(sources [][]any) {
+func (o *compiler) compileBody(sources [][]table.Value) {
 	for index, source := range sources {
 		o.compileRow(source, index)
 		if o.err != nil {
@@ -106,7 +107,7 @@ func (o *compiler) compileBand(labels []string, header bool) row {
 }
 
 // compileRow validates and compiles one body record.
-func (o *compiler) compileRow(source []any, rowIndex int) {
+func (o *compiler) compileRow(source []table.Value, rowIndex int) {
 	config := &o.input
 	state := o.state
 	rowColumns := len(source) + config.option.indexOffset
@@ -133,7 +134,7 @@ func (o *compiler) compileRow(source []any, rowIndex int) {
 		rawValue := source[sourceIndex]
 		text := ""
 		if transformer := config.columns[index].transformer; transformer != nil {
-			text = transformer(rawValue)
+			text = transformer(rawValue.AsAny())
 		}
 		if text == "" {
 			text = value.Format(o.strings, rawValue)

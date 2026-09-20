@@ -22,7 +22,7 @@ func NewTable(w io.Writer, opts ...Option) *Table {
 }
 
 // Render writes rows as one complete set of delimiter-separated records.
-func (o *Table) Render(rows [][]any) error {
+func (o *Table) Render(rows [][]table.Value) error {
 	header := o.option.header
 	body := rows
 	if len(header) == 0 {

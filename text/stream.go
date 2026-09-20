@@ -35,7 +35,7 @@ func NewStream(w io.Writer, opts ...Option) *Stream {
 
 // Render writes one body row. The first row that establishes columns fixes the
 // stream's column geometry.
-func (o *Stream) Render(row []any) error {
+func (o *Stream) Render(row []table.Value) error {
 	if o.err != nil {
 		return o.err
 	}

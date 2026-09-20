@@ -85,6 +85,13 @@ make bench target=html benchtime=20000x count=10
 
 Each `Cold` benchmark runs garbage collection twice per iteration to discard the `sync.Pool` workspace, and uses `benchtime=100x` and `count=1`.
 
+The media-specific `ValueInputMixed` and `ValueInputSmallInts` benchmarks include caller-side row construction and rendering for 1000 rows of eight cells. The two cases separate inputs that normally box from integers already served by the runtime's shared values. `Table` constructs the table before timing and creates flat cell storage per render; Stream reuses a single row buffer. These cases live in `benchmarks/pkg_*_test.go` and are included in the existing per-format benchmark targets. Run without profiling for timing comparisons:
+
+```sh
+cd benchmarks
+go test -run '^$' -bench '^Benchmark(Text|HTML|Markdown|Backlog|CSV)(Table|Stream)ValueInput' -benchmem -benchtime=200ms -count=10
+```
+
 CI runs every regular and `Cold` benchmark once with `benchtime=1x` as a smoke check. These runs detect benchmark execution failures; use the comparison process in [`BASELINE.md`](BASELINE.md) to evaluate performance changes.
 
 ## Validation

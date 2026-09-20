@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/internal/testutil"
 )
 
@@ -20,9 +21,9 @@ func TestGolden_TableAllPlaceholder(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := tb.Render([][]any{
-		{nil, nil, nil},
-		{nil, nil, nil},
+	if err := tb.Render([][]table.Value{
+		{table.Any(nil), table.Any(nil), table.Any(nil)},
+		{table.Any(nil), table.Any(nil), table.Any(nil)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -34,10 +35,10 @@ func TestGolden_StreamAllPlaceholder(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := s.Render([]any{nil, nil, nil}); err != nil {
+	if err := s.Render([]table.Value{table.Any(nil), table.Any(nil), table.Any(nil)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{nil, nil, nil}); err != nil {
+	if err := s.Render([]table.Value{table.Any(nil), table.Any(nil), table.Any(nil)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -55,9 +56,9 @@ func TestGolden_TableBandBlank(t *testing.T) {
 		}),
 		WithPlaceholder("-"),
 	)
-	if err := tb.Render([][]any{
-		{"x", 1, 2, 3},
-		{"y", nil, 5},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.Int(1), table.Int(2), table.Int(3)},
+		{table.String("y"), table.Any(nil), table.Int(5)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -73,7 +74,7 @@ func TestGolden_StreamBandBlank(t *testing.T) {
 		}),
 		WithPlaceholder("-"),
 	)
-	for _, row := range [][]any{{"x", 1, 2, 3}, {"y", nil, 5}} {
+	for _, row := range [][]table.Value{{table.String("x"), table.Int(1), table.Int(2), table.Int(3)}, {table.String("y"), table.Any(nil), table.Int(5)}} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
 		}
@@ -89,9 +90,9 @@ func TestGolden_TableBasic(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"Name", "Value"}),
 	)
-	if err := tb.Render([][]any{
-		{"foo", 1},
-		{"bar", 2},
+	if err := tb.Render([][]table.Value{
+		{table.String("foo"), table.Int(1)},
+		{table.String("bar"), table.Int(2)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -103,10 +104,10 @@ func TestGolden_StreamBasic(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"Name", "Value"}),
 	)
-	if err := s.Render([]any{"foo", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("foo"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bar", 2}); err != nil {
+	if err := s.Render([]table.Value{table.String("bar"), table.Int(2)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -120,10 +121,10 @@ func TestGolden_TableCJK(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"日本語", "ASCII"}),
 	)
-	if err := tb.Render([][]any{
-		{"あいう", "abc"},
-		{"日本", "longer-text"},
-		{"テスト", "x"},
+	if err := tb.Render([][]table.Value{
+		{table.String("あいう"), table.String("abc")},
+		{table.String("日本"), table.String("longer-text")},
+		{table.String("テスト"), table.String("x")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -135,13 +136,13 @@ func TestGolden_StreamCJK(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"日本語", "ASCII"}),
 	)
-	if err := s.Render([]any{"あいう", "abc"}); err != nil {
+	if err := s.Render([]table.Value{table.String("あいう"), table.String("abc")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"日本", "longer-text"}); err != nil {
+	if err := s.Render([]table.Value{table.String("日本"), table.String("longer-text")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"テスト", "x"}); err != nil {
+	if err := s.Render([]table.Value{table.String("テスト"), table.String("x")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -155,8 +156,8 @@ func TestGolden_TableControlChars(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := tb.Render([][]any{
-		{"a\tb", "c\vd", "e\x00f"},
+	if err := tb.Render([][]table.Value{
+		{table.String("a\tb"), table.String("c\vd"), table.String("e\x00f")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -168,7 +169,7 @@ func TestGolden_StreamControlChars(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := s.Render([]any{"a\tb", "c\vd", "e\x00f"}); err != nil {
+	if err := s.Render([]table.Value{table.String("a\tb"), table.String("c\vd"), table.String("e\x00f")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -183,9 +184,9 @@ func TestGolden_TableCRLFQuote(t *testing.T) {
 		WithCRLF(),
 		WithHeader([]string{"Key", "Value"}),
 	)
-	if err := tb.Render([][]any{
-		{"crlf", "a\r\nb"},
-		{"cr", "a\rb"},
+	if err := tb.Render([][]table.Value{
+		{table.String("crlf"), table.String("a\r\nb")},
+		{table.String("cr"), table.String("a\rb")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -198,10 +199,10 @@ func TestGolden_StreamCRLFQuote(t *testing.T) {
 		WithCRLF(),
 		WithHeader([]string{"Key", "Value"}),
 	)
-	if err := s.Render([]any{"crlf", "a\r\nb"}); err != nil {
+	if err := s.Render([]table.Value{table.String("crlf"), table.String("a\r\nb")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"cr", "a\rb"}); err != nil {
+	if err := s.Render([]table.Value{table.String("cr"), table.String("a\rb")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -217,7 +218,7 @@ func TestGolden_TableDelimiterIndex(t *testing.T) {
 		WithIndex(),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{{"x", "y"}, {"p", "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("y")}, {table.String("p"), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_delimiter_index", buf.Bytes())
@@ -230,7 +231,7 @@ func TestGolden_StreamDelimiterIndex(t *testing.T) {
 		WithIndex(),
 		WithHeader([]string{"A", "B"}),
 	)
-	for _, r := range [][]any{{"x", "y"}, {"p", "q"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.String("y")}, {table.String("p"), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -247,7 +248,7 @@ func TestGolden_TableDelimiterUnicode(t *testing.T) {
 		WithDelimiter('・'),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{{"alpha", "x・y"}, {"beta", "a,b"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("alpha"), table.String("x・y")}, {table.String("beta"), table.String("a,b")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_delimiter_unicode", buf.Bytes())
@@ -259,7 +260,7 @@ func TestGolden_StreamDelimiterUnicode(t *testing.T) {
 		WithDelimiter('・'),
 		WithHeader([]string{"A", "B"}),
 	)
-	for _, r := range [][]any{{"alpha", "x・y"}, {"beta", "a,b"}} {
+	for _, r := range [][]table.Value{{table.String("alpha"), table.String("x・y")}, {table.String("beta"), table.String("a,b")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -277,7 +278,7 @@ func TestGolden_TableDelimiterPlaceholder(t *testing.T) {
 		WithPlaceholder("-"),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{{"x", nil}, {nil, "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.Any(nil)}, {table.Any(nil), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_delimiter_placeholder", buf.Bytes())
@@ -290,7 +291,7 @@ func TestGolden_StreamDelimiterPlaceholder(t *testing.T) {
 		WithPlaceholder("-"),
 		WithHeader([]string{"A", "B"}),
 	)
-	for _, r := range [][]any{{"x", nil}, {nil, "q"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.Any(nil)}, {table.Any(nil), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -310,7 +311,7 @@ func TestGolden_TableDelimiterTransformer(t *testing.T) {
 		}),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{{"x", "y"}, {"p", "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("y")}, {table.String("p"), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_delimiter_transformer", buf.Bytes())
@@ -325,7 +326,7 @@ func TestGolden_StreamDelimiterTransformer(t *testing.T) {
 		}),
 		WithHeader([]string{"A", "B"}),
 	)
-	for _, r := range [][]any{{"x", "y"}, {"p", "q"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.String("y")}, {table.String("p"), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -341,8 +342,8 @@ func TestGolden_TableEmoji(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := tb.Render([][]any{
-		{"\U0001F600", "\U0001F469\u200D\U0001F4BB", "e\u0301"},
+	if err := tb.Render([][]table.Value{
+		{table.String("\U0001F600"), table.String("\U0001F469\u200D\U0001F4BB"), table.String("e\u0301")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -354,7 +355,7 @@ func TestGolden_StreamEmoji(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := s.Render([]any{"\U0001F600", "\U0001F469\u200D\U0001F4BB", "e\u0301"}); err != nil {
+	if err := s.Render([]table.Value{table.String("\U0001F600"), table.String("\U0001F469\u200D\U0001F4BB"), table.String("e\u0301")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -368,8 +369,8 @@ func TestGolden_TableEmptyHeaderLabel(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"", "B", ""}),
 	)
-	if err := tb.Render([][]any{
-		{"x", "y", "z"},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.String("y"), table.String("z")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -381,7 +382,7 @@ func TestGolden_StreamEmptyHeaderLabel(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"", "B", ""}),
 	)
-	if err := s.Render([]any{"x", "y", "z"}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.String("y"), table.String("z")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -395,11 +396,11 @@ func TestGolden_TableEmptyVsNil(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"Kind", "Value"}),
 	)
-	if err := tb.Render([][]any{
-		{"nil", nil},
-		{"empty", ""},
-		{"space", " "},
-		{"text", "hello"},
+	if err := tb.Render([][]table.Value{
+		{table.String("nil"), table.Any(nil)},
+		{table.String("empty"), table.String("")},
+		{table.String("space"), table.String(" ")},
+		{table.String("text"), table.String("hello")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -411,16 +412,16 @@ func TestGolden_StreamEmptyVsNil(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"Kind", "Value"}),
 	)
-	if err := s.Render([]any{"nil", nil}); err != nil {
+	if err := s.Render([]table.Value{table.String("nil"), table.Any(nil)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"empty", ""}); err != nil {
+	if err := s.Render([]table.Value{table.String("empty"), table.String("")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"space", " "}); err != nil {
+	if err := s.Render([]table.Value{table.String("space"), table.String(" ")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"text", "hello"}); err != nil {
+	if err := s.Render([]table.Value{table.String("text"), table.String("hello")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -437,9 +438,9 @@ func TestGolden_TableFooter(t *testing.T) {
 			return [][]string{{"Total", "300"}}
 		}),
 	)
-	if err := tb.Render([][]any{
-		{"alice", 100},
-		{"bob", 200},
+	if err := tb.Render([][]table.Value{
+		{table.String("alice"), table.Int(100)},
+		{table.String("bob"), table.Int(200)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -454,10 +455,10 @@ func TestGolden_StreamFooter(t *testing.T) {
 			return [][]string{{"Total", "300"}}
 		}),
 	)
-	if err := s.Render([]any{"alice", 100}); err != nil {
+	if err := s.Render([]table.Value{table.String("alice"), table.Int(100)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bob", 200}); err != nil {
+	if err := s.Render([]table.Value{table.String("bob"), table.Int(200)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -475,7 +476,7 @@ func TestGolden_TableFooterDelimiter(t *testing.T) {
 		WithDelimiter(';'),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{{"x", "y"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("y")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_footer_delimiter", buf.Bytes())
@@ -490,7 +491,7 @@ func TestGolden_StreamFooterDelimiter(t *testing.T) {
 		WithDelimiter(';'),
 		WithHeader([]string{"A", "B"}),
 	)
-	for _, r := range [][]any{{"x", "y"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.String("y")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -569,7 +570,7 @@ func TestGolden_TableFooterTransformer(t *testing.T) {
 		}),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{{"x", "raw"}, {"p", "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("raw")}, {table.String("p"), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_footer_transformer", buf.Bytes())
@@ -589,7 +590,7 @@ func TestGolden_StreamFooterTransformer(t *testing.T) {
 		}),
 		WithHeader([]string{"A", "B"}),
 	)
-	for _, r := range [][]any{{"x", "raw"}, {"p", "q"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.String("raw")}, {table.String("p"), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -627,9 +628,9 @@ func TestGolden_TableHeaderWiderThanRows(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"A", "B", "C", "D", "E"}),
 	)
-	if err := tb.Render([][]any{
-		{"x", "y"},
-		{"p", "q"},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.String("y")},
+		{table.String("p"), table.String("q")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -641,10 +642,10 @@ func TestGolden_StreamHeaderWiderThanRows(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"A", "B", "C", "D", "E"}),
 	)
-	if err := s.Render([]any{"x", "y"}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.String("y")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"p", "q"}); err != nil {
+	if err := s.Render([]table.Value{table.String("p"), table.String("q")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -660,7 +661,7 @@ func TestGolden_TableIndexPlaceholder(t *testing.T) {
 		WithPlaceholder("-"),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{{"x", nil}, {nil, "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.Any(nil)}, {table.Any(nil), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_index_placeholder", buf.Bytes())
@@ -673,7 +674,7 @@ func TestGolden_StreamIndexPlaceholder(t *testing.T) {
 		WithPlaceholder("-"),
 		WithHeader([]string{"A", "B"}),
 	)
-	for _, r := range [][]any{{"x", nil}, {nil, "q"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.Any(nil)}, {table.Any(nil), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -696,7 +697,7 @@ func TestGolden_TableIndexTransformer(t *testing.T) {
 		}),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{{"x", "raw"}, {"p", "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("raw")}, {table.String("p"), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_index_transformer", buf.Bytes())
@@ -714,7 +715,7 @@ func TestGolden_StreamIndexTransformer(t *testing.T) {
 		}),
 		WithHeader([]string{"A", "B"}),
 	)
-	for _, r := range [][]any{{"x", "raw"}, {"p", "q"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.String("raw")}, {table.String("p"), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -730,8 +731,8 @@ func TestGolden_TableInvalidUtf8(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := tb.Render([][]any{
-		{"a\xffb", "\xfe", "ok"},
+	if err := tb.Render([][]table.Value{
+		{table.String("a\xffb"), table.String("\xfe"), table.String("ok")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -743,7 +744,7 @@ func TestGolden_StreamInvalidUtf8(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := s.Render([]any{"a\xffb", "\xfe", "ok"}); err != nil {
+	if err := s.Render([]table.Value{table.String("a\xffb"), table.String("\xfe"), table.String("ok")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -757,10 +758,10 @@ func TestGolden_TableLongValue(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{
-		{"s", 1},
-		{strings.Repeat("longvalue", 40), 2},
-		{"t", 3},
+	if err := tb.Render([][]table.Value{
+		{table.String("s"), table.Int(1)},
+		{table.Any(strings.Repeat("longvalue", 40)), table.Int(2)},
+		{table.String("t"), table.Int(3)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -772,13 +773,13 @@ func TestGolden_StreamLongValue(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := s.Render([]any{"s", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("s"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{strings.Repeat("longvalue", 40), 2}); err != nil {
+	if err := s.Render([]table.Value{table.Any(strings.Repeat("longvalue", 40)), table.Int(2)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"t", 3}); err != nil {
+	if err := s.Render([]table.Value{table.String("t"), table.Int(3)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -793,10 +794,10 @@ func TestGolden_TableNilInNumeric(t *testing.T) {
 		WithPlaceholder("N/A"),
 		WithHeader([]string{"N", "V"}),
 	)
-	if err := tb.Render([][]any{
-		{1, 100},
-		{2, nil},
-		{3, -5},
+	if err := tb.Render([][]table.Value{
+		{table.Int(1), table.Int(100)},
+		{table.Int(2), table.Any(nil)},
+		{table.Int(3), table.Any(-5)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -809,13 +810,13 @@ func TestGolden_StreamNilInNumeric(t *testing.T) {
 		WithPlaceholder("N/A"),
 		WithHeader([]string{"N", "V"}),
 	)
-	if err := s.Render([]any{1, 100}); err != nil {
+	if err := s.Render([]table.Value{table.Int(1), table.Int(100)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{2, nil}); err != nil {
+	if err := s.Render([]table.Value{table.Int(2), table.Any(nil)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{3, -5}); err != nil {
+	if err := s.Render([]table.Value{table.Int(3), table.Any(-5)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -827,9 +828,9 @@ func TestGolden_StreamNilInNumeric(t *testing.T) {
 func TestGolden_TableNoHeader(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf)
-	if err := tb.Render([][]any{
-		{"a", 1},
-		{"b", 2},
+	if err := tb.Render([][]table.Value{
+		{table.String("a"), table.Int(1)},
+		{table.String("b"), table.Int(2)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -839,10 +840,10 @@ func TestGolden_TableNoHeader(t *testing.T) {
 func TestGolden_StreamNoHeader(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf)
-	if err := s.Render([]any{"a", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("a"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"b", 2}); err != nil {
+	if err := s.Render([]table.Value{table.String("b"), table.Int(2)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -857,9 +858,9 @@ func TestGolden_TablePlaceholder(t *testing.T) {
 		WithPlaceholder("N/A"),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{
-		{"x", ""},
-		{nil, "y"},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.String("")},
+		{table.Any(nil), table.String("y")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -872,10 +873,10 @@ func TestGolden_StreamPlaceholder(t *testing.T) {
 		WithPlaceholder("N/A"),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := s.Render([]any{"x", ""}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.String("")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{nil, "y"}); err != nil {
+	if err := s.Render([]table.Value{table.Any(nil), table.String("y")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -896,7 +897,7 @@ func TestGolden_TablePlaceholderTransformer(t *testing.T) {
 		}),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{{"x", nil}, {"p", "raw"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.Any(nil)}, {table.String("p"), table.String("raw")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_placeholder_transformer", buf.Bytes())
@@ -914,7 +915,7 @@ func TestGolden_StreamPlaceholderTransformer(t *testing.T) {
 		}),
 		WithHeader([]string{"A", "B"}),
 	)
-	for _, r := range [][]any{{"x", nil}, {"p", "raw"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.Any(nil)}, {table.String("p"), table.String("raw")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -932,7 +933,7 @@ func TestGolden_TablePointer(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"a", "b"}),
 	)
-	if err := tb.Render([][]any{{&str, &s}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.Any(&str), table.Any(&s)}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_pointer", buf.Bytes())
@@ -945,7 +946,7 @@ func TestGolden_StreamPointer(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"a", "b"}),
 	)
-	if err := s.Render([]any{&str, &st}); err != nil {
+	if err := s.Render([]table.Value{table.Any(&str), table.Any(&st)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -960,9 +961,9 @@ func TestGolden_TableQuoteComma(t *testing.T) {
 		WithDelimiter(','),
 		WithHeader([]string{"Name", "Note"}),
 	)
-	if err := tb.Render([][]any{
-		{"alice", "hello, world"},
-		{"bob", "no comma"},
+	if err := tb.Render([][]table.Value{
+		{table.String("alice"), table.String("hello, world")},
+		{table.String("bob"), table.String("no comma")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -975,10 +976,10 @@ func TestGolden_StreamQuoteComma(t *testing.T) {
 		WithDelimiter(','),
 		WithHeader([]string{"Name", "Note"}),
 	)
-	if err := s.Render([]any{"alice", "hello, world"}); err != nil {
+	if err := s.Render([]table.Value{table.String("alice"), table.String("hello, world")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bob", "no comma"}); err != nil {
+	if err := s.Render([]table.Value{table.String("bob"), table.String("no comma")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -992,9 +993,9 @@ func TestGolden_TableQuoteDoubleQuote(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"Name", "Note"}),
 	)
-	if err := tb.Render([][]any{
-		{"alice", `say "hello"`},
-		{"bob", "no quote"},
+	if err := tb.Render([][]table.Value{
+		{table.String("alice"), table.String(`say "hello"`)},
+		{table.String("bob"), table.String("no quote")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1006,10 +1007,10 @@ func TestGolden_StreamQuoteDoubleQuote(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"Name", "Note"}),
 	)
-	if err := s.Render([]any{"alice", `say "hello"`}); err != nil {
+	if err := s.Render([]table.Value{table.String("alice"), table.String(`say "hello"`)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bob", "no quote"}); err != nil {
+	if err := s.Render([]table.Value{table.String("bob"), table.String("no quote")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1024,12 +1025,12 @@ func TestGolden_TableQuoteMixed(t *testing.T) {
 		WithDelimiter(','),
 		WithHeader([]string{"Name", "Note"}),
 	)
-	if err := tb.Render([][]any{
-		{"alice", "has, comma\nand newline"},
-		{"bob", `"quoted"`},
-		{"carol", "plain"},
-		{"dave", " leading"},
-		{"erin", `\.`},
+	if err := tb.Render([][]table.Value{
+		{table.String("alice"), table.String("has, comma\nand newline")},
+		{table.String("bob"), table.String(`"quoted"`)},
+		{table.String("carol"), table.String("plain")},
+		{table.String("dave"), table.String(" leading")},
+		{table.String("erin"), table.String(`\.`)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1042,19 +1043,19 @@ func TestGolden_StreamQuoteMixed(t *testing.T) {
 		WithDelimiter(','),
 		WithHeader([]string{"Name", "Note"}),
 	)
-	if err := s.Render([]any{"alice", "has, comma\nand newline"}); err != nil {
+	if err := s.Render([]table.Value{table.String("alice"), table.String("has, comma\nand newline")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bob", `"quoted"`}); err != nil {
+	if err := s.Render([]table.Value{table.String("bob"), table.String(`"quoted"`)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"carol", "plain"}); err != nil {
+	if err := s.Render([]table.Value{table.String("carol"), table.String("plain")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"dave", " leading"}); err != nil {
+	if err := s.Render([]table.Value{table.String("dave"), table.String(" leading")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"erin", `\.`}); err != nil {
+	if err := s.Render([]table.Value{table.String("erin"), table.String(`\.`)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1068,9 +1069,9 @@ func TestGolden_TableQuoteNewline(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"Name", "Note"}),
 	)
-	if err := tb.Render([][]any{
-		{"alice", "line1\nline2"},
-		{"bob", "single"},
+	if err := tb.Render([][]table.Value{
+		{table.String("alice"), table.String("line1\nline2")},
+		{table.String("bob"), table.String("single")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1082,10 +1083,10 @@ func TestGolden_StreamQuoteNewline(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"Name", "Note"}),
 	)
-	if err := s.Render([]any{"alice", "line1\nline2"}); err != nil {
+	if err := s.Render([]table.Value{table.String("alice"), table.String("line1\nline2")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bob", "single"}); err != nil {
+	if err := s.Render([]table.Value{table.String("bob"), table.String("single")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1099,9 +1100,9 @@ func TestGolden_TableRaggedRows(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := tb.Render([][]any{
-		{"x"},
-		{"p", "q", "r"},
+	if err := tb.Render([][]table.Value{
+		{table.String("x")},
+		{table.String("p"), table.String("q"), table.String("r")},
 		{},
 	}); err != nil {
 		t.Fatal(err)
@@ -1114,13 +1115,13 @@ func TestGolden_StreamRaggedRows(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := s.Render([]any{"x"}); err != nil {
+	if err := s.Render([]table.Value{table.String("x")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"p", "q", "r"}); err != nil {
+	if err := s.Render([]table.Value{table.String("p"), table.String("q"), table.String("r")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{}); err != nil {
+	if err := s.Render([]table.Value{}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1134,7 +1135,7 @@ func TestGolden_TableSingleCell(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"only"}),
 	)
-	if err := tb.Render([][]any{{"v"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("v")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_single_cell", buf.Bytes())
@@ -1145,7 +1146,7 @@ func TestGolden_StreamSingleCell(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"only"}),
 	)
-	if err := s.Render([]any{"v"}); err != nil {
+	if err := s.Render([]table.Value{table.String("v")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1159,10 +1160,10 @@ func TestGolden_TableSlice(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"Type", "Value"}),
 	)
-	if err := tb.Render([][]any{
-		{"[]int", []int{1, 2, 3}},
-		{"[]string", []string{"a", "b"}},
-		{"[]bool", []bool{true, false}},
+	if err := tb.Render([][]table.Value{
+		{table.String("[]int"), table.Any([]int{1, 2, 3})},
+		{table.String("[]string"), table.Any([]string{"a", "b"})},
+		{table.String("[]bool"), table.Any([]bool{true, false})},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1174,13 +1175,13 @@ func TestGolden_StreamSlice(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"Type", "Value"}),
 	)
-	if err := s.Render([]any{"[]int", []int{1, 2, 3}}); err != nil {
+	if err := s.Render([]table.Value{table.String("[]int"), table.Any([]int{1, 2, 3})}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"[]string", []string{"a", "b"}}); err != nil {
+	if err := s.Render([]table.Value{table.String("[]string"), table.Any([]string{"a", "b"})}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"[]bool", []bool{true, false}}); err != nil {
+	if err := s.Render([]table.Value{table.String("[]bool"), table.Any([]bool{true, false})}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1194,17 +1195,17 @@ func TestGolden_TableSpecialChars(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"Char", "Value"}),
 	)
-	if err := tb.Render([][]any{
-		{"less-than", "<"},
-		{"greater-than", ">"},
-		{"double-quote", "\""},
-		{"single-quote", "'"},
-		{"ampersand", "&"},
-		{"space", " "},
-		{"asterisk", "*"},
-		{"backslash", "\\"},
-		{"underscore", "_"},
-		{"pipe", "|"},
+	if err := tb.Render([][]table.Value{
+		{table.String("less-than"), table.String("<")},
+		{table.String("greater-than"), table.String(">")},
+		{table.String("double-quote"), table.String("\"")},
+		{table.String("single-quote"), table.String("'")},
+		{table.String("ampersand"), table.String("&")},
+		{table.String("space"), table.String(" ")},
+		{table.String("asterisk"), table.String("*")},
+		{table.String("backslash"), table.String("\\")},
+		{table.String("underscore"), table.String("_")},
+		{table.String("pipe"), table.String("|")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1216,34 +1217,34 @@ func TestGolden_StreamSpecialChars(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"Char", "Value"}),
 	)
-	if err := s.Render([]any{"less-than", "<"}); err != nil {
+	if err := s.Render([]table.Value{table.String("less-than"), table.String("<")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"greater-than", ">"}); err != nil {
+	if err := s.Render([]table.Value{table.String("greater-than"), table.String(">")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"double-quote", "\""}); err != nil {
+	if err := s.Render([]table.Value{table.String("double-quote"), table.String("\"")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"single-quote", "'"}); err != nil {
+	if err := s.Render([]table.Value{table.String("single-quote"), table.String("'")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"ampersand", "&"}); err != nil {
+	if err := s.Render([]table.Value{table.String("ampersand"), table.String("&")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"space", " "}); err != nil {
+	if err := s.Render([]table.Value{table.String("space"), table.String(" ")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"asterisk", "*"}); err != nil {
+	if err := s.Render([]table.Value{table.String("asterisk"), table.String("*")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"backslash", "\\"}); err != nil {
+	if err := s.Render([]table.Value{table.String("backslash"), table.String("\\")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"underscore", "_"}); err != nil {
+	if err := s.Render([]table.Value{table.String("underscore"), table.String("_")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"pipe", "|"}); err != nil {
+	if err := s.Render([]table.Value{table.String("pipe"), table.String("|")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1257,7 +1258,7 @@ func TestGolden_TableStringerError(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"Stringer", "Error"}),
 	)
-	if err := tb.Render([][]any{{testutil.Stringer{Value: "x"}, testutil.Error{Value: "boom"}}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.Any(testutil.Stringer{Value: "x"}), table.Any(testutil.Error{Value: "boom"})}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_stringer_error", buf.Bytes())
@@ -1268,7 +1269,7 @@ func TestGolden_StreamStringerError(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"Stringer", "Error"}),
 	)
-	if err := s.Render([]any{testutil.Stringer{Value: "x"}, testutil.Error{Value: "boom"}}); err != nil {
+	if err := s.Render([]table.Value{table.Any(testutil.Stringer{Value: "x"}), table.Any(testutil.Error{Value: "boom"})}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1292,9 +1293,9 @@ func TestGolden_TableTransformer(t *testing.T) {
 		}),
 		WithHeader([]string{"Name", "Score"}),
 	)
-	if err := tb.Render([][]any{
-		{"alice", 100},
-		{"bob", 99},
+	if err := tb.Render([][]table.Value{
+		{table.String("alice"), table.Int(100)},
+		{table.String("bob"), table.Int(99)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1316,10 +1317,10 @@ func TestGolden_StreamTransformer(t *testing.T) {
 		}),
 		WithHeader([]string{"Name", "Score"}),
 	)
-	if err := s.Render([]any{"alice", 100}); err != nil {
+	if err := s.Render([]table.Value{table.String("alice"), table.Int(100)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bob", 99}); err != nil {
+	if err := s.Render([]table.Value{table.String("bob"), table.Int(99)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1333,7 +1334,7 @@ func TestGolden_TableTypeFloat(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"f32", "f64"}),
 	)
-	if err := tb.Render([][]any{{float32(3.14), float64(2.71828)}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.Float32(float32(3.14)), table.Float64(float64(2.71828))}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_type_float", buf.Bytes())
@@ -1344,7 +1345,7 @@ func TestGolden_StreamTypeFloat(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"f32", "f64"}),
 	)
-	if err := s.Render([]any{float32(3.14), float64(2.71828)}); err != nil {
+	if err := s.Render([]table.Value{table.Float32(float32(3.14)), table.Float64(float64(2.71828))}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1360,7 +1361,7 @@ func TestGolden_TableTypeIndirect(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"Stringer", "Error"}),
 	)
-	if err := tb.Render([][]any{{&stringer, &err}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.Any(&stringer), table.Any(&err)}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_type_indirect", buf.Bytes())
@@ -1373,7 +1374,7 @@ func TestGolden_StreamTypeIndirect(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"Stringer", "Error"}),
 	)
-	if err := s.Render([]any{&stringer, &err}); err != nil {
+	if err := s.Render([]table.Value{table.Any(&stringer), table.Any(&err)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1390,9 +1391,9 @@ func TestGolden_TableTypeInteger(t *testing.T) {
 			"u", "u8", "u16", "u32", "u64",
 		}),
 	)
-	if err := tb.Render([][]any{
-		{int(-1), int8(-2), int16(-3), int32(-4), int64(-5),
-			uint(1), uint8(2), uint16(3), uint32(4), uint64(5)},
+	if err := tb.Render([][]table.Value{
+		{table.Int(int(-1)), table.Int8(int8(-2)), table.Int16(int16(-3)), table.Int32(int32(-4)), table.Int64(int64(-5)),
+			table.Uint(uint(1)), table.Uint8(uint8(2)), table.Uint16(uint16(3)), table.Uint32(uint32(4)), table.Uint64(uint64(5))},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1407,8 +1408,8 @@ func TestGolden_StreamTypeInteger(t *testing.T) {
 			"u", "u8", "u16", "u32", "u64",
 		}),
 	)
-	if err := s.Render([]any{int(-1), int8(-2), int16(-3), int32(-4), int64(-5),
-		uint(1), uint8(2), uint16(3), uint32(4), uint64(5)}); err != nil {
+	if err := s.Render([]table.Value{table.Int(int(-1)), table.Int8(int8(-2)), table.Int16(int16(-3)), table.Int32(int32(-4)), table.Int64(int64(-5)),
+		table.Uint(uint(1)), table.Uint8(uint8(2)), table.Uint16(uint16(3)), table.Uint32(uint32(4)), table.Uint64(uint64(5))}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1422,8 +1423,8 @@ func TestGolden_TableTypeNamed(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"bool", "uint", "float32", "float64", "uintptr", "complex"}),
 	)
-	if err := tb.Render([][]any{
-		{flag(true), size(7), ratio(1.5), amount(2.25), uintptr(42), complex(1, 2)},
+	if err := tb.Render([][]table.Value{
+		{table.Any(flag(true)), table.Any(size(7)), table.Any(ratio(1.5)), table.Any(amount(2.25)), table.Uintptr(uintptr(42)), table.Any(complex(1, 2))},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1435,7 +1436,7 @@ func TestGolden_StreamTypeNamed(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"bool", "uint", "float32", "float64", "uintptr", "complex"}),
 	)
-	if err := s.Render([]any{flag(true), size(7), ratio(1.5), amount(2.25), uintptr(42), complex(1, 2)}); err != nil {
+	if err := s.Render([]table.Value{table.Any(flag(true)), table.Any(size(7)), table.Any(ratio(1.5)), table.Any(amount(2.25)), table.Uintptr(uintptr(42)), table.Any(complex(1, 2))}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1452,7 +1453,7 @@ func TestGolden_TableTypedNil(t *testing.T) {
 		WithPlaceholder("<nil>"),
 		WithHeader([]string{"Stringer", "Error"}),
 	)
-	if err := tb.Render([][]any{{nilStringer, nilError}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.Any(nilStringer), table.Any(nilError)}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_typed_nil", buf.Bytes())
@@ -1466,7 +1467,7 @@ func TestGolden_StreamTypedNil(t *testing.T) {
 		WithPlaceholder("<nil>"),
 		WithHeader([]string{"Stringer", "Error"}),
 	)
-	if err := s.Render([]any{nilStringer, nilError}); err != nil {
+	if err := s.Render([]table.Value{table.Any(nilStringer), table.Any(nilError)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1481,9 +1482,9 @@ func TestGolden_TableValueEqualsPlaceholder(t *testing.T) {
 		WithHeader([]string{"A", "B"}),
 		WithPlaceholder("N/A"),
 	)
-	if err := tb.Render([][]any{
-		{"N/A", ""},
-		{"x", "N/A"},
+	if err := tb.Render([][]table.Value{
+		{table.String("N/A"), table.String("")},
+		{table.String("x"), table.String("N/A")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1496,10 +1497,10 @@ func TestGolden_StreamValueEqualsPlaceholder(t *testing.T) {
 		WithHeader([]string{"A", "B"}),
 		WithPlaceholder("N/A"),
 	)
-	if err := s.Render([]any{"N/A", ""}); err != nil {
+	if err := s.Render([]table.Value{table.String("N/A"), table.String("")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"x", "N/A"}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.String("N/A")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1513,10 +1514,10 @@ func TestGolden_TableWideNumber(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"N", "V"}),
 	)
-	if err := tb.Render([][]any{
-		{1, 1},
-		{2, 1000000},
-		{3, -99},
+	if err := tb.Render([][]table.Value{
+		{table.Int(1), table.Int(1)},
+		{table.Int(2), table.Int(1000000)},
+		{table.Int(3), table.Any(-99)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1528,13 +1529,13 @@ func TestGolden_StreamWideNumber(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"N", "V"}),
 	)
-	if err := s.Render([]any{1, 1}); err != nil {
+	if err := s.Render([]table.Value{table.Int(1), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{2, 1000000}); err != nil {
+	if err := s.Render([]table.Value{table.Int(2), table.Int(1000000)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{3, -99}); err != nil {
+	if err := s.Render([]table.Value{table.Int(3), table.Any(-99)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1548,8 +1549,8 @@ func TestGolden_TableZeroWidth(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := tb.Render([][]any{
-		{"a\u200Bb", "\uFEFF", "x\u200Dy"},
+	if err := tb.Render([][]table.Value{
+		{table.String("a\u200Bb"), table.String("\uFEFF"), table.String("x\u200Dy")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1561,7 +1562,7 @@ func TestGolden_StreamZeroWidth(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := s.Render([]any{"a\u200Bb", "\uFEFF", "x\u200Dy"}); err != nil {
+	if err := s.Render([]table.Value{table.String("a\u200Bb"), table.String("\uFEFF"), table.String("x\u200Dy")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1576,10 +1577,10 @@ func TestGolden_StreamCSV(t *testing.T) {
 		WithDelimiter(','),
 		WithHeader([]string{"Name", "Score"}),
 	)
-	if err := s.Render([]any{"alice", 100}); err != nil {
+	if err := s.Render([]table.Value{table.String("alice"), table.Int(100)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bob", 200}); err != nil {
+	if err := s.Render([]table.Value{table.String("bob"), table.Int(200)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1594,10 +1595,10 @@ func TestGolden_StreamIndex(t *testing.T) {
 		WithIndex(),
 		WithHeader([]string{"Name", "Score"}),
 	)
-	if err := s.Render([]any{"alice", 100}); err != nil {
+	if err := s.Render([]table.Value{table.String("alice"), table.Int(100)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bob", 99}); err != nil {
+	if err := s.Render([]table.Value{table.String("bob"), table.Int(99)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1612,16 +1613,16 @@ func TestGolden_StreamQuote(t *testing.T) {
 		WithDelimiter(','),
 		WithHeader([]string{"Key", "Value"}),
 	)
-	if err := s.Render([]any{"comma", "a, b"}); err != nil {
+	if err := s.Render([]table.Value{table.String("comma"), table.String("a, b")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"newline", "a\nb"}); err != nil {
+	if err := s.Render([]table.Value{table.String("newline"), table.String("a\nb")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"quote", `say "hi"`}); err != nil {
+	if err := s.Render([]table.Value{table.String("quote"), table.String(`say "hi"`)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"plain", "ok"}); err != nil {
+	if err := s.Render([]table.Value{table.String("plain"), table.String("ok")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1635,10 +1636,10 @@ func TestGolden_StreamQuoteCRLF(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"Key", "Value"}),
 	)
-	if err := s.Render([]any{"crlf", "a\r\nb"}); err != nil {
+	if err := s.Render([]table.Value{table.String("crlf"), table.String("a\r\nb")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"cr", "a\rb"}); err != nil {
+	if err := s.Render([]table.Value{table.String("cr"), table.String("a\rb")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1652,10 +1653,10 @@ func TestGolden_StreamQuoteTab(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"Key", "Value"}),
 	)
-	if err := s.Render([]any{"tab-value", "a\tb"}); err != nil {
+	if err := s.Render([]table.Value{table.String("tab-value"), table.String("a\tb")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"plain", "ok"}); err != nil {
+	if err := s.Render([]table.Value{table.String("plain"), table.String("ok")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1669,7 +1670,7 @@ func TestGolden_StreamSingleRow(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"Name", "Value"}),
 	)
-	if err := s.Render([]any{"foo", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("foo"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1683,16 +1684,16 @@ func TestGolden_StreamTypeMixed(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"Label", "Value"}),
 	)
-	if err := s.Render([]any{"text", "hello"}); err != nil {
+	if err := s.Render([]table.Value{table.String("text"), table.String("hello")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"number", 42}); err != nil {
+	if err := s.Render([]table.Value{table.String("number"), table.Int(42)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"nil", nil}); err != nil {
+	if err := s.Render([]table.Value{table.String("nil"), table.Any(nil)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"neg", -7}); err != nil {
+	if err := s.Render([]table.Value{table.String("neg"), table.Any(-7)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1707,10 +1708,10 @@ func TestGolden_TableCSV(t *testing.T) {
 		WithDelimiter(','),
 		WithHeader([]string{"Name", "Score", "Note"}),
 	)
-	if err := tb.Render([][]any{
-		{"alice", 100, "good"},
-		{"bob", 200, "needs work"},
-		{"carol", 300, "excellent"},
+	if err := tb.Render([][]table.Value{
+		{table.String("alice"), table.Int(100), table.String("good")},
+		{table.String("bob"), table.Int(200), table.String("needs work")},
+		{table.String("carol"), table.Int(300), table.String("excellent")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1726,9 +1727,9 @@ func TestGolden_TableIndex(t *testing.T) {
 			return [][]string{{"Total", "199"}}
 		}),
 	)
-	if err := tb.Render([][]any{
-		{"alice", 100},
-		{"bob", 99},
+	if err := tb.Render([][]table.Value{
+		{table.String("alice"), table.Int(100)},
+		{table.String("bob"), table.Int(99)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1738,9 +1739,9 @@ func TestGolden_TableIndex(t *testing.T) {
 func TestGolden_TableNoHeaderRagged(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf)
-	if err := tb.Render([][]any{
-		{"a", 1},
-		{"b"},
+	if err := tb.Render([][]table.Value{
+		{table.String("a"), table.Int(1)},
+		{table.String("b")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1752,10 +1753,10 @@ func TestGolden_TableQuoteCRLF(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"Key", "Value"}),
 	)
-	if err := tb.Render([][]any{
-		{"crlf", "line1\r\nline2"},
-		{"cr-only", "a\rb"},
-		{"lf-only", "a\nb"},
+	if err := tb.Render([][]table.Value{
+		{table.String("crlf"), table.String("line1\r\nline2")},
+		{table.String("cr-only"), table.String("a\rb")},
+		{table.String("lf-only"), table.String("a\nb")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1767,9 +1768,9 @@ func TestGolden_TableQuoteTab(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"Key", "Value"}),
 	)
-	if err := tb.Render([][]any{
-		{"embedded-tab", "a\tb"},
-		{"no-tab", "plain"},
+	if err := tb.Render([][]table.Value{
+		{table.String("embedded-tab"), table.String("a\tb")},
+		{table.String("no-tab"), table.String("plain")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1781,12 +1782,12 @@ func TestGolden_TableTypeMixed(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"Label", "Value"}),
 	)
-	if err := tb.Render([][]any{
-		{"text", "hello"},
-		{"number", 42},
-		{"big-num", 100000},
-		{"empty", nil},
-		{"neg", -7},
+	if err := tb.Render([][]table.Value{
+		{table.String("text"), table.String("hello")},
+		{table.String("number"), table.Int(42)},
+		{table.String("big-num"), table.Int(100000)},
+		{table.String("empty"), table.Any(nil)},
+		{table.String("neg"), table.Any(-7)},
 	}); err != nil {
 		t.Fatal(err)
 	}

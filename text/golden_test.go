@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/internal/param"
 	"github.com/nekrassov01/table/internal/testutil"
 )
@@ -30,7 +31,7 @@ func TestGolden_TableAlignAttrPaddingTransformerTruncate(t *testing.T) {
 		}),
 		WithTruncate(Columns(1)),
 	)
-	if err := tb.Render([][]any{{"x", "raw"}, {"y", "ok"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("raw")}, {table.String("y"), table.String("ok")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_align_attr_padding_transformer_truncate", buf.Bytes())
@@ -56,7 +57,7 @@ func TestGolden_StreamAlignAttrPaddingTransformerTruncate(t *testing.T) {
 		}),
 		WithTruncate(Columns(1)),
 	)
-	for _, row := range [][]any{{"x", "raw"}, {"y", "ok"}} {
+	for _, row := range [][]table.Value{{table.String("x"), table.String("raw")}, {table.String("y"), table.String("ok")}} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
 		}
@@ -79,7 +80,7 @@ func TestGolden_TableAlignAttrPlaceholder(t *testing.T) {
 		WithAlign(ScopeBody, Columns(1), AlignRight),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
 	)
-	if err := tb.Render([][]any{{"x", nil}, {"y", "z"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.Any(nil)}, {table.String("y"), table.String("z")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_align_attr_placeholder", buf.Bytes())
@@ -97,7 +98,7 @@ func TestGolden_StreamAlignAttrPlaceholder(t *testing.T) {
 		WithAlign(ScopeBody, Columns(1), AlignRight),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
 	)
-	for _, row := range [][]any{{"x", nil}, {"y", "z"}} {
+	for _, row := range [][]table.Value{{table.String("x"), table.Any(nil)}, {table.String("y"), table.String("z")}} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
 		}
@@ -115,9 +116,9 @@ func TestGolden_TableAlignMultiline(t *testing.T) {
 		WithAlign(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), AlignCenter),
 		WithHeader([]string{"ID", "Lines"}),
 	)
-	if err := tb.Render([][]any{
-		{1, "short\nlonger-text\nx"},
-		{2, "only"},
+	if err := tb.Render([][]table.Value{
+		{table.Int(1), table.String("short\nlonger-text\nx")},
+		{table.Int(2), table.String("only")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -131,10 +132,10 @@ func TestGolden_StreamAlignMultiline(t *testing.T) {
 		WithAlign(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), AlignCenter),
 		WithHeader([]string{"ID", "Lines"}),
 	)
-	if err := s.Render([]any{1, "short\nlonger-text\nx"}); err != nil {
+	if err := s.Render([]table.Value{table.Int(1), table.String("short\nlonger-text\nx")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{2, "only"}); err != nil {
+	if err := s.Render([]table.Value{table.Int(2), table.String("only")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -154,9 +155,9 @@ func TestGolden_TableAlignScope(t *testing.T) {
 		WithAlign(ScopeHeader, Columns(0, 1), AlignCenter),
 		WithAlign(ScopeBody|ScopeFooter, Columns(1), AlignRight),
 	)
-	if err := tb.Render([][]any{
-		{"widget", 100},
-		{"gadget", 200},
+	if err := tb.Render([][]table.Value{
+		{table.String("widget"), table.Int(100)},
+		{table.String("gadget"), table.Int(200)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -174,10 +175,10 @@ func TestGolden_StreamAlignScope(t *testing.T) {
 		WithAlign(ScopeHeader, Columns(0, 1), AlignCenter),
 		WithAlign(ScopeBody|ScopeFooter, Columns(1), AlignRight),
 	)
-	if err := s.Render([]any{"widget", 100}); err != nil {
+	if err := s.Render([]table.Value{table.String("widget"), table.Int(100)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"gadget", 200}); err != nil {
+	if err := s.Render([]table.Value{table.String("gadget"), table.Int(200)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -192,9 +193,9 @@ func TestGolden_TableAllPlaceholder(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := tb.Render([][]any{
-		{nil, nil, nil},
-		{nil, nil, nil},
+	if err := tb.Render([][]table.Value{
+		{table.Any(nil), table.Any(nil), table.Any(nil)},
+		{table.Any(nil), table.Any(nil), table.Any(nil)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -207,10 +208,10 @@ func TestGolden_StreamAllPlaceholder(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := s.Render([]any{nil, nil, nil}); err != nil {
+	if err := s.Render([]table.Value{table.Any(nil), table.Any(nil), table.Any(nil)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{nil, nil, nil}); err != nil {
+	if err := s.Render([]table.Value{table.Any(nil), table.Any(nil), table.Any(nil)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -247,9 +248,9 @@ func TestGolden_TableAttr(t *testing.T) {
 			return "", nil
 		}),
 	)
-	if err := tb.Render([][]any{
-		{"foo", 1},
-		{"bar", 2},
+	if err := tb.Render([][]table.Value{
+		{table.String("foo"), table.Int(1)},
+		{table.String("bar"), table.Int(2)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -284,10 +285,10 @@ func TestGolden_StreamAttr(t *testing.T) {
 			return "", nil
 		}),
 	)
-	if err := s.Render([]any{"foo", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("foo"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bar", 2}); err != nil {
+	if err := s.Render([]table.Value{table.String("bar"), table.Int(2)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -309,7 +310,7 @@ func TestGolden_TableAttrBandPlaceholder(t *testing.T) {
 		}),
 		WithAttr(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), ColorFgRed),
 	)
-	if err := tb.Render([][]any{{"foo", 1}, {"bar", 2}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("foo"), table.Int(1)}, {table.String("bar"), table.Int(2)}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "table_attr_band_placeholder", buf.Bytes())
@@ -328,7 +329,7 @@ func TestGolden_StreamAttrBandPlaceholder(t *testing.T) {
 		}),
 		WithAttr(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), ColorFgRed),
 	)
-	for _, row := range [][]any{{"foo", 1}, {"bar", 2}} {
+	for _, row := range [][]table.Value{{table.String("foo"), table.Int(1)}, {table.String("bar"), table.Int(2)}} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
 		}
@@ -349,9 +350,9 @@ func TestGolden_TableAttrPlaceholder(t *testing.T) {
 		WithHeader([]string{"Name", "Value"}),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
 	)
-	if err := tb.Render([][]any{
-		{"foo", 1},
-		{"bar", nil},
+	if err := tb.Render([][]table.Value{
+		{table.String("foo"), table.Int(1)},
+		{table.String("bar"), table.Any(nil)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -368,7 +369,7 @@ func TestGolden_StreamAttrPlaceholder(t *testing.T) {
 		WithHeader([]string{"Name", "Value"}),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
 	)
-	for _, row := range [][]any{{"foo", 1}, {"bar", nil}} {
+	for _, row := range [][]table.Value{{table.String("foo"), table.Int(1)}, {table.String("bar"), table.Any(nil)}} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
 		}
@@ -393,9 +394,9 @@ func TestGolden_TableAttrScope(t *testing.T) {
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
 		WithAttr(ScopeFooter, Columns(0, 1), ColorFgYellow),
 	)
-	if err := tb.Render([][]any{
-		{"foo", 1},
-		{"bar", 2},
+	if err := tb.Render([][]table.Value{
+		{table.String("foo"), table.Int(1)},
+		{table.String("bar"), table.Int(2)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -416,7 +417,7 @@ func TestGolden_StreamAttrScope(t *testing.T) {
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
 		WithAttr(ScopeFooter, Columns(0, 1), ColorFgYellow),
 	)
-	for _, row := range [][]any{{"foo", 1}, {"bar", 2}} {
+	for _, row := range [][]table.Value{{table.String("foo"), table.Int(1)}, {table.String("bar"), table.Int(2)}} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
 		}
@@ -438,7 +439,7 @@ func TestGolden_TableAutoFitAlign(t *testing.T) {
 		WithAutoFit(),
 		WithAlign(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), AlignRight),
 	)
-	if err := tb.Render([][]any{{"a fairly long value", "yy"}, {"another long one", "z"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a fairly long value"), table.String("yy")}, {table.String("another long one"), table.String("z")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_autofit_align", buf.Bytes())
@@ -455,7 +456,7 @@ func TestGolden_StreamAutoFitAlign(t *testing.T) {
 		WithAutoFit(),
 		WithAlign(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), AlignRight),
 	)
-	for _, r := range [][]any{{"a fairly long value", "yy"}, {"another long one", "z"}} {
+	for _, r := range [][]table.Value{{table.String("a fairly long value"), table.String("yy")}, {table.String("another long one"), table.String("z")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -480,7 +481,7 @@ func TestGolden_TableAutoFitAttr(t *testing.T) {
 		WithAutoFit(),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
 	)
-	if err := tb.Render([][]any{{"a fairly long value", "x"}, {"another long one", "z"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a fairly long value"), table.String("x")}, {table.String("another long one"), table.String("z")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_autofit_attr", buf.Bytes())
@@ -500,7 +501,7 @@ func TestGolden_StreamAutoFitAttr(t *testing.T) {
 		WithAutoFit(),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
 	)
-	for _, r := range [][]any{{"a fairly long value", "x"}, {"another long one", "z"}} {
+	for _, r := range [][]table.Value{{table.String("a fairly long value"), table.String("x")}, {table.String("another long one"), table.String("z")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -522,7 +523,7 @@ func TestGolden_TableAutoFitCaption(t *testing.T) {
 		WithAutoFit(),
 		WithCaption("cap", CaptionBottom),
 	)
-	if err := tb.Render([][]any{{"a fairly long value", "x"}, {"another long one", "z"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a fairly long value"), table.String("x")}, {table.String("another long one"), table.String("z")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_autofit_caption", buf.Bytes())
@@ -539,7 +540,7 @@ func TestGolden_StreamAutoFitCaption(t *testing.T) {
 		WithAutoFit(),
 		WithCaption("cap", CaptionBottom),
 	)
-	for _, r := range [][]any{{"a fairly long value", "x"}, {"another long one", "z"}} {
+	for _, r := range [][]table.Value{{table.String("a fairly long value"), table.String("x")}, {table.String("another long one"), table.String("z")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -560,7 +561,7 @@ func TestGolden_TableAutoFitFits(t *testing.T) {
 		WithAutoFit(),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{{"xxxxx", "yyyyy"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("xxxxx"), table.String("yyyyy")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_autofit_fits", buf.Bytes())
@@ -576,7 +577,7 @@ func TestGolden_StreamAutoFitFits(t *testing.T) {
 		WithAutoFit(),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := s.Render([]any{"xxxxx", "yyyyy"}); err != nil {
+	if err := s.Render([]table.Value{table.String("xxxxx"), table.String("yyyyy")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -596,7 +597,7 @@ func TestGolden_TableAutoFitPadding(t *testing.T) {
 		WithAutoFit(),
 		WithPadding(Columns(1), 3, 0),
 	)
-	if err := tb.Render([][]any{{"a fairly long value", "x"}, {"another long one", "z"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a fairly long value"), table.String("x")}, {table.String("another long one"), table.String("z")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_autofit_padding", buf.Bytes())
@@ -613,7 +614,7 @@ func TestGolden_StreamAutoFitPadding(t *testing.T) {
 		WithAutoFit(),
 		WithPadding(Columns(1), 3, 0),
 	)
-	for _, r := range [][]any{{"a fairly long value", "x"}, {"another long one", "z"}} {
+	for _, r := range [][]table.Value{{table.String("a fairly long value"), table.String("x")}, {table.String("another long one"), table.String("z")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -635,7 +636,7 @@ func TestGolden_TableAutoFitPlaceholder(t *testing.T) {
 		WithAutoFit(),
 		WithPlaceholder("-"),
 	)
-	if err := tb.Render([][]any{{"a fairly long value", nil}, {"another long one", "z"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a fairly long value"), table.Any(nil)}, {table.String("another long one"), table.String("z")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_autofit_placeholder", buf.Bytes())
@@ -652,7 +653,7 @@ func TestGolden_StreamAutoFitPlaceholder(t *testing.T) {
 		WithAutoFit(),
 		WithPlaceholder("-"),
 	)
-	for _, r := range [][]any{{"a fairly long value", nil}, {"another long one", "z"}} {
+	for _, r := range [][]table.Value{{table.String("a fairly long value"), table.Any(nil)}, {table.String("another long one"), table.String("z")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -677,10 +678,10 @@ func TestGolden_TableAutoFitRowspan(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithAutoFit(),
 	)
-	if err := tb.Render([][]any{
-		{"same-and-rather-long-label", 1},
-		{"same-and-rather-long-label", 2},
-		{"other", 3},
+	if err := tb.Render([][]table.Value{
+		{table.String("same-and-rather-long-label"), table.Int(1)},
+		{table.String("same-and-rather-long-label"), table.Int(2)},
+		{table.String("other"), table.Int(3)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -701,10 +702,10 @@ func TestGolden_StreamAutoFitRowspan(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithAutoFit(),
 	)
-	for _, row := range [][]any{
-		{"same-and-rather-long-label", 1},
-		{"same-and-rather-long-label", 2},
-		{"other", 3},
+	for _, row := range [][]table.Value{
+		{table.String("same-and-rather-long-label"), table.Int(1)},
+		{table.String("same-and-rather-long-label"), table.Int(2)},
+		{table.String("other"), table.Int(3)},
 	} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
@@ -732,7 +733,7 @@ func TestGolden_TableAutoFitTransformer(t *testing.T) {
 			return "", nil
 		}),
 	)
-	if err := tb.Render([][]any{{"a fairly long value", "raw"}, {"another long one", "z"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a fairly long value"), table.String("raw")}, {table.String("another long one"), table.String("z")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_autofit_transformer", buf.Bytes())
@@ -754,7 +755,7 @@ func TestGolden_StreamAutoFitTransformer(t *testing.T) {
 			return "", nil
 		}),
 	)
-	for _, r := range [][]any{{"a fairly long value", "raw"}, {"another long one", "z"}} {
+	for _, r := range [][]table.Value{{table.String("a fairly long value"), table.String("raw")}, {table.String("another long one"), table.String("z")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -776,7 +777,7 @@ func TestGolden_TableAutoFitTruncate(t *testing.T) {
 		WithTruncate(Columns(1)),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{{"xxxxx", strings.Repeat("y", 20)}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("xxxxx"), table.Any(strings.Repeat("y", 20))}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_autofit_truncate", buf.Bytes())
@@ -793,7 +794,7 @@ func TestGolden_StreamAutoFitTruncate(t *testing.T) {
 		WithTruncate(Columns(1)),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := s.Render([]any{"xxxxx", strings.Repeat("y", 20)}); err != nil {
+	if err := s.Render([]table.Value{table.String("xxxxx"), table.Any(strings.Repeat("y", 20))}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -813,7 +814,7 @@ func TestGolden_TableAutoFitWithWidth(t *testing.T) {
 		WithWidth(Columns(0), 3),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{{"xxxxx", strings.Repeat("y", 20)}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("xxxxx"), table.Any(strings.Repeat("y", 20))}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_autofit_with_width", buf.Bytes())
@@ -830,7 +831,7 @@ func TestGolden_StreamAutoFitWithWidth(t *testing.T) {
 		WithWidth(Columns(0), 3),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := s.Render([]any{"xxxxx", strings.Repeat("y", 20)}); err != nil {
+	if err := s.Render([]table.Value{table.String("xxxxx"), table.Any(strings.Repeat("y", 20))}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -882,9 +883,9 @@ func TestGolden_TableBasic(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"Name", "Value"}),
 	)
-	if err := tb.Render([][]any{
-		{"foo", 1},
-		{"bar", 2},
+	if err := tb.Render([][]table.Value{
+		{table.String("foo"), table.Int(1)},
+		{table.String("bar"), table.Int(2)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -895,10 +896,10 @@ func TestGolden_StreamBasic(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"Name", "Value"}),
 	)
-	if err := s.Render([]any{"foo", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("foo"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bar", 2}); err != nil {
+	if err := s.Render([]table.Value{table.String("bar"), table.Int(2)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -913,9 +914,9 @@ func TestGolden_TableCaption(t *testing.T) {
 		WithCaption("Table 1", CaptionDefault),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{
-		{"x", 1},
-		{"y", 2},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.Int(1)},
+		{table.String("y"), table.Int(2)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -929,10 +930,10 @@ func TestGolden_StreamCaption(t *testing.T) {
 		WithCaption("Table 1", CaptionDefault),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := s.Render([]any{"x", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"y", 2}); err != nil {
+	if err := s.Render([]table.Value{table.String("y"), table.Int(2)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -948,7 +949,7 @@ func TestGolden_TableCaptionTop(t *testing.T) {
 		WithCaption("summary", CaptionTop),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{{"x", "y"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("y")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_caption_top", buf.Bytes())
@@ -961,7 +962,7 @@ func TestGolden_StreamCaptionTop(t *testing.T) {
 		WithCaption("summary", CaptionTop),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := s.Render([]any{"x", "y"}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.String("y")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -977,9 +978,9 @@ func TestGolden_TableColspan(t *testing.T) {
 		WithHeader([]string{"A", "B", "C"}),
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
 	)
-	if err := tb.Render([][]any{
-		{"x", "x", "y"},
-		{"p", "q", "q"},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.String("x"), table.String("y")},
+		{table.String("p"), table.String("q"), table.String("q")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -993,10 +994,10 @@ func TestGolden_StreamColspan(t *testing.T) {
 		WithHeader([]string{"A", "B", "C"}),
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
 	)
-	if err := s.Render([]any{"x", "x", "y"}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.String("x"), table.String("y")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"p", "q", "q"}); err != nil {
+	if err := s.Render([]table.Value{table.String("p"), table.String("q"), table.String("q")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1013,7 +1014,7 @@ func TestGolden_TableColspanAlign(t *testing.T) {
 		WithAlign(ScopeHeader|ScopeBody|ScopeFooter, Columns(0), AlignCenter),
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := tb.Render([][]any{{"x", "x", "y"}, {"p", "q", "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("x"), table.String("y")}, {table.String("p"), table.String("q"), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_colspan_align", buf.Bytes())
@@ -1027,7 +1028,7 @@ func TestGolden_StreamColspanAlign(t *testing.T) {
 		WithAlign(ScopeHeader|ScopeBody|ScopeFooter, Columns(0), AlignCenter),
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	for _, r := range [][]any{{"x", "x", "y"}, {"p", "q", "q"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.String("x"), table.String("y")}, {table.String("p"), table.String("q"), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -1049,7 +1050,7 @@ func TestGolden_TableColspanAttr(t *testing.T) {
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1)),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
 	)
-	if err := tb.Render([][]any{{"s", "s"}, {"s", "s"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_colspan_attr", buf.Bytes())
@@ -1066,7 +1067,7 @@ func TestGolden_StreamColspanAttr(t *testing.T) {
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1)),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
 	)
-	for _, r := range [][]any{{"s", "s"}, {"s", "s"}} {
+	for _, r := range [][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -1085,7 +1086,7 @@ func TestGolden_TableColspanCaption(t *testing.T) {
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1)),
 		WithCaption("cap", CaptionBottom),
 	)
-	if err := tb.Render([][]any{{"s", "s"}, {"s", "s"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_colspan_caption", buf.Bytes())
@@ -1099,7 +1100,7 @@ func TestGolden_StreamColspanCaption(t *testing.T) {
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1)),
 		WithCaption("cap", CaptionBottom),
 	)
-	for _, r := range [][]any{{"s", "s"}, {"s", "s"}} {
+	for _, r := range [][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -1117,9 +1118,9 @@ func TestGolden_TableColspanEdges(t *testing.T) {
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1)),
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(2, 3)),
 	)
-	if err := tb.Render([][]any{
-		{"x", "x", "y", "y"},
-		{"p", "q", "r", "r"},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.String("x"), table.String("y"), table.String("y")},
+		{table.String("p"), table.String("q"), table.String("r"), table.String("r")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1133,10 +1134,10 @@ func TestGolden_StreamColspanEdges(t *testing.T) {
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1)),
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(2, 3)),
 	)
-	if err := s.Render([]any{"x", "x", "y", "y"}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.String("x"), table.String("y"), table.String("y")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"p", "q", "r", "r"}); err != nil {
+	if err := s.Render([]table.Value{table.String("p"), table.String("q"), table.String("r"), table.String("r")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1153,7 +1154,7 @@ func TestGolden_TableColspanPadding(t *testing.T) {
 		WithPadding(Columns(1), 3, 0),
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := tb.Render([][]any{{"x", "x", "y"}, {"p", "q", "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("x"), table.String("y")}, {table.String("p"), table.String("q"), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_colspan_padding", buf.Bytes())
@@ -1167,7 +1168,7 @@ func TestGolden_StreamColspanPadding(t *testing.T) {
 		WithPadding(Columns(1), 3, 0),
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	for _, r := range [][]any{{"x", "x", "y"}, {"p", "q", "q"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.String("x"), table.String("y")}, {table.String("p"), table.String("q"), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -1186,7 +1187,7 @@ func TestGolden_TableColspanPlaceholder(t *testing.T) {
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1)),
 		WithPlaceholder("-"),
 	)
-	if err := tb.Render([][]any{{"x", nil}, {nil, "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.Any(nil)}, {table.Any(nil), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_colspan_placeholder", buf.Bytes())
@@ -1200,7 +1201,7 @@ func TestGolden_StreamColspanPlaceholder(t *testing.T) {
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1)),
 		WithPlaceholder("-"),
 	)
-	for _, r := range [][]any{{"x", nil}, {nil, "q"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.Any(nil)}, {table.Any(nil), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -1218,9 +1219,9 @@ func TestGolden_TableColspanScope(t *testing.T) {
 		WithHeader([]string{"Group", "Group", "Value"}),
 		WithColspan(ScopeBody, Columns(0, 1)),
 	)
-	if err := tb.Render([][]any{
-		{"A", "A", 1},
-		{"B", "B", 2},
+	if err := tb.Render([][]table.Value{
+		{table.String("A"), table.String("A"), table.Int(1)},
+		{table.String("B"), table.String("B"), table.Int(2)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1234,10 +1235,10 @@ func TestGolden_StreamColspanScope(t *testing.T) {
 		WithHeader([]string{"Group", "Group", "Value"}),
 		WithColspan(ScopeBody, Columns(0, 1)),
 	)
-	if err := s.Render([]any{"A", "A", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("A"), table.String("A"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"B", "B", 2}); err != nil {
+	if err := s.Render([]table.Value{table.String("B"), table.String("B"), table.Int(2)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1258,9 +1259,9 @@ func TestGolden_TableColspanTransformerAttr(t *testing.T) {
 			return "", ColorFgRed
 		}),
 	)
-	if err := tb.Render([][]any{
-		{"g", "x", "x"},
-		{"h", "y", "z"},
+	if err := tb.Render([][]table.Value{
+		{table.String("g"), table.String("x"), table.String("x")},
+		{table.String("h"), table.String("y"), table.String("z")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1279,10 +1280,10 @@ func TestGolden_StreamColspanTransformerAttr(t *testing.T) {
 			return "", ColorFgRed
 		}),
 	)
-	if err := s.Render([]any{"g", "x", "x"}); err != nil {
+	if err := s.Render([]table.Value{table.String("g"), table.String("x"), table.String("x")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"h", "y", "z"}); err != nil {
+	if err := s.Render([]table.Value{table.String("h"), table.String("y"), table.String("z")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1300,7 +1301,7 @@ func TestGolden_TableColspanTruncate(t *testing.T) {
 		WithWidth(AllColumns(), 5),
 		WithTruncate(AllColumns()),
 	)
-	if err := tb.Render([][]any{{"a longer value", "a longer value"}, {"a long value", "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a longer value"), table.String("a longer value")}, {table.String("a long value"), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_colspan_truncate", buf.Bytes())
@@ -1315,7 +1316,7 @@ func TestGolden_StreamColspanTruncate(t *testing.T) {
 		WithWidth(AllColumns(), 5),
 		WithTruncate(AllColumns()),
 	)
-	for _, r := range [][]any{{"a longer value", "a longer value"}, {"a long value", "q"}} {
+	for _, r := range [][]table.Value{{table.String("a longer value"), table.String("a longer value")}, {table.String("a long value"), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -1333,10 +1334,10 @@ func TestGolden_TableCompact(t *testing.T) {
 		WithCompact(),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{
-		{"x", 1},
-		{"y", 2},
-		{"z", 3},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.Int(1)},
+		{table.String("y"), table.Int(2)},
+		{table.String("z"), table.Int(3)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1350,13 +1351,13 @@ func TestGolden_StreamCompact(t *testing.T) {
 		WithCompact(),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := s.Render([]any{"x", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"y", 2}); err != nil {
+	if err := s.Render([]table.Value{table.String("y"), table.Int(2)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"z", 3}); err != nil {
+	if err := s.Render([]table.Value{table.String("z"), table.Int(3)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1373,10 +1374,10 @@ func TestGolden_TableCompactAlign(t *testing.T) {
 		WithAlign(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), AlignRight),
 		WithHeader([]string{"Name", "Score"}),
 	)
-	if err := tb.Render([][]any{
-		{"alice", 100},
-		{"bob", 99},
-		{"carol", 1},
+	if err := tb.Render([][]table.Value{
+		{table.String("alice"), table.Int(100)},
+		{table.String("bob"), table.Int(99)},
+		{table.String("carol"), table.Int(1)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1391,13 +1392,13 @@ func TestGolden_StreamCompactAlign(t *testing.T) {
 		WithAlign(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), AlignRight),
 		WithHeader([]string{"Name", "Score"}),
 	)
-	if err := s.Render([]any{"alice", 100}); err != nil {
+	if err := s.Render([]table.Value{table.String("alice"), table.Int(100)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bob", 99}); err != nil {
+	if err := s.Render([]table.Value{table.String("bob"), table.Int(99)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"carol", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("carol"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1417,7 +1418,7 @@ func TestGolden_TableCompactAttr(t *testing.T) {
 		WithCompact(),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
 	)
-	if err := tb.Render([][]any{{"s", "s"}, {"s", "s"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_compact_attr", buf.Bytes())
@@ -1434,7 +1435,7 @@ func TestGolden_StreamCompactAttr(t *testing.T) {
 		WithCompact(),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
 	)
-	for _, r := range [][]any{{"s", "s"}, {"s", "s"}} {
+	for _, r := range [][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -1456,7 +1457,7 @@ func TestGolden_TableCompactAutoFit(t *testing.T) {
 		WithCompact(),
 		WithAutoFit(),
 	)
-	if err := tb.Render([][]any{{"a fairly long value", "a fairly long value"}, {"another long one", "z"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a fairly long value"), table.String("a fairly long value")}, {table.String("another long one"), table.String("z")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_compact_autofit", buf.Bytes())
@@ -1473,7 +1474,7 @@ func TestGolden_StreamCompactAutoFit(t *testing.T) {
 		WithCompact(),
 		WithAutoFit(),
 	)
-	for _, r := range [][]any{{"a fairly long value", "a fairly long value"}, {"another long one", "z"}} {
+	for _, r := range [][]table.Value{{table.String("a fairly long value"), table.String("a fairly long value")}, {table.String("another long one"), table.String("z")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -1492,7 +1493,7 @@ func TestGolden_TableCompactCaption(t *testing.T) {
 		WithCompact(),
 		WithCaption("cap", CaptionBottom),
 	)
-	if err := tb.Render([][]any{{"s", "s"}, {"s", "s"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_compact_caption", buf.Bytes())
@@ -1506,7 +1507,7 @@ func TestGolden_StreamCompactCaption(t *testing.T) {
 		WithCompact(),
 		WithCaption("cap", CaptionBottom),
 	)
-	for _, r := range [][]any{{"s", "s"}, {"s", "s"}} {
+	for _, r := range [][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -1525,10 +1526,10 @@ func TestGolden_TableCompactColspan(t *testing.T) {
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := tb.Render([][]any{
-		{"x", "x", "y"},
-		{"p", "p", "q"},
-		{"m", "n", "n"},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.String("x"), table.String("y")},
+		{table.String("p"), table.String("p"), table.String("q")},
+		{table.String("m"), table.String("n"), table.String("n")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1543,10 +1544,10 @@ func TestGolden_StreamCompactColspan(t *testing.T) {
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	for _, r := range [][]any{
-		{"x", "x", "y"},
-		{"p", "p", "q"},
-		{"m", "n", "n"},
+	for _, r := range [][]table.Value{
+		{table.String("x"), table.String("x"), table.String("y")},
+		{table.String("p"), table.String("p"), table.String("q")},
+		{table.String("m"), table.String("n"), table.String("n")},
 	} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
@@ -1568,7 +1569,7 @@ func TestGolden_TableCompactFooter(t *testing.T) {
 			return [][]string{{"t", "u"}}
 		}),
 	)
-	if err := tb.Render([][]any{{"s", "s"}, {"s", "s"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_compact_footer", buf.Bytes())
@@ -1584,7 +1585,7 @@ func TestGolden_StreamCompactFooter(t *testing.T) {
 			return [][]string{{"t", "u"}}
 		}),
 	)
-	for _, r := range [][]any{{"s", "s"}, {"s", "s"}} {
+	for _, r := range [][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -1602,10 +1603,10 @@ func TestGolden_TableCompactMultiline(t *testing.T) {
 		WithCompact(),
 		WithHeader([]string{"ID", "Data"}),
 	)
-	if err := tb.Render([][]any{
-		{1, "a\nb"},
-		{2, "c"},
-		{3, "d\ne\nf"},
+	if err := tb.Render([][]table.Value{
+		{table.Int(1), table.String("a\nb")},
+		{table.Int(2), table.String("c")},
+		{table.Int(3), table.String("d\ne\nf")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1619,13 +1620,13 @@ func TestGolden_StreamCompactMultiline(t *testing.T) {
 		WithCompact(),
 		WithHeader([]string{"ID", "Data"}),
 	)
-	if err := s.Render([]any{1, "a\nb"}); err != nil {
+	if err := s.Render([]table.Value{table.Int(1), table.String("a\nb")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{2, "c"}); err != nil {
+	if err := s.Render([]table.Value{table.Int(2), table.String("c")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{3, "d\ne\nf"}); err != nil {
+	if err := s.Render([]table.Value{table.Int(3), table.String("d\ne\nf")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1642,10 +1643,10 @@ func TestGolden_TableCompactPadding(t *testing.T) {
 		WithPadding(Columns(1), 2, 2),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{
-		{"x", 1},
-		{"y", 2},
-		{"z", 3},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.Int(1)},
+		{table.String("y"), table.Int(2)},
+		{table.String("z"), table.Int(3)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1660,13 +1661,13 @@ func TestGolden_StreamCompactPadding(t *testing.T) {
 		WithPadding(Columns(1), 2, 2),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := s.Render([]any{"x", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"y", 2}); err != nil {
+	if err := s.Render([]table.Value{table.String("y"), table.Int(2)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"z", 3}); err != nil {
+	if err := s.Render([]table.Value{table.String("z"), table.Int(3)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1683,7 +1684,7 @@ func TestGolden_TableCompactPlaceholder(t *testing.T) {
 		WithCompact(),
 		WithPlaceholder("-"),
 	)
-	if err := tb.Render([][]any{{"x", nil}, {nil, "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.Any(nil)}, {table.Any(nil), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_compact_placeholder", buf.Bytes())
@@ -1697,7 +1698,7 @@ func TestGolden_StreamCompactPlaceholder(t *testing.T) {
 		WithCompact(),
 		WithPlaceholder("-"),
 	)
-	for _, r := range [][]any{{"x", nil}, {nil, "q"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.Any(nil)}, {table.Any(nil), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -1716,10 +1717,10 @@ func TestGolden_TableCompactRowspan(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithHeader([]string{"Group", "Item"}),
 	)
-	if err := tb.Render([][]any{
-		{"A", "x"},
-		{"A", "y"},
-		{"B", "z"},
+	if err := tb.Render([][]table.Value{
+		{table.String("A"), table.String("x")},
+		{table.String("A"), table.String("y")},
+		{table.String("B"), table.String("z")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1734,13 +1735,13 @@ func TestGolden_StreamCompactRowspan(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithHeader([]string{"Group", "Item"}),
 	)
-	if err := s.Render([]any{"A", "x"}); err != nil {
+	if err := s.Render([]table.Value{table.String("A"), table.String("x")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"A", "y"}); err != nil {
+	if err := s.Render([]table.Value{table.String("A"), table.String("y")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"B", "z"}); err != nil {
+	if err := s.Render([]table.Value{table.String("B"), table.String("z")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1762,7 +1763,7 @@ func TestGolden_TableCompactTransformer(t *testing.T) {
 			return "", nil
 		}),
 	)
-	if err := tb.Render([][]any{{"x", "raw"}, {"p", "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("raw")}, {table.String("p"), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_compact_transformer", buf.Bytes())
@@ -1781,7 +1782,7 @@ func TestGolden_StreamCompactTransformer(t *testing.T) {
 			return "", nil
 		}),
 	)
-	for _, r := range [][]any{{"x", "raw"}, {"p", "q"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.String("raw")}, {table.String("p"), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -1801,7 +1802,7 @@ func TestGolden_TableCompactTruncate(t *testing.T) {
 		WithWidth(Columns(1), 5),
 		WithTruncate(Columns(1)),
 	)
-	if err := tb.Render([][]any{{"x", "a long value"}, {"y", "short"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("a long value")}, {table.String("y"), table.String("short")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_compact_truncate", buf.Bytes())
@@ -1816,7 +1817,7 @@ func TestGolden_StreamCompactTruncate(t *testing.T) {
 		WithWidth(Columns(1), 5),
 		WithTruncate(Columns(1)),
 	)
-	for _, r := range [][]any{{"x", "a long value"}, {"y", "short"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.String("a long value")}, {table.String("y"), table.String("short")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -1835,7 +1836,7 @@ func TestGolden_TableCompactWidth(t *testing.T) {
 		WithWidth(Columns(1), 5),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{{"x", "a long value"}, {"y", "short"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("a long value")}, {table.String("y"), table.String("short")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_compact_width", buf.Bytes())
@@ -1849,7 +1850,7 @@ func TestGolden_StreamCompactWidth(t *testing.T) {
 		WithWidth(Columns(1), 5),
 		WithHeader([]string{"A", "B"}),
 	)
-	for _, r := range [][]any{{"x", "a long value"}, {"y", "short"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.String("a long value")}, {table.String("y"), table.String("short")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -1865,8 +1866,8 @@ func TestGolden_TableControlChars(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := tb.Render([][]any{
-		{"a\tb", "c\vd", "e\x00f"},
+	if err := tb.Render([][]table.Value{
+		{table.String("a\tb"), table.String("c\vd"), table.String("e\x00f")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1878,7 +1879,7 @@ func TestGolden_StreamControlChars(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := s.Render([]any{"a\tb", "c\vd", "e\x00f"}); err != nil {
+	if err := s.Render([]table.Value{table.String("a\tb"), table.String("c\vd"), table.String("e\x00f")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1892,8 +1893,8 @@ func TestGolden_TableEmoji(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := tb.Render([][]any{
-		{"\U0001F600", "\U0001F469\u200D\U0001F4BB", "e\u0301"},
+	if err := tb.Render([][]table.Value{
+		{table.String("\U0001F600"), table.String("\U0001F469\u200D\U0001F4BB"), table.String("e\u0301")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1905,7 +1906,7 @@ func TestGolden_StreamEmoji(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := s.Render([]any{"\U0001F600", "\U0001F469\u200D\U0001F4BB", "e\u0301"}); err != nil {
+	if err := s.Render([]table.Value{table.String("\U0001F600"), table.String("\U0001F469\u200D\U0001F4BB"), table.String("e\u0301")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1922,7 +1923,7 @@ func TestGolden_TableFlagWidth(t *testing.T) {
 		WithWidth(Columns(1), 4),
 		WithTruncate(Columns(1)),
 	)
-	if err := tb.Render([][]any{{"🇯🇵🇺🇸", "🇯🇵🇺🇸x"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("🇯🇵🇺🇸"), table.String("🇯🇵🇺🇸x")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_flag_width", buf.Bytes())
@@ -1936,7 +1937,7 @@ func TestGolden_StreamFlagWidth(t *testing.T) {
 		WithWidth(Columns(1), 4),
 		WithTruncate(Columns(1)),
 	)
-	if err := s.Render([]any{"🇯🇵🇺🇸", "🇯🇵🇺🇸x"}); err != nil {
+	if err := s.Render([]table.Value{table.String("🇯🇵🇺🇸"), table.String("🇯🇵🇺🇸x")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -1972,8 +1973,8 @@ func TestGolden_TableEmptyHeaderLabel(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"", "B", ""}),
 	)
-	if err := tb.Render([][]any{
-		{"x", "y", "z"},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.String("y"), table.String("z")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1985,7 +1986,7 @@ func TestGolden_StreamEmptyHeaderLabel(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"", "B", ""}),
 	)
-	if err := s.Render([]any{"x", "y", "z"}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.String("y"), table.String("z")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -2002,9 +2003,9 @@ func TestGolden_TableFooter(t *testing.T) {
 			return [][]string{{"sum", "", "9"}}
 		}),
 	)
-	if err := tb.Render([][]any{
-		{"x", "y", 1},
-		{"p", "q", 8},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.String("y"), table.Int(1)},
+		{table.String("p"), table.String("q"), table.Int(8)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -2019,10 +2020,10 @@ func TestGolden_StreamFooter(t *testing.T) {
 			return [][]string{{"sum", "", "9"}}
 		}),
 	)
-	if err := s.Render([]any{"x", "y", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.String("y"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"p", "q", 8}); err != nil {
+	if err := s.Render([]table.Value{table.String("p"), table.String("q"), table.Int(8)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -2099,7 +2100,7 @@ func TestGolden_TableFooterPadding(t *testing.T) {
 		}),
 		WithPadding(Columns(1), 3, 0),
 	)
-	if err := tb.Render([][]any{{"x", "y"}, {"p", "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("y")}, {table.String("p"), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_footer_padding", buf.Bytes())
@@ -2115,7 +2116,7 @@ func TestGolden_StreamFooterPadding(t *testing.T) {
 		}),
 		WithPadding(Columns(1), 3, 0),
 	)
-	for _, r := range [][]any{{"x", "y"}, {"p", "q"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.String("y")}, {table.String("p"), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -2136,7 +2137,7 @@ func TestGolden_TableFooterPlaceholder(t *testing.T) {
 		}),
 		WithPlaceholder("-"),
 	)
-	if err := tb.Render([][]any{{"x", nil}, {nil, "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.Any(nil)}, {table.Any(nil), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_footer_placeholder", buf.Bytes())
@@ -2152,7 +2153,7 @@ func TestGolden_StreamFooterPlaceholder(t *testing.T) {
 		}),
 		WithPlaceholder("-"),
 	)
-	for _, r := range [][]any{{"x", nil}, {nil, "q"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.Any(nil)}, {table.Any(nil), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -2174,7 +2175,7 @@ func TestGolden_TableFooterTruncate(t *testing.T) {
 		WithWidth(Columns(0), 5),
 		WithTruncate(Columns(0)),
 	)
-	if err := tb.Render([][]any{{"a long value", "x"}, {"y", "z"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a long value"), table.String("x")}, {table.String("y"), table.String("z")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_footer_truncate", buf.Bytes())
@@ -2191,7 +2192,7 @@ func TestGolden_StreamFooterTruncate(t *testing.T) {
 		WithWidth(Columns(0), 5),
 		WithTruncate(Columns(0)),
 	)
-	for _, r := range [][]any{{"a long value", "x"}, {"y", "z"}} {
+	for _, r := range [][]table.Value{{table.String("a long value"), table.String("x")}, {table.String("y"), table.String("z")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -2231,7 +2232,7 @@ func TestGolden_TableHeaderlessColspan(t *testing.T) {
 	tb := NewTable(&buf,
 		WithColspan(ScopeBody, Columns(0, 1)),
 	)
-	if err := tb.Render([][]any{{"A", "A"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("A"), table.String("A")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_headerless_colspan", buf.Bytes())
@@ -2242,7 +2243,7 @@ func TestGolden_StreamHeaderlessColspan(t *testing.T) {
 	s := NewStream(&buf,
 		WithColspan(ScopeBody, Columns(0, 1)),
 	)
-	if err := s.Render([]any{"A", "A"}); err != nil {
+	if err := s.Render([]table.Value{table.String("A"), table.String("A")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -2261,9 +2262,9 @@ func TestGolden_TableHeaderRowspan(t *testing.T) {
 		),
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
 	)
-	if err := tb.Render([][]any{
-		{"jp", "prod", "web"},
-		{"jp", "prod", "db"},
+	if err := tb.Render([][]table.Value{
+		{table.String("jp"), table.String("prod"), table.String("web")},
+		{table.String("jp"), table.String("prod"), table.String("db")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -2280,7 +2281,7 @@ func TestGolden_StreamHeaderRowspan(t *testing.T) {
 		),
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
 	)
-	for _, row := range [][]any{{"jp", "prod", "web"}, {"jp", "prod", "db"}} {
+	for _, row := range [][]table.Value{{table.String("jp"), table.String("prod"), table.String("web")}, {table.String("jp"), table.String("prod"), table.String("db")}} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
 		}
@@ -2305,9 +2306,9 @@ func TestGolden_TableHeaderRowspanColspan(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
 	)
-	if err := tb.Render([][]any{
-		{"a", "b", 1},
-		{"a", "b", 2},
+	if err := tb.Render([][]table.Value{
+		{table.String("a"), table.String("b"), table.Int(1)},
+		{table.String("a"), table.String("b"), table.Int(2)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -2328,7 +2329,7 @@ func TestGolden_StreamHeaderRowspanColspan(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
 	)
-	for _, row := range [][]any{{"a", "b", 1}, {"a", "b", 2}} {
+	for _, row := range [][]table.Value{{table.String("a"), table.String("b"), table.Int(1)}, {table.String("a"), table.String("b"), table.Int(2)}} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
 		}
@@ -2344,9 +2345,9 @@ func TestGolden_TableHeaderWiderThanRows(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"A", "B", "C", "D", "E"}),
 	)
-	if err := tb.Render([][]any{
-		{"x", "y"},
-		{"p", "q"},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.String("y")},
+		{table.String("p"), table.String("q")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -2358,10 +2359,10 @@ func TestGolden_StreamHeaderWiderThanRows(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"A", "B", "C", "D", "E"}),
 	)
-	if err := s.Render([]any{"x", "y"}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.String("y")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"p", "q"}); err != nil {
+	if err := s.Render([]table.Value{table.String("p"), table.String("q")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -2377,7 +2378,7 @@ func TestGolden_TableIndexWidth(t *testing.T) {
 		WithHeader([]string{"A", "B"}),
 		WithIndexWidth(5),
 	)
-	if err := tb.Render([][]any{{"x", "y"}, {"p", "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("y")}, {table.String("p"), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_index_width", buf.Bytes())
@@ -2390,7 +2391,7 @@ func TestGolden_StreamIndexWidth(t *testing.T) {
 		WithHeader([]string{"A", "B"}),
 		WithIndexWidth(5),
 	)
-	for _, r := range [][]any{{"x", "y"}, {"p", "q"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.String("y")}, {table.String("p"), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -2412,7 +2413,7 @@ func TestGolden_TableIndexWidthAutoFit(t *testing.T) {
 		WithAutoFit(),
 		WithIndexWidth(4),
 	)
-	if err := tb.Render([][]any{{"a fairly long value", "x"}, {"short", "y"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a fairly long value"), table.String("x")}, {table.String("short"), table.String("y")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_index_width_autofit", buf.Bytes())
@@ -2429,7 +2430,7 @@ func TestGolden_StreamIndexWidthAutoFit(t *testing.T) {
 		WithAutoFit(),
 		WithIndexWidth(4),
 	)
-	for _, row := range [][]any{{"a fairly long value", "x"}, {"short", "y"}} {
+	for _, row := range [][]table.Value{{table.String("a fairly long value"), table.String("x")}, {table.String("short"), table.String("y")}} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
 		}
@@ -2445,8 +2446,8 @@ func TestGolden_TableInvalidUtf8(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := tb.Render([][]any{
-		{"a\xffb", "\xfe", "ok"},
+	if err := tb.Render([][]table.Value{
+		{table.String("a\xffb"), table.String("\xfe"), table.String("ok")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -2458,7 +2459,7 @@ func TestGolden_StreamInvalidUtf8(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := s.Render([]any{"a\xffb", "\xfe", "ok"}); err != nil {
+	if err := s.Render([]table.Value{table.String("a\xffb"), table.String("\xfe"), table.String("ok")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -2474,9 +2475,9 @@ func TestGolden_TableMaxWidth(t *testing.T) {
 		WithWidth(Columns(1), 15),
 		WithHeader([]string{"Name", "Description"}),
 	)
-	if err := tb.Render([][]any{
-		{"alice", "short"},
-		{"bob", "this is a longer description"},
+	if err := tb.Render([][]table.Value{
+		{table.String("alice"), table.String("short")},
+		{table.String("bob"), table.String("this is a longer description")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -2490,10 +2491,10 @@ func TestGolden_StreamMaxWidth(t *testing.T) {
 		WithWidth(Columns(1), 15),
 		WithHeader([]string{"Name", "Description"}),
 	)
-	if err := s.Render([]any{"alice", "short"}); err != nil {
+	if err := s.Render([]table.Value{table.String("alice"), table.String("short")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bob", "this is a longer description"}); err != nil {
+	if err := s.Render([]table.Value{table.String("bob"), table.String("this is a longer description")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -2509,8 +2510,8 @@ func TestGolden_TableMaxWidthCJK(t *testing.T) {
 		WithWidth(Columns(1), 8),
 		WithHeader([]string{"Label", "日本語"}),
 	)
-	if err := tb.Render([][]any{
-		{"x", "あいうえおかきくけこ"},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.String("あいうえおかきくけこ")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -2524,7 +2525,7 @@ func TestGolden_StreamMaxWidthCJK(t *testing.T) {
 		WithWidth(Columns(1), 8),
 		WithHeader([]string{"Label", "日本語"}),
 	)
-	if err := s.Render([]any{"x", "あいうえおかきくけこ"}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.String("あいうえおかきくけこ")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -2541,9 +2542,9 @@ func TestGolden_TableMaxWidthHeader(t *testing.T) {
 		WithWidth(Columns(1), 5),
 		WithHeader([]string{"LongHeader", "Value"}),
 	)
-	if err := tb.Render([][]any{
-		{"ab", "xy"},
-		{"cdef", "z"},
+	if err := tb.Render([][]table.Value{
+		{table.String("ab"), table.String("xy")},
+		{table.String("cdef"), table.String("z")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -2558,10 +2559,10 @@ func TestGolden_StreamMaxWidthHeader(t *testing.T) {
 		WithWidth(Columns(1), 5),
 		WithHeader([]string{"LongHeader", "Value"}),
 	)
-	if err := s.Render([]any{"ab", "xy"}); err != nil {
+	if err := s.Render([]table.Value{table.String("ab"), table.String("xy")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"cdef", "z"}); err != nil {
+	if err := s.Render([]table.Value{table.String("cdef"), table.String("z")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -2577,9 +2578,9 @@ func TestGolden_TableMaxWidthMultiline(t *testing.T) {
 		WithWidth(Columns(1), 10),
 		WithHeader([]string{"ID", "Data"}),
 	)
-	if err := tb.Render([][]any{
-		{1, "line1\nthis-is-a-long-line2"},
-		{2, "short"},
+	if err := tb.Render([][]table.Value{
+		{table.Int(1), table.String("line1\nthis-is-a-long-line2")},
+		{table.Int(2), table.String("short")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -2593,10 +2594,10 @@ func TestGolden_StreamMaxWidthMultiline(t *testing.T) {
 		WithWidth(Columns(1), 10),
 		WithHeader([]string{"ID", "Data"}),
 	)
-	if err := s.Render([]any{1, "line1\nthis-is-a-long-line2"}); err != nil {
+	if err := s.Render([]table.Value{table.Int(1), table.String("line1\nthis-is-a-long-line2")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{2, "short"}); err != nil {
+	if err := s.Render([]table.Value{table.Int(2), table.String("short")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -2611,9 +2612,9 @@ func TestGolden_TableMultilineCell(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"single", "double", "triple"}),
 	)
-	if err := tb.Render([][]any{
-		{"one", "a\nb", "x\ny\nz"},
-		{"two\nlines", "p", "q\nr"},
+	if err := tb.Render([][]table.Value{
+		{table.String("one"), table.String("a\nb"), table.String("x\ny\nz")},
+		{table.String("two\nlines"), table.String("p"), table.String("q\nr")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -2626,10 +2627,10 @@ func TestGolden_StreamMultilineCell(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"single", "double", "triple"}),
 	)
-	if err := s.Render([]any{"one", "a\nb", "x\ny\nz"}); err != nil {
+	if err := s.Render([]table.Value{table.String("one"), table.String("a\nb"), table.String("x\ny\nz")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"two\nlines", "p", "q\nr"}); err != nil {
+	if err := s.Render([]table.Value{table.String("two\nlines"), table.String("p"), table.String("q\nr")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -2644,7 +2645,7 @@ func TestGolden_TableMultilineCRLF(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"line"}),
 	)
-	if err := tb.Render([][]any{{"a\r\nb\nc\rd"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a\r\nb\nc\rd")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_multiline_crlf", buf.Bytes())
@@ -2656,7 +2657,7 @@ func TestGolden_StreamMultilineCRLF(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"line"}),
 	)
-	if err := s.Render([]any{"a\r\nb\nc\rd"}); err != nil {
+	if err := s.Render([]table.Value{table.String("a\r\nb\nc\rd")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -2671,9 +2672,9 @@ func TestGolden_TableMultilineHeader(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"single", "two\nlines", "three\nlines\nhere"}),
 	)
-	if err := tb.Render([][]any{
-		{"a", "b", "c"},
-		{"d", "e", "f"},
+	if err := tb.Render([][]table.Value{
+		{table.String("a"), table.String("b"), table.String("c")},
+		{table.String("d"), table.String("e"), table.String("f")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -2686,10 +2687,10 @@ func TestGolden_StreamMultilineHeader(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"single", "two\nlines", "three\nlines\nhere"}),
 	)
-	if err := s.Render([]any{"a", "b", "c"}); err != nil {
+	if err := s.Render([]table.Value{table.String("a"), table.String("b"), table.String("c")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"d", "e", "f"}); err != nil {
+	if err := s.Render([]table.Value{table.String("d"), table.String("e"), table.String("f")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -2704,10 +2705,10 @@ func TestGolden_TableNilInNumeric(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"Name", "Score"}),
 	)
-	if err := tb.Render([][]any{
-		{"alice", 100},
-		{"bob", nil},
-		{"carol", 99999},
+	if err := tb.Render([][]table.Value{
+		{table.String("alice"), table.Int(100)},
+		{table.String("bob"), table.Any(nil)},
+		{table.String("carol"), table.Int(99999)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -2720,13 +2721,13 @@ func TestGolden_StreamNilInNumeric(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"Name", "Score"}),
 	)
-	if err := s.Render([]any{"alice", 100}); err != nil {
+	if err := s.Render([]table.Value{table.String("alice"), table.Int(100)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bob", nil}); err != nil {
+	if err := s.Render([]table.Value{table.String("bob"), table.Any(nil)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"carol", 99999}); err != nil {
+	if err := s.Render([]table.Value{table.String("carol"), table.Int(99999)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -2742,9 +2743,9 @@ func TestGolden_TablePadding(t *testing.T) {
 		WithPadding(Columns(1), 3, 3),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{
-		{"x", 1},
-		{"y", 2},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.Int(1)},
+		{table.String("y"), table.Int(2)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -2758,10 +2759,10 @@ func TestGolden_StreamPadding(t *testing.T) {
 		WithPadding(Columns(1), 3, 3),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := s.Render([]any{"x", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"y", 2}); err != nil {
+	if err := s.Render([]table.Value{table.String("y"), table.Int(2)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -2777,9 +2778,9 @@ func TestGolden_TablePaddingMultiline(t *testing.T) {
 		WithPadding(Columns(1), 3, 3),
 		WithHeader([]string{"ID", "Lines"}),
 	)
-	if err := tb.Render([][]any{
-		{1, "a\nb\nc"},
-		{2, "x"},
+	if err := tb.Render([][]table.Value{
+		{table.Int(1), table.String("a\nb\nc")},
+		{table.Int(2), table.String("x")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -2793,10 +2794,10 @@ func TestGolden_StreamPaddingMultiline(t *testing.T) {
 		WithPadding(Columns(1), 3, 3),
 		WithHeader([]string{"ID", "Lines"}),
 	)
-	if err := s.Render([]any{1, "a\nb\nc"}); err != nil {
+	if err := s.Render([]table.Value{table.Int(1), table.String("a\nb\nc")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{2, "x"}); err != nil {
+	if err := s.Render([]table.Value{table.Int(2), table.String("x")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -2813,9 +2814,9 @@ func TestGolden_TablePaddingZero(t *testing.T) {
 		WithPadding(Columns(1), 0, 0),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{
-		{"x", 1},
-		{"y", 2},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.Int(1)},
+		{table.String("y"), table.Int(2)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -2830,10 +2831,10 @@ func TestGolden_StreamPaddingZero(t *testing.T) {
 		WithPadding(Columns(1), 0, 0),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := s.Render([]any{"x", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"y", 2}); err != nil {
+	if err := s.Render([]table.Value{table.String("y"), table.Int(2)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -2849,9 +2850,9 @@ func TestGolden_TablePlaceholder(t *testing.T) {
 		WithPlaceholder("N/A"),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{
-		{"x", ""},
-		{nil, "y"},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.String("")},
+		{table.Any(nil), table.String("y")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -2865,10 +2866,10 @@ func TestGolden_StreamPlaceholder(t *testing.T) {
 		WithPlaceholder("N/A"),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := s.Render([]any{"x", ""}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.String("")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{nil, "y"}); err != nil {
+	if err := s.Render([]table.Value{table.Any(nil), table.String("y")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -2885,7 +2886,7 @@ func TestGolden_TablePlaceholderFixedWidth(t *testing.T) {
 		WithHeader([]string{"A", "B"}),
 		WithWidth(Columns(1), 2),
 	)
-	if err := tb.Render([][]any{{"x", ""}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_placeholder_fixed_width", buf.Bytes())
@@ -2899,7 +2900,7 @@ func TestGolden_StreamPlaceholderFixedWidth(t *testing.T) {
 		WithHeader([]string{"A", "B"}),
 		WithWidth(Columns(1), 2),
 	)
-	if err := s.Render([]any{"x", ""}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.String("")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -2923,7 +2924,7 @@ func TestGolden_TablePlaceholderTransformerTruncate(t *testing.T) {
 		}),
 		WithTruncate(Columns(1)),
 	)
-	if err := tb.Render([][]any{{"empty", ""}, {"nil", nil}, {"raw", "raw"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("empty"), table.String("")}, {table.String("nil"), table.Any(nil)}, {table.String("raw"), table.String("raw")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_placeholder_transformer_truncate", buf.Bytes())
@@ -2944,7 +2945,7 @@ func TestGolden_StreamPlaceholderTransformerTruncate(t *testing.T) {
 		}),
 		WithTruncate(Columns(1)),
 	)
-	for _, row := range [][]any{{"empty", ""}, {"nil", nil}, {"raw", "raw"}} {
+	for _, row := range [][]table.Value{{table.String("empty"), table.String("")}, {table.String("nil"), table.Any(nil)}, {table.String("raw"), table.String("raw")}} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
 		}
@@ -2962,9 +2963,9 @@ func TestGolden_TablePlaceholderWideBytes(t *testing.T) {
 		WithPlaceholder("\u2014"),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{
-		{"x", nil},
-		{"y", "z"},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.Any(nil)},
+		{table.String("y"), table.String("z")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -2978,7 +2979,7 @@ func TestGolden_StreamPlaceholderWideBytes(t *testing.T) {
 		WithPlaceholder("\u2014"),
 		WithHeader([]string{"A", "B"}),
 	)
-	for _, row := range [][]any{{"x", nil}, {"y", "z"}} {
+	for _, row := range [][]table.Value{{table.String("x"), table.Any(nil)}, {table.String("y"), table.String("z")}} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
 		}
@@ -2994,9 +2995,9 @@ func TestGolden_TableRaggedRows(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := tb.Render([][]any{
-		{"x"},
-		{"p", "q", "r"},
+	if err := tb.Render([][]table.Value{
+		{table.String("x")},
+		{table.String("p"), table.String("q"), table.String("r")},
 		{},
 	}); err != nil {
 		t.Fatal(err)
@@ -3009,13 +3010,13 @@ func TestGolden_StreamRaggedRows(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := s.Render([]any{"x"}); err != nil {
+	if err := s.Render([]table.Value{table.String("x")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"p", "q", "r"}); err != nil {
+	if err := s.Render([]table.Value{table.String("p"), table.String("q"), table.String("r")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{}); err != nil {
+	if err := s.Render([]table.Value{}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -3029,9 +3030,9 @@ func TestGolden_TableRowsOnly(t *testing.T) {
 	tb := NewTable(&buf,
 		WithStyle(StyleLight),
 	)
-	if err := tb.Render([][]any{
-		{"a", 1},
-		{"b", 2},
+	if err := tb.Render([][]table.Value{
+		{table.String("a"), table.Int(1)},
+		{table.String("b"), table.Int(2)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -3043,10 +3044,10 @@ func TestGolden_StreamRowsOnly(t *testing.T) {
 	s := NewStream(&buf,
 		WithStyle(StyleLight),
 	)
-	if err := s.Render([]any{"a", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("a"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"b", 2}); err != nil {
+	if err := s.Render([]table.Value{table.String("b"), table.Int(2)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -3062,10 +3063,10 @@ func TestGolden_TableRowspan(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithHeader([]string{"Group", "Item"}),
 	)
-	if err := tb.Render([][]any{
-		{"A", "x"},
-		{"A", "y"},
-		{"B", "z"},
+	if err := tb.Render([][]table.Value{
+		{table.String("A"), table.String("x")},
+		{table.String("A"), table.String("y")},
+		{table.String("B"), table.String("z")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -3079,13 +3080,13 @@ func TestGolden_StreamRowspan(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithHeader([]string{"Group", "Item"}),
 	)
-	if err := s.Render([]any{"A", "x"}); err != nil {
+	if err := s.Render([]table.Value{table.String("A"), table.String("x")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"A", "y"}); err != nil {
+	if err := s.Render([]table.Value{table.String("A"), table.String("y")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"B", "z"}); err != nil {
+	if err := s.Render([]table.Value{table.String("B"), table.String("z")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -3102,10 +3103,10 @@ func TestGolden_TableRowspanAlign(t *testing.T) {
 		WithAlign(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), AlignRight),
 		WithHeader([]string{"Group", "Score"}),
 	)
-	if err := tb.Render([][]any{
-		{"A", 100},
-		{"A", 200},
-		{"B", 300},
+	if err := tb.Render([][]table.Value{
+		{table.String("A"), table.Int(100)},
+		{table.String("A"), table.Int(200)},
+		{table.String("B"), table.Int(300)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -3120,13 +3121,13 @@ func TestGolden_StreamRowspanAlign(t *testing.T) {
 		WithAlign(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), AlignRight),
 		WithHeader([]string{"Group", "Score"}),
 	)
-	if err := s.Render([]any{"A", 100}); err != nil {
+	if err := s.Render([]table.Value{table.String("A"), table.Int(100)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"A", 200}); err != nil {
+	if err := s.Render([]table.Value{table.String("A"), table.Int(200)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"B", 300}); err != nil {
+	if err := s.Render([]table.Value{table.String("B"), table.Int(300)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -3146,7 +3147,7 @@ func TestGolden_TableRowspanAttr(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
 	)
-	if err := tb.Render([][]any{{"s", "s"}, {"s", "s"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_rowspan_attr", buf.Bytes())
@@ -3163,7 +3164,7 @@ func TestGolden_StreamRowspanAttr(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
 	)
-	for _, r := range [][]any{{"s", "s"}, {"s", "s"}} {
+	for _, r := range [][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -3185,7 +3186,7 @@ func TestGolden_TableRowspanAutoFit(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithAutoFit(),
 	)
-	if err := tb.Render([][]any{{"g", "a fairly long value"}, {"g", "another long one"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("g"), table.String("a fairly long value")}, {table.String("g"), table.String("another long one")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_rowspan_autofit", buf.Bytes())
@@ -3202,7 +3203,7 @@ func TestGolden_StreamRowspanAutoFit(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithAutoFit(),
 	)
-	for _, r := range [][]any{{"g", "a fairly long value"}, {"g", "another long one"}} {
+	for _, r := range [][]table.Value{{table.String("g"), table.String("a fairly long value")}, {table.String("g"), table.String("another long one")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -3221,7 +3222,7 @@ func TestGolden_TableRowspanCaption(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithCaption("cap", CaptionBottom),
 	)
-	if err := tb.Render([][]any{{"s", "s"}, {"s", "s"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_rowspan_caption", buf.Bytes())
@@ -3235,7 +3236,7 @@ func TestGolden_StreamRowspanCaption(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithCaption("cap", CaptionBottom),
 	)
-	for _, r := range [][]any{{"s", "s"}, {"s", "s"}} {
+	for _, r := range [][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -3253,9 +3254,9 @@ func TestGolden_TableRowspanColspanBoundary(t *testing.T) {
 		WithRowspan(ScopeBody, Columns(1, 2)),
 		WithColspan(ScopeBody, Columns(0, 1, 2)),
 	)
-	if err := tb.Render([][]any{
-		{"A", "A", "A"},
-		{"X", "A", "A"},
+	if err := tb.Render([][]table.Value{
+		{table.String("A"), table.String("A"), table.String("A")},
+		{table.String("X"), table.String("A"), table.String("A")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -3269,10 +3270,10 @@ func TestGolden_StreamRowspanColspanBoundary(t *testing.T) {
 		WithRowspan(ScopeBody, Columns(1, 2)),
 		WithColspan(ScopeBody, Columns(0, 1, 2)),
 	)
-	if err := s.Render([]any{"A", "A", "A"}); err != nil {
+	if err := s.Render([]table.Value{table.String("A"), table.String("A"), table.String("A")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"X", "A", "A"}); err != nil {
+	if err := s.Render([]table.Value{table.String("X"), table.String("A"), table.String("A")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -3288,10 +3289,10 @@ func TestGolden_TableRowspanColspanEdge(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(1, 2)),
 	)
-	if err := tb.Render([][]any{
-		{"g", "x", "x"},
-		{"g", "y", "y"},
-		{"h", "z", "w"},
+	if err := tb.Render([][]table.Value{
+		{table.String("g"), table.String("x"), table.String("x")},
+		{table.String("g"), table.String("y"), table.String("y")},
+		{table.String("h"), table.String("z"), table.String("w")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -3305,13 +3306,13 @@ func TestGolden_StreamRowspanColspanEdge(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(1, 2)),
 	)
-	if err := s.Render([]any{"g", "x", "x"}); err != nil {
+	if err := s.Render([]table.Value{table.String("g"), table.String("x"), table.String("x")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"g", "y", "y"}); err != nil {
+	if err := s.Render([]table.Value{table.String("g"), table.String("y"), table.String("y")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"h", "z", "w"}); err != nil {
+	if err := s.Render([]table.Value{table.String("h"), table.String("z"), table.String("w")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -3327,10 +3328,10 @@ func TestGolden_TableRowspanMissingKinds(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(1)),
 		WithPlaceholder("X"),
 	)
-	if err := tb.Render([][]any{
-		{1, "X"},
-		{2},
-		{3, nil},
+	if err := tb.Render([][]table.Value{
+		{table.Int(1), table.String("X")},
+		{table.Int(2)},
+		{table.Int(3), table.Any(nil)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -3344,13 +3345,13 @@ func TestGolden_StreamRowspanMissingKinds(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(1)),
 		WithPlaceholder("X"),
 	)
-	if err := s.Render([]any{1, "X"}); err != nil {
+	if err := s.Render([]table.Value{table.Int(1), table.String("X")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{2}); err != nil {
+	if err := s.Render([]table.Value{table.Int(2)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{3, nil}); err != nil {
+	if err := s.Render([]table.Value{table.Int(3), table.Any(nil)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -3367,10 +3368,10 @@ func TestGolden_TableRowspanPadding(t *testing.T) {
 		WithPadding(Columns(1), 2, 2),
 		WithHeader([]string{"Group", "Value"}),
 	)
-	if err := tb.Render([][]any{
-		{"A", "x"},
-		{"A", "y"},
-		{"B", "z"},
+	if err := tb.Render([][]table.Value{
+		{table.String("A"), table.String("x")},
+		{table.String("A"), table.String("y")},
+		{table.String("B"), table.String("z")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -3385,13 +3386,13 @@ func TestGolden_StreamRowspanPadding(t *testing.T) {
 		WithPadding(Columns(1), 2, 2),
 		WithHeader([]string{"Group", "Value"}),
 	)
-	if err := s.Render([]any{"A", "x"}); err != nil {
+	if err := s.Render([]table.Value{table.String("A"), table.String("x")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"A", "y"}); err != nil {
+	if err := s.Render([]table.Value{table.String("A"), table.String("y")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"B", "z"}); err != nil {
+	if err := s.Render([]table.Value{table.String("B"), table.String("z")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -3407,10 +3408,10 @@ func TestGolden_TableRowspanPlaceholder(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithPlaceholder("-"),
 	)
-	if err := tb.Render([][]any{
-		{"g", "", "x"},
-		{"g", "", "y"},
-		{"", "", ""},
+	if err := tb.Render([][]table.Value{
+		{table.String("g"), table.String(""), table.String("x")},
+		{table.String("g"), table.String(""), table.String("y")},
+		{table.String(""), table.String(""), table.String("")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -3424,13 +3425,13 @@ func TestGolden_StreamRowspanPlaceholder(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithPlaceholder("-"),
 	)
-	if err := s.Render([]any{"g", "", "x"}); err != nil {
+	if err := s.Render([]table.Value{table.String("g"), table.String(""), table.String("x")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"g", "", "y"}); err != nil {
+	if err := s.Render([]table.Value{table.String("g"), table.String(""), table.String("y")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"", "", ""}); err != nil {
+	if err := s.Render([]table.Value{table.String(""), table.String(""), table.String("")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -3446,10 +3447,10 @@ func TestGolden_TableRowspanScope(t *testing.T) {
 		WithHeader([]string{"Env", "Tier"}, []string{"Env", "Tier"}),
 		WithRowspan(ScopeBody, Columns(0)),
 	)
-	if err := tb.Render([][]any{
-		{"prod", "web"},
-		{"prod", "db"},
-		{"dev", "web"},
+	if err := tb.Render([][]table.Value{
+		{table.String("prod"), table.String("web")},
+		{table.String("prod"), table.String("db")},
+		{table.String("dev"), table.String("web")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -3463,10 +3464,10 @@ func TestGolden_StreamRowspanScope(t *testing.T) {
 		WithHeader([]string{"Env", "Tier"}, []string{"Env", "Tier"}),
 		WithRowspan(ScopeBody, Columns(0)),
 	)
-	for _, row := range [][]any{
-		{"prod", "web"},
-		{"prod", "db"},
-		{"dev", "web"},
+	for _, row := range [][]table.Value{
+		{table.String("prod"), table.String("web")},
+		{table.String("prod"), table.String("db")},
+		{table.String("dev"), table.String("web")},
 	} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
@@ -3491,7 +3492,7 @@ func TestGolden_TableRowspanTransformer(t *testing.T) {
 			return "", nil
 		}),
 	)
-	if err := tb.Render([][]any{{"x", "raw"}, {"p", "raw"}, {"q", "z"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("raw")}, {table.String("p"), table.String("raw")}, {table.String("q"), table.String("z")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_rowspan_transformer", buf.Bytes())
@@ -3510,7 +3511,7 @@ func TestGolden_StreamRowspanTransformer(t *testing.T) {
 			return "", nil
 		}),
 	)
-	for _, r := range [][]any{{"x", "raw"}, {"p", "raw"}, {"q", "z"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.String("raw")}, {table.String("p"), table.String("raw")}, {table.String("q"), table.String("z")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -3530,7 +3531,7 @@ func TestGolden_TableRowspanTruncate(t *testing.T) {
 		WithWidth(Columns(1), 5),
 		WithTruncate(Columns(1)),
 	)
-	if err := tb.Render([][]any{{"g", "a long value"}, {"g", "short"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("g"), table.String("a long value")}, {table.String("g"), table.String("short")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_rowspan_truncate", buf.Bytes())
@@ -3545,7 +3546,7 @@ func TestGolden_StreamRowspanTruncate(t *testing.T) {
 		WithWidth(Columns(1), 5),
 		WithTruncate(Columns(1)),
 	)
-	for _, r := range [][]any{{"g", "a long value"}, {"g", "short"}} {
+	for _, r := range [][]table.Value{{table.String("g"), table.String("a long value")}, {table.String("g"), table.String("short")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -3564,7 +3565,7 @@ func TestGolden_TableRowspanWidth(t *testing.T) {
 		WithWidth(Columns(1), 6),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{{"g", "a long value"}, {"g", "short"}, {"h", "x"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("g"), table.String("a long value")}, {table.String("g"), table.String("short")}, {table.String("h"), table.String("x")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_rowspan_width", buf.Bytes())
@@ -3578,7 +3579,7 @@ func TestGolden_StreamRowspanWidth(t *testing.T) {
 		WithWidth(Columns(1), 6),
 		WithHeader([]string{"A", "B"}),
 	)
-	for _, r := range [][]any{{"g", "a long value"}, {"g", "short"}, {"h", "x"}} {
+	for _, r := range [][]table.Value{{table.String("g"), table.String("a long value")}, {table.String("g"), table.String("short")}, {table.String("h"), table.String("x")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -3595,7 +3596,7 @@ func TestGolden_TableSingleCell(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"only"}),
 	)
-	if err := tb.Render([][]any{{"v"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("v")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_single_cell", buf.Bytes())
@@ -3607,7 +3608,7 @@ func TestGolden_StreamSingleCell(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"only"}),
 	)
-	if err := s.Render([]any{"v"}); err != nil {
+	if err := s.Render([]table.Value{table.String("v")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -3630,11 +3631,11 @@ func TestGolden_TableSpanLimit(t *testing.T) {
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(cols...)),
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(cols...)),
 	)
-	rows := make([][]any, 2)
+	rows := make([][]table.Value, 2)
 	for r := range rows {
-		row := make([]any, n)
+		row := make([]table.Value, n)
 		for i := range n {
-			row[i] = "v"
+			row[i] = table.String("v")
 		}
 		rows[r] = row
 	}
@@ -3659,9 +3660,9 @@ func TestGolden_StreamSpanLimit(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(cols...)),
 	)
 	for range 2 {
-		row := make([]any, n)
+		row := make([]table.Value, n)
 		for i := range n {
-			row[i] = "v"
+			row[i] = table.String("v")
 		}
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
@@ -3685,9 +3686,9 @@ func TestGolden_TableStackedHeader(t *testing.T) {
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2, 3)),
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(4)),
 	)
-	if err := tb.Render([][]any{
-		{"vpc-1", "sub-1", "sg-1", "nacl-1", "i-001"},
-		{"vpc-2", "sub-2", "sg-2", "nacl-2", "i-002"},
+	if err := tb.Render([][]table.Value{
+		{table.String("vpc-1"), table.String("sub-1"), table.String("sg-1"), table.String("nacl-1"), table.String("i-001")},
+		{table.String("vpc-2"), table.String("sub-2"), table.String("sg-2"), table.String("nacl-2"), table.String("i-002")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -3706,9 +3707,9 @@ func TestGolden_StreamStackedHeaderStack(t *testing.T) {
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2, 3)),
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(4)),
 	)
-	for _, row := range [][]any{
-		{"vpc-1", "sub-1", "sg-1", "nacl-1", "i-001"},
-		{"vpc-2", "sub-2", "sg-2", "nacl-2", "i-002"},
+	for _, row := range [][]table.Value{
+		{table.String("vpc-1"), table.String("sub-1"), table.String("sg-1"), table.String("nacl-1"), table.String("i-001")},
+		{table.String("vpc-2"), table.String("sub-2"), table.String("sg-2"), table.String("nacl-2"), table.String("i-002")},
 	} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
@@ -3731,7 +3732,7 @@ func TestGolden_TableStackedHeaderNested(t *testing.T) {
 		),
 		WithColspan(ScopeHeader, Columns(0, 1, 2, 3)),
 	)
-	if err := tb.Render([][]any{{1, 2, 3, 4, "x"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.Int(1), table.Int(2), table.Int(3), table.Int(4), table.String("x")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_stacked_header_nested", buf.Bytes())
@@ -3748,7 +3749,7 @@ func TestGolden_StreamStackedHeaderNested(t *testing.T) {
 		),
 		WithColspan(ScopeHeader, Columns(0, 1, 2, 3)),
 	)
-	if err := s.Render([]any{1, 2, 3, 4, "x"}); err != nil {
+	if err := s.Render([]table.Value{table.Int(1), table.Int(2), table.Int(3), table.Int(4), table.String("x")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -3767,7 +3768,7 @@ func TestGolden_TableStackedHeaderWideLabel(t *testing.T) {
 		),
 		WithColspan(ScopeHeader, Columns(0, 1)),
 	)
-	if err := tb.Render([][]any{{"us-east-1a", "a", "1"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("us-east-1a"), table.String("a"), table.String("1")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_stacked_header_wide_label", buf.Bytes())
@@ -3783,7 +3784,7 @@ func TestGolden_StreamStackedHeaderWideLabel(t *testing.T) {
 		),
 		WithColspan(ScopeHeader, Columns(0, 1)),
 	)
-	if err := s.Render([]any{"us-east-1a", "a", "1"}); err != nil {
+	if err := s.Render([]table.Value{table.String("us-east-1a"), table.String("a"), table.String("1")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -3803,7 +3804,7 @@ func TestGolden_TableStackedHeaderWideLabelFixed(t *testing.T) {
 		WithColspan(ScopeHeader, Columns(0, 1)),
 		WithWidth(Columns(0, 1), 4),
 	)
-	if err := tb.Render([][]any{{"us-east-1a", "a", "1"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("us-east-1a"), table.String("a"), table.String("1")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_stacked_header_wide_label_fixed", buf.Bytes())
@@ -3820,7 +3821,7 @@ func TestGolden_StreamStackedHeaderWideLabelFixed(t *testing.T) {
 		WithColspan(ScopeHeader, Columns(0, 1)),
 		WithWidth(Columns(0, 1), 4),
 	)
-	if err := s.Render([]any{"us-east-1a", "a", "1"}); err != nil {
+	if err := s.Render([]table.Value{table.String("us-east-1a"), table.String("a"), table.String("1")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -3839,10 +3840,10 @@ func TestGolden_TableStyleASCII(t *testing.T) {
 		}),
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 	)
-	if err := tb.Render([][]any{
-		{"foo", 1},
-		{"foo", 2},
-		{"bar", 3},
+	if err := tb.Render([][]table.Value{
+		{table.String("foo"), table.Int(1)},
+		{table.String("foo"), table.Int(2)},
+		{table.String("bar"), table.Int(3)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -3859,7 +3860,7 @@ func TestGolden_StreamStyleASCII(t *testing.T) {
 		}),
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 	)
-	for _, row := range [][]any{{"foo", 1}, {"foo", 2}, {"bar", 3}} {
+	for _, row := range [][]table.Value{{table.String("foo"), table.Int(1)}, {table.String("foo"), table.Int(2)}, {table.String("bar"), table.Int(3)}} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
 		}
@@ -3879,9 +3880,9 @@ func TestGolden_TableStyleBorderless(t *testing.T) {
 			return [][]string{{"total", "3"}}
 		}),
 	)
-	if err := tb.Render([][]any{
-		{"foo", 1},
-		{"bar", 2},
+	if err := tb.Render([][]table.Value{
+		{table.String("foo"), table.Int(1)},
+		{table.String("bar"), table.Int(2)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -3897,7 +3898,7 @@ func TestGolden_StreamStyleBorderless(t *testing.T) {
 			return [][]string{{"total", "3"}}
 		}),
 	)
-	for _, row := range [][]any{{"foo", 1}, {"bar", 2}} {
+	for _, row := range [][]table.Value{{table.String("foo"), table.Int(1)}, {table.String("bar"), table.Int(2)}} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
 		}
@@ -3921,9 +3922,9 @@ func TestGolden_TableStyleColored(t *testing.T) {
 		}),
 		WithCaption("caption", CaptionDefault),
 	)
-	if err := tb.Render([][]any{
-		{"foo", 1},
-		{"bar", 2},
+	if err := tb.Render([][]table.Value{
+		{table.String("foo"), table.Int(1)},
+		{table.String("bar"), table.Int(2)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -3943,7 +3944,7 @@ func TestGolden_StreamStyleColored(t *testing.T) {
 		}),
 		WithCaption("caption", CaptionDefault),
 	)
-	for _, row := range [][]any{{"foo", 1}, {"bar", 2}} {
+	for _, row := range [][]table.Value{{table.String("foo"), table.Int(1)}, {table.String("bar"), table.Int(2)}} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
 		}
@@ -3960,9 +3961,9 @@ func TestGolden_TableStyleDouble(t *testing.T) {
 		WithStyle(StyleDouble),
 		WithHeader([]string{"Name", "Value"}),
 	)
-	if err := tb.Render([][]any{
-		{"foo", 1},
-		{"bar", 2},
+	if err := tb.Render([][]table.Value{
+		{table.String("foo"), table.Int(1)},
+		{table.String("bar"), table.Int(2)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -3975,10 +3976,10 @@ func TestGolden_StreamStyleDouble(t *testing.T) {
 		WithStyle(StyleDouble),
 		WithHeader([]string{"Name", "Value"}),
 	)
-	if err := s.Render([]any{"foo", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("foo"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bar", 2}); err != nil {
+	if err := s.Render([]table.Value{table.String("bar"), table.Int(2)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -3993,9 +3994,9 @@ func TestGolden_TableStyleHeavy(t *testing.T) {
 		WithStyle(StyleHeavy),
 		WithHeader([]string{"Name", "Value"}),
 	)
-	if err := tb.Render([][]any{
-		{"foo", 1},
-		{"bar", 2},
+	if err := tb.Render([][]table.Value{
+		{table.String("foo"), table.Int(1)},
+		{table.String("bar"), table.Int(2)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -4008,10 +4009,10 @@ func TestGolden_StreamStyleHeavy(t *testing.T) {
 		WithStyle(StyleHeavy),
 		WithHeader([]string{"Name", "Value"}),
 	)
-	if err := s.Render([]any{"foo", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("foo"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bar", 2}); err != nil {
+	if err := s.Render([]table.Value{table.String("bar"), table.Int(2)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -4026,9 +4027,9 @@ func TestGolden_TableStyleLight(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"Name", "Value"}),
 	)
-	if err := tb.Render([][]any{
-		{"foo", 1},
-		{"bar", 2},
+	if err := tb.Render([][]table.Value{
+		{table.String("foo"), table.Int(1)},
+		{table.String("bar"), table.Int(2)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -4041,10 +4042,10 @@ func TestGolden_StreamStyleLight(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"Name", "Value"}),
 	)
-	if err := s.Render([]any{"foo", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("foo"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bar", 2}); err != nil {
+	if err := s.Render([]table.Value{table.String("bar"), table.Int(2)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -4065,9 +4066,9 @@ func TestGolden_TableStyleNoBodyHorizon(t *testing.T) {
 		),
 		WithColspan(ScopeHeader, Columns(0, 1)),
 	)
-	if err := tb.Render([][]any{
-		{"foo", 1, "x"},
-		{"bar", 2, "y"},
+	if err := tb.Render([][]table.Value{
+		{table.String("foo"), table.Int(1), table.String("x")},
+		{table.String("bar"), table.Int(2), table.String("y")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -4086,7 +4087,7 @@ func TestGolden_StreamStyleNoBodyHorizon(t *testing.T) {
 		),
 		WithColspan(ScopeHeader, Columns(0, 1)),
 	)
-	for _, row := range [][]any{{"foo", 1, "x"}, {"bar", 2, "y"}} {
+	for _, row := range [][]table.Value{{table.String("foo"), table.Int(1), table.String("x")}, {table.String("bar"), table.Int(2), table.String("y")}} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
 		}
@@ -4106,10 +4107,10 @@ func TestGolden_TableStyleNoBodyHorizonColspan(t *testing.T) {
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := tb.Render([][]any{
-		{"x", "x", "y"},
-		{"p", "p", "q"},
-		{"m", "n", "n"},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.String("x"), table.String("y")},
+		{table.String("p"), table.String("p"), table.String("q")},
+		{table.String("m"), table.String("n"), table.String("n")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -4125,10 +4126,10 @@ func TestGolden_StreamStyleNoBodyHorizonColspan(t *testing.T) {
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	for _, r := range [][]any{
-		{"x", "x", "y"},
-		{"p", "p", "q"},
-		{"m", "n", "n"},
+	for _, r := range [][]table.Value{
+		{table.String("x"), table.String("x"), table.String("y")},
+		{table.String("p"), table.String("p"), table.String("q")},
+		{table.String("m"), table.String("n"), table.String("n")},
 	} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
@@ -4146,9 +4147,9 @@ func TestGolden_TableStyleRounded(t *testing.T) {
 		WithStyle(StyleRounded),
 		WithHeader([]string{"Name", "Value"}),
 	)
-	if err := tb.Render([][]any{
-		{"foo", 1},
-		{"bar", 2},
+	if err := tb.Render([][]table.Value{
+		{table.String("foo"), table.Int(1)},
+		{table.String("bar"), table.Int(2)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -4161,10 +4162,10 @@ func TestGolden_StreamStyleRounded(t *testing.T) {
 		WithStyle(StyleRounded),
 		WithHeader([]string{"Name", "Value"}),
 	)
-	if err := s.Render([]any{"foo", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("foo"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bar", 2}); err != nil {
+	if err := s.Render([]table.Value{table.String("bar"), table.Int(2)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -4189,9 +4190,9 @@ func TestGolden_TableTransformer(t *testing.T) {
 		}),
 		WithHeader([]string{"Name", "Score"}),
 	)
-	if err := tb.Render([][]any{
-		{"alice", 100},
-		{"bob", 99},
+	if err := tb.Render([][]table.Value{
+		{table.String("alice"), table.Int(100)},
+		{table.String("bob"), table.Int(99)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -4214,10 +4215,10 @@ func TestGolden_StreamTransformer(t *testing.T) {
 		}),
 		WithHeader([]string{"Name", "Score"}),
 	)
-	if err := s.Render([]any{"alice", 100}); err != nil {
+	if err := s.Render([]table.Value{table.String("alice"), table.Int(100)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bob", 99}); err != nil {
+	if err := s.Render([]table.Value{table.String("bob"), table.Int(99)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -4241,9 +4242,9 @@ func TestGolden_TableTransformerColumnOverride(t *testing.T) {
 			return "", nil
 		}),
 	)
-	if err := tb.Render([][]any{
-		{"1", "ok"},
-		{"2", "warn"},
+	if err := tb.Render([][]table.Value{
+		{table.String("1"), table.String("ok")},
+		{table.String("2"), table.String("warn")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -4265,7 +4266,7 @@ func TestGolden_StreamTransformerColumnOverride(t *testing.T) {
 			return "", nil
 		}),
 	)
-	for _, r := range [][]any{{"1", "ok"}, {"2", "warn"}} {
+	for _, r := range [][]table.Value{{table.String("1"), table.String("ok")}, {table.String("2"), table.String("warn")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -4284,9 +4285,9 @@ func TestGolden_TableTruncate(t *testing.T) {
 		WithTruncate(Columns(1)),
 		WithHeader([]string{"Name", "Description"}),
 	)
-	if err := tb.Render([][]any{
-		{"alice", "short"},
-		{"bob", "this is a longer description"},
+	if err := tb.Render([][]table.Value{
+		{table.String("alice"), table.String("short")},
+		{table.String("bob"), table.String("this is a longer description")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -4301,10 +4302,10 @@ func TestGolden_StreamTruncate(t *testing.T) {
 		WithTruncate(Columns(1)),
 		WithHeader([]string{"Name", "Description"}),
 	)
-	if err := s.Render([]any{"alice", "short"}); err != nil {
+	if err := s.Render([]table.Value{table.String("alice"), table.String("short")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bob", "this is a longer description"}); err != nil {
+	if err := s.Render([]table.Value{table.String("bob"), table.String("this is a longer description")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -4321,8 +4322,8 @@ func TestGolden_TableTruncateCJK(t *testing.T) {
 		WithTruncate(Columns(1)),
 		WithHeader([]string{"Label", "日本語"}),
 	)
-	if err := tb.Render([][]any{
-		{"x", "あいうえおかきくけこ"},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.String("あいうえおかきくけこ")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -4337,7 +4338,7 @@ func TestGolden_StreamTruncateCJK(t *testing.T) {
 		WithTruncate(Columns(1)),
 		WithHeader([]string{"Label", "日本語"}),
 	)
-	if err := s.Render([]any{"x", "あいうえおかきくけこ"}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.String("あいうえおかきくけこ")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -4354,7 +4355,7 @@ func TestGolden_TableTruncateFittingLines(t *testing.T) {
 		WithTruncate(Columns(1)),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{{"x", "ab\ncd"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("ab\ncd")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_truncate_fitting_lines", buf.Bytes())
@@ -4368,7 +4369,7 @@ func TestGolden_StreamTruncateFittingLines(t *testing.T) {
 		WithTruncate(Columns(1)),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := s.Render([]any{"x", "ab\ncd"}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.String("ab\ncd")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -4385,9 +4386,9 @@ func TestGolden_TableTruncateMultiline(t *testing.T) {
 		WithTruncate(Columns(1)),
 		WithHeader([]string{"ID", "Data"}),
 	)
-	if err := tb.Render([][]any{
-		{1, "line1\nthis-is-a-long-line2"},
-		{2, "short"},
+	if err := tb.Render([][]table.Value{
+		{table.Int(1), table.String("line1\nthis-is-a-long-line2")},
+		{table.Int(2), table.String("short")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -4402,10 +4403,10 @@ func TestGolden_StreamTruncateMultiline(t *testing.T) {
 		WithTruncate(Columns(1)),
 		WithHeader([]string{"ID", "Data"}),
 	)
-	if err := s.Render([]any{1, "line1\nthis-is-a-long-line2"}); err != nil {
+	if err := s.Render([]table.Value{table.Int(1), table.String("line1\nthis-is-a-long-line2")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{2, "short"}); err != nil {
+	if err := s.Render([]table.Value{table.Int(2), table.String("short")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -4422,9 +4423,9 @@ func TestGolden_TableTruncateToEllipsis(t *testing.T) {
 		WithTruncate(Columns(1)),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{
-		{"x", "long value"},
-		{"y", "z"},
+	if err := tb.Render([][]table.Value{
+		{table.String("x"), table.String("long value")},
+		{table.String("y"), table.String("z")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -4439,7 +4440,7 @@ func TestGolden_StreamTruncateToEllipsis(t *testing.T) {
 		WithTruncate(Columns(1)),
 		WithHeader([]string{"A", "B"}),
 	)
-	for _, row := range [][]any{{"x", "long value"}, {"y", "z"}} {
+	for _, row := range [][]table.Value{{table.String("x"), table.String("long value")}, {table.String("y"), table.String("z")}} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
 		}
@@ -4456,9 +4457,9 @@ func TestGolden_TableTypeEmptyNil(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"a", "b", "c"}),
 	)
-	if err := tb.Render([][]any{
-		{"", nil, "x"},
-		{nil, "", ""},
+	if err := tb.Render([][]table.Value{
+		{table.String(""), table.Any(nil), table.String("x")},
+		{table.Any(nil), table.String(""), table.String("")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -4471,10 +4472,10 @@ func TestGolden_StreamTypeEmptyNil(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"a", "b", "c"}),
 	)
-	if err := s.Render([]any{"", nil, "x"}); err != nil {
+	if err := s.Render([]table.Value{table.String(""), table.Any(nil), table.String("x")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{nil, "", ""}); err != nil {
+	if err := s.Render([]table.Value{table.Any(nil), table.String(""), table.String("")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -4489,7 +4490,7 @@ func TestGolden_TableTypeFloat(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"f32", "f64"}),
 	)
-	if err := tb.Render([][]any{{float32(3.14), float64(2.71828)}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.Float32(float32(3.14)), table.Float64(float64(2.71828))}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_type_float", buf.Bytes())
@@ -4501,7 +4502,7 @@ func TestGolden_StreamTypeFloat(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"f32", "f64"}),
 	)
-	if err := s.Render([]any{float32(3.14), float64(2.71828)}); err != nil {
+	if err := s.Render([]table.Value{table.Float32(float32(3.14)), table.Float64(float64(2.71828))}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -4519,9 +4520,9 @@ func TestGolden_TableTypeInteger(t *testing.T) {
 			"u", "u8", "u16", "u32", "u64",
 		}),
 	)
-	if err := tb.Render([][]any{
-		{int(-1), int8(-2), int16(-3), int32(-4), int64(-5),
-			uint(1), uint8(2), uint16(3), uint32(4), uint64(5)},
+	if err := tb.Render([][]table.Value{
+		{table.Int(int(-1)), table.Int8(int8(-2)), table.Int16(int16(-3)), table.Int32(int32(-4)), table.Int64(int64(-5)),
+			table.Uint(uint(1)), table.Uint8(uint8(2)), table.Uint16(uint16(3)), table.Uint32(uint32(4)), table.Uint64(uint64(5))},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -4537,9 +4538,9 @@ func TestGolden_StreamTypeInteger(t *testing.T) {
 			"u", "u8", "u16", "u32", "u64",
 		}),
 	)
-	if err := s.Render([]any{
-		int(-1), int8(-2), int16(-3), int32(-4), int64(-5),
-		uint(1), uint8(2), uint16(3), uint32(4), uint64(5),
+	if err := s.Render([]table.Value{
+		table.Int(int(-1)), table.Int8(int8(-2)), table.Int16(int16(-3)), table.Int32(int32(-4)), table.Int64(int64(-5)),
+		table.Uint(uint(1)), table.Uint8(uint8(2)), table.Uint16(uint16(3)), table.Uint32(uint32(4)), table.Uint64(uint64(5)),
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -4557,7 +4558,7 @@ func TestGolden_TableTypePointer(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"a", "b"}),
 	)
-	if err := tb.Render([][]any{{&str, &s}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.Any(&str), table.Any(&s)}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_type_pointer", buf.Bytes())
@@ -4571,7 +4572,7 @@ func TestGolden_StreamTypePointer(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"a", "b"}),
 	)
-	if err := s.Render([]any{&str, &st}); err != nil {
+	if err := s.Render([]table.Value{table.Any(&str), table.Any(&st)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -4586,7 +4587,7 @@ func TestGolden_TableTypeStringerError(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"Stringer", "Error"}),
 	)
-	if err := tb.Render([][]any{{testutil.Stringer{Value: "x"}, testutil.Error{Value: "boom"}}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.Any(testutil.Stringer{Value: "x"}), table.Any(testutil.Error{Value: "boom"})}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_type_stringer_error", buf.Bytes())
@@ -4598,7 +4599,7 @@ func TestGolden_StreamTypeStringerError(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"Stringer", "Error"}),
 	)
-	if err := s.Render([]any{testutil.Stringer{Value: "x"}, testutil.Error{Value: "boom"}}); err != nil {
+	if err := s.Render([]table.Value{table.Any(testutil.Stringer{Value: "x"}), table.Any(testutil.Error{Value: "boom"})}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -4616,7 +4617,7 @@ func TestGolden_TableTypeTypedNil(t *testing.T) {
 		WithPlaceholder("<nil>"),
 		WithHeader([]string{"Stringer", "Error"}),
 	)
-	if err := tb.Render([][]any{{nilStringer, nilError}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.Any(nilStringer), table.Any(nilError)}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_type_typed_nil", buf.Bytes())
@@ -4631,7 +4632,7 @@ func TestGolden_StreamTypeTypedNil(t *testing.T) {
 		WithPlaceholder("<nil>"),
 		WithHeader([]string{"Stringer", "Error"}),
 	)
-	if err := s.Render([]any{nilStringer, nilError}); err != nil {
+	if err := s.Render([]table.Value{table.Any(nilStringer), table.Any(nilError)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -4646,9 +4647,9 @@ func TestGolden_TableValueEqualsPlaceholder(t *testing.T) {
 		WithHeader([]string{"A", "B"}),
 		WithPlaceholder("N/A"),
 	)
-	if err := tb.Render([][]any{
-		{"N/A", ""},
-		{"x", "N/A"},
+	if err := tb.Render([][]table.Value{
+		{table.String("N/A"), table.String("")},
+		{table.String("x"), table.String("N/A")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -4661,10 +4662,10 @@ func TestGolden_StreamValueEqualsPlaceholder(t *testing.T) {
 		WithHeader([]string{"A", "B"}),
 		WithPlaceholder("N/A"),
 	)
-	if err := s.Render([]any{"N/A", ""}); err != nil {
+	if err := s.Render([]table.Value{table.String("N/A"), table.String("")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"x", "N/A"}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.String("N/A")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -4681,7 +4682,7 @@ func TestGolden_TableWidthAlign(t *testing.T) {
 		WithWidth(Columns(0), 5),
 		WithAlign(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), AlignRight),
 	)
-	if err := tb.Render([][]any{{"a long value", "yy"}, {"y", "z"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a long value"), table.String("yy")}, {table.String("y"), table.String("z")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_width_align", buf.Bytes())
@@ -4695,7 +4696,7 @@ func TestGolden_StreamWidthAlign(t *testing.T) {
 		WithWidth(Columns(0), 5),
 		WithAlign(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), AlignRight),
 	)
-	for _, r := range [][]any{{"a long value", "yy"}, {"y", "z"}} {
+	for _, r := range [][]table.Value{{table.String("a long value"), table.String("yy")}, {table.String("y"), table.String("z")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -4717,7 +4718,7 @@ func TestGolden_TableWidthAttr(t *testing.T) {
 		WithWidth(Columns(0), 5),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
 	)
-	if err := tb.Render([][]any{{"a long value", "x"}, {"y", "z"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a long value"), table.String("x")}, {table.String("y"), table.String("z")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_width_attr", buf.Bytes())
@@ -4734,7 +4735,7 @@ func TestGolden_StreamWidthAttr(t *testing.T) {
 		WithWidth(Columns(0), 5),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
 	)
-	for _, r := range [][]any{{"a long value", "x"}, {"y", "z"}} {
+	for _, r := range [][]table.Value{{table.String("a long value"), table.String("x")}, {table.String("y"), table.String("z")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -4753,7 +4754,7 @@ func TestGolden_TableWidthCaption(t *testing.T) {
 		WithWidth(Columns(0), 5),
 		WithCaption("cap", CaptionBottom),
 	)
-	if err := tb.Render([][]any{{"a long value", "x"}, {"y", "z"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a long value"), table.String("x")}, {table.String("y"), table.String("z")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_width_caption", buf.Bytes())
@@ -4767,7 +4768,7 @@ func TestGolden_StreamWidthCaption(t *testing.T) {
 		WithWidth(Columns(0), 5),
 		WithCaption("cap", CaptionBottom),
 	)
-	for _, r := range [][]any{{"a long value", "x"}, {"y", "z"}} {
+	for _, r := range [][]table.Value{{table.String("a long value"), table.String("x")}, {table.String("y"), table.String("z")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -4788,7 +4789,7 @@ func TestGolden_TableWidthFooter(t *testing.T) {
 			return [][]string{{"t", "u"}}
 		}),
 	)
-	if err := tb.Render([][]any{{"a long value", "x"}, {"y", "z"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a long value"), table.String("x")}, {table.String("y"), table.String("z")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_width_footer", buf.Bytes())
@@ -4804,7 +4805,7 @@ func TestGolden_StreamWidthFooter(t *testing.T) {
 			return [][]string{{"t", "u"}}
 		}),
 	)
-	for _, r := range [][]any{{"a long value", "x"}, {"y", "z"}} {
+	for _, r := range [][]table.Value{{table.String("a long value"), table.String("x")}, {table.String("y"), table.String("z")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -4823,7 +4824,7 @@ func TestGolden_TableWidthPadding(t *testing.T) {
 		WithWidth(Columns(0), 5),
 		WithPadding(Columns(1), 3, 0),
 	)
-	if err := tb.Render([][]any{{"a long value", "x"}, {"y", "z"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a long value"), table.String("x")}, {table.String("y"), table.String("z")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_width_padding", buf.Bytes())
@@ -4837,7 +4838,7 @@ func TestGolden_StreamWidthPadding(t *testing.T) {
 		WithWidth(Columns(0), 5),
 		WithPadding(Columns(1), 3, 0),
 	)
-	for _, r := range [][]any{{"a long value", "x"}, {"y", "z"}} {
+	for _, r := range [][]table.Value{{table.String("a long value"), table.String("x")}, {table.String("y"), table.String("z")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -4861,7 +4862,7 @@ func TestGolden_TableWidthTransformer(t *testing.T) {
 			return "", nil
 		}),
 	)
-	if err := tb.Render([][]any{{"a long value", "raw"}, {"y", "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a long value"), table.String("raw")}, {table.String("y"), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_width_transformer", buf.Bytes())
@@ -4880,7 +4881,7 @@ func TestGolden_StreamWidthTransformer(t *testing.T) {
 			return "", nil
 		}),
 	)
-	for _, r := range [][]any{{"a long value", "raw"}, {"y", "q"}} {
+	for _, r := range [][]table.Value{{table.String("a long value"), table.String("raw")}, {table.String("y"), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -4896,8 +4897,8 @@ func TestGolden_TableZeroWidth(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := tb.Render([][]any{
-		{"a\u200Bb", "\uFEFF", "x\u200Dy"},
+	if err := tb.Render([][]table.Value{
+		{table.String("a\u200Bb"), table.String("\uFEFF"), table.String("x\u200Dy")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -4909,7 +4910,7 @@ func TestGolden_StreamZeroWidth(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"A", "B", "C"}),
 	)
-	if err := s.Render([]any{"a\u200Bb", "\uFEFF", "x\u200Dy"}); err != nil {
+	if err := s.Render([]table.Value{table.String("a\u200Bb"), table.String("\uFEFF"), table.String("x\u200Dy")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -4927,13 +4928,13 @@ func TestGolden_StreamAlignRow(t *testing.T) {
 		WithAlign(ScopeHeader|ScopeBody|ScopeFooter, Columns(2), AlignLeft),
 		WithHeader([]string{"R", "C", "L"}),
 	)
-	if err := s.Render([]any{"a", "b", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("a"), table.String("b"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"longer", "y", 22}); err != nil {
+	if err := s.Render([]table.Value{table.String("longer"), table.String("y"), table.Int(22)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"x", "longest", 333}); err != nil {
+	if err := s.Render([]table.Value{table.String("x"), table.String("longest"), table.Int(333)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -4952,10 +4953,10 @@ func TestGolden_StreamAutoFit(t *testing.T) {
 		WithAutoFit(),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := s.Render([]any{"xxxxx", strings.Repeat("y", 40)}); err != nil {
+	if err := s.Render([]table.Value{table.String("xxxxx"), table.Any(strings.Repeat("y", 40))}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"z", strings.Repeat("w", 20)}); err != nil {
+	if err := s.Render([]table.Value{table.String("z"), table.Any(strings.Repeat("w", 20))}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -4989,13 +4990,13 @@ func TestGolden_StreamCJK(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"日本語", "ASCII"}),
 	)
-	if err := s.Render([]any{"あいう", "abc"}); err != nil {
+	if err := s.Render([]table.Value{table.String("あいう"), table.String("abc")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"日本", "longer-text"}); err != nil {
+	if err := s.Render([]table.Value{table.String("日本"), table.String("longer-text")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"テスト", "x"}); err != nil {
+	if err := s.Render([]table.Value{table.String("テスト"), table.String("x")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -5015,7 +5016,7 @@ func TestGolden_StreamColspanAutoFit(t *testing.T) {
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1)),
 		WithAutoFit(),
 	)
-	for _, r := range [][]any{{"a fairly long value", "a fairly long value"}, {"another long one", "z"}} {
+	for _, r := range [][]table.Value{{table.String("a fairly long value"), table.String("a fairly long value")}, {table.String("another long one"), table.String("z")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -5034,7 +5035,7 @@ func TestGolden_StreamColspanIndex(t *testing.T) {
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1)),
 		WithIndex(),
 	)
-	for _, r := range [][]any{{"s", "s"}, {"s", "s"}} {
+	for _, r := range [][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -5053,7 +5054,7 @@ func TestGolden_StreamCompactIndex(t *testing.T) {
 		WithCompact(),
 		WithIndex(),
 	)
-	for _, r := range [][]any{{"s", "s"}, {"s", "s"}} {
+	for _, r := range [][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -5070,16 +5071,16 @@ func TestGolden_StreamEmptyVsNil(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"Kind", "Value"}),
 	)
-	if err := s.Render([]any{"nil", nil}); err != nil {
+	if err := s.Render([]table.Value{table.String("nil"), table.Any(nil)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"empty", ""}); err != nil {
+	if err := s.Render([]table.Value{table.String("empty"), table.String("")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"space", " "}); err != nil {
+	if err := s.Render([]table.Value{table.String("space"), table.String(" ")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"text", "hello"}); err != nil {
+	if err := s.Render([]table.Value{table.String("text"), table.String("hello")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -5096,7 +5097,7 @@ func TestGolden_StreamFrozenOverflow(t *testing.T) {
 		WithWidth(Columns(0), 1),
 	)
 	for _, v := range []string{"x", "\u3042", "y"} {
-		if err := s.Render([]any{v}); err != nil {
+		if err := s.Render([]table.Value{table.Any(v)}); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -5113,10 +5114,10 @@ func TestGolden_StreamFrozenZeroWidth(t *testing.T) {
 		WithHeader([]string{"", "B"}),
 		WithPlaceholder(""),
 	)
-	if err := s.Render([]any{"", "x"}); err != nil {
+	if err := s.Render([]table.Value{table.String(""), table.String("x")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"wide", "y"}); err != nil {
+	if err := s.Render([]table.Value{table.String("wide"), table.String("y")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -5132,13 +5133,13 @@ func TestGolden_StreamIndex(t *testing.T) {
 		WithIndex(),
 		WithHeader([]string{"Name", "Score"}),
 	)
-	if err := s.Render([]any{"alice", 100}); err != nil {
+	if err := s.Render([]table.Value{table.String("alice"), table.Int(100)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bob", 99}); err != nil {
+	if err := s.Render([]table.Value{table.String("bob"), table.Int(99)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"carol", 98}); err != nil {
+	if err := s.Render([]table.Value{table.String("carol"), table.Int(98)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -5155,7 +5156,7 @@ func TestGolden_StreamIndexAlign(t *testing.T) {
 		WithIndex(),
 		WithAlign(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), AlignRight),
 	)
-	for _, r := range [][]any{{"x", "yy"}, {"p", "z"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.String("yy")}, {table.String("p"), table.String("z")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -5177,7 +5178,7 @@ func TestGolden_StreamIndexAttr(t *testing.T) {
 		WithIndex(),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
 	)
-	for _, r := range [][]any{{"x", "y"}, {"p", "q"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.String("y")}, {table.String("p"), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -5196,7 +5197,7 @@ func TestGolden_StreamIndexCaption(t *testing.T) {
 		WithIndex(),
 		WithCaption("cap", CaptionBottom),
 	)
-	for _, r := range [][]any{{"x", "y"}, {"p", "q"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.String("y")}, {table.String("p"), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -5217,7 +5218,7 @@ func TestGolden_StreamIndexFooter(t *testing.T) {
 			return [][]string{{"total", "297"}}
 		}),
 	)
-	for _, row := range [][]any{{"alice", 100}, {"bob", 99}, {"carol", 98}} {
+	for _, row := range [][]table.Value{{table.String("alice"), table.Int(100)}, {table.String("bob"), table.Int(99)}, {table.String("carol"), table.Int(98)}} {
 		if err := s.Render(row); err != nil {
 			t.Fatal(err)
 		}
@@ -5236,7 +5237,7 @@ func TestGolden_StreamIndexPadding(t *testing.T) {
 		WithIndex(),
 		WithPadding(Columns(1), 3, 0),
 	)
-	for _, r := range [][]any{{"x", "y"}, {"p", "q"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.String("y")}, {table.String("p"), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -5260,7 +5261,7 @@ func TestGolden_StreamIndexTransformer(t *testing.T) {
 			return "", nil
 		}),
 	)
-	for _, r := range [][]any{{"x", "raw"}, {"p", "q"}} {
+	for _, r := range [][]table.Value{{table.String("x"), table.String("raw")}, {table.String("p"), table.String("q")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -5280,7 +5281,7 @@ func TestGolden_StreamIndexTruncate(t *testing.T) {
 		WithWidth(Columns(0), 5),
 		WithTruncate(Columns(0)),
 	)
-	for _, r := range [][]any{{"a long value", "x"}, {"y", "z"}} {
+	for _, r := range [][]table.Value{{table.String("a long value"), table.String("x")}, {table.String("y"), table.String("z")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -5296,13 +5297,13 @@ func TestGolden_StreamLongValue(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := s.Render([]any{"s", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("s"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{strings.Repeat("longvalue", 40), 2}); err != nil {
+	if err := s.Render([]table.Value{table.Any(strings.Repeat("longvalue", 40)), table.Int(2)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"t", 3}); err != nil {
+	if err := s.Render([]table.Value{table.String("t"), table.Int(3)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -5319,7 +5320,7 @@ func TestGolden_StreamRowspanIndex(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithIndex(),
 	)
-	for _, r := range [][]any{{"s", "s"}, {"s", "s"}} {
+	for _, r := range [][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -5337,16 +5338,16 @@ func TestGolden_StreamRowspanNumeric(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithHeader([]string{"ID", "Name"}),
 	)
-	if err := s.Render([]any{100, "a"}); err != nil {
+	if err := s.Render([]table.Value{table.Int(100), table.String("a")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{100, "b"}); err != nil {
+	if err := s.Render([]table.Value{table.Int(100), table.String("b")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{200, "c"}); err != nil {
+	if err := s.Render([]table.Value{table.Int(200), table.String("c")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{300, "d"}); err != nil {
+	if err := s.Render([]table.Value{table.Int(300), table.String("d")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -5361,13 +5362,13 @@ func TestGolden_StreamSingleColumn(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"x"}),
 	)
-	if err := s.Render([]any{"a"}); err != nil {
+	if err := s.Render([]table.Value{table.String("a")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"bb"}); err != nil {
+	if err := s.Render([]table.Value{table.String("bb")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"ccc"}); err != nil {
+	if err := s.Render([]table.Value{table.String("ccc")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -5382,7 +5383,7 @@ func TestGolden_StreamSingleRow(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"Name", "Value"}),
 	)
-	if err := s.Render([]any{"foo", 1}); err != nil {
+	if err := s.Render([]table.Value{table.String("foo"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -5396,22 +5397,22 @@ func TestGolden_StreamSpecialChars(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"Char", "Value"}),
 	)
-	if err := s.Render([]any{"less-than", "<"}); err != nil {
+	if err := s.Render([]table.Value{table.String("less-than"), table.String("<")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"pipe", "|"}); err != nil {
+	if err := s.Render([]table.Value{table.String("pipe"), table.String("|")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"backslash", "\\"}); err != nil {
+	if err := s.Render([]table.Value{table.String("backslash"), table.String("\\")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"ampersand", "&"}); err != nil {
+	if err := s.Render([]table.Value{table.String("ampersand"), table.String("&")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"asterisk", "*"}); err != nil {
+	if err := s.Render([]table.Value{table.String("asterisk"), table.String("*")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"underscore", "_"}); err != nil {
+	if err := s.Render([]table.Value{table.String("underscore"), table.String("_")}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -5426,19 +5427,19 @@ func TestGolden_StreamTypeMixed(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"Label", "Value"}),
 	)
-	if err := s.Render([]any{"text", "hello"}); err != nil {
+	if err := s.Render([]table.Value{table.String("text"), table.String("hello")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"number", 42}); err != nil {
+	if err := s.Render([]table.Value{table.String("number"), table.Int(42)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"big-num", 100000}); err != nil {
+	if err := s.Render([]table.Value{table.String("big-num"), table.Int(100000)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"empty", nil}); err != nil {
+	if err := s.Render([]table.Value{table.String("empty"), table.Any(nil)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"neg", -7}); err != nil {
+	if err := s.Render([]table.Value{table.String("neg"), table.Any(-7)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -5453,25 +5454,25 @@ func TestGolden_StreamTypeSlice(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"Type", "Value"}),
 	)
-	if err := s.Render([]any{"[]int", []int{1, 2, 3}}); err != nil {
+	if err := s.Render([]table.Value{table.String("[]int"), table.Any([]int{1, 2, 3})}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"[]float64", []float64{1.1, 2.2}}); err != nil {
+	if err := s.Render([]table.Value{table.String("[]float64"), table.Any([]float64{1.1, 2.2})}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"[]bool", []bool{true, false, true}}); err != nil {
+	if err := s.Render([]table.Value{table.String("[]bool"), table.Any([]bool{true, false, true})}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"[]byte", []byte("hello")}); err != nil {
+	if err := s.Render([]table.Value{table.String("[]byte"), table.Any([]byte("hello"))}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"[]byte (raw)", []byte{0x00, 0xff}}); err != nil {
+	if err := s.Render([]table.Value{table.String("[]byte (raw)"), table.Any([]byte{0x00, 0xff})}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"[]string", []string{"a", "b"}}); err != nil {
+	if err := s.Render([]table.Value{table.String("[]string"), table.Any([]string{"a", "b"})}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{"[]any", []any{"x", 1, nil}}); err != nil {
+	if err := s.Render([]table.Value{table.String("[]any"), table.Any([]any{"x", 1, nil})}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -5486,13 +5487,13 @@ func TestGolden_StreamWideNumber(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"N", "V"}),
 	)
-	if err := s.Render([]any{1, 1}); err != nil {
+	if err := s.Render([]table.Value{table.Int(1), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{2, 1000000}); err != nil {
+	if err := s.Render([]table.Value{table.Int(2), table.Int(1000000)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]any{3, -99}); err != nil {
+	if err := s.Render([]table.Value{table.Int(3), table.Any(-99)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -5509,7 +5510,7 @@ func TestGolden_StreamWidthIndex(t *testing.T) {
 		WithWidth(Columns(0), 5),
 		WithIndex(),
 	)
-	for _, r := range [][]any{{"a long value", "x"}, {"y", "z"}} {
+	for _, r := range [][]table.Value{{table.String("a long value"), table.String("x")}, {table.String("y"), table.String("z")}} {
 		if err := s.Render(r); err != nil {
 			t.Fatal(err)
 		}
@@ -5529,10 +5530,10 @@ func TestGolden_TableAlignRow(t *testing.T) {
 		WithAlign(ScopeHeader|ScopeBody|ScopeFooter, Columns(2), AlignLeft),
 		WithHeader([]string{"R", "C", "L"}),
 	)
-	if err := tb.Render([][]any{
-		{"a", "b", 1},
-		{"longer", "y", 22},
-		{"x", "longest", 333},
+	if err := tb.Render([][]table.Value{
+		{table.String("a"), table.String("b"), table.Int(1)},
+		{table.String("longer"), table.String("y"), table.Int(22)},
+		{table.String("x"), table.String("longest"), table.Int(333)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -5549,8 +5550,8 @@ func TestGolden_TableAutoFit(t *testing.T) {
 		WithAutoFit(),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{
-		{"xxxxx", strings.Repeat("y", 40)},
+	if err := tb.Render([][]table.Value{
+		{table.String("xxxxx"), table.Any(strings.Repeat("y", 40))},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -5568,8 +5569,8 @@ func TestGolden_TableAutoFitIndex(t *testing.T) {
 		WithIndex(),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{
-		{strings.Repeat("x", 20), strings.Repeat("y", 21)},
+	if err := tb.Render([][]table.Value{
+		{table.Any(strings.Repeat("x", 20)), table.Any(strings.Repeat("y", 21))},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -5582,10 +5583,10 @@ func TestGolden_TableCJK(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"日本語", "ASCII"}),
 	)
-	if err := tb.Render([][]any{
-		{"あいう", "abc"},
-		{"日本", "longer-text"},
-		{"テスト", "x"},
+	if err := tb.Render([][]table.Value{
+		{table.String("あいう"), table.String("abc")},
+		{table.String("日本"), table.String("longer-text")},
+		{table.String("テスト"), table.String("x")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -5603,7 +5604,7 @@ func TestGolden_TableColspanAutoFit(t *testing.T) {
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1)),
 		WithAutoFit(),
 	)
-	if err := tb.Render([][]any{{"a fairly long value", "a fairly long value"}, {"another long one", "z"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a fairly long value"), table.String("a fairly long value")}, {table.String("another long one"), table.String("z")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "table_colspan_autofit", buf.Bytes())
@@ -5617,7 +5618,7 @@ func TestGolden_TableColspanIndex(t *testing.T) {
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1)),
 		WithIndex(),
 	)
-	if err := tb.Render([][]any{{"s", "s"}, {"s", "s"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "table_colspan_index", buf.Bytes())
@@ -5631,7 +5632,7 @@ func TestGolden_TableCompactIndex(t *testing.T) {
 		WithCompact(),
 		WithIndex(),
 	)
-	if err := tb.Render([][]any{{"s", "s"}, {"s", "s"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "table_compact_index", buf.Bytes())
@@ -5643,11 +5644,11 @@ func TestGolden_TableEmptyVsNil(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"Kind", "Value"}),
 	)
-	if err := tb.Render([][]any{
-		{"nil", nil},
-		{"empty", ""},
-		{"space", " "},
-		{"text", "hello"},
+	if err := tb.Render([][]table.Value{
+		{table.String("nil"), table.Any(nil)},
+		{table.String("empty"), table.String("")},
+		{table.String("space"), table.String(" ")},
+		{table.String("text"), table.String("hello")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -5661,10 +5662,10 @@ func TestGolden_TableIndex(t *testing.T) {
 		WithIndex(),
 		WithHeader([]string{"Name", "Score"}),
 	)
-	if err := tb.Render([][]any{
-		{"alice", 100},
-		{"bob", 99},
-		{"carol", 98},
+	if err := tb.Render([][]table.Value{
+		{table.String("alice"), table.Int(100)},
+		{table.String("bob"), table.Int(99)},
+		{table.String("carol"), table.Int(98)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -5679,7 +5680,7 @@ func TestGolden_TableIndexAlign(t *testing.T) {
 		WithIndex(),
 		WithAlign(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), AlignRight),
 	)
-	if err := tb.Render([][]any{{"x", "yy"}, {"p", "z"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("yy")}, {table.String("p"), table.String("z")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "table_index_align", buf.Bytes())
@@ -5696,7 +5697,7 @@ func TestGolden_TableIndexAttr(t *testing.T) {
 		WithIndex(),
 		WithAttr(ScopeBody, Columns(1), ColorFgRed),
 	)
-	if err := tb.Render([][]any{{"x", "y"}, {"p", "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("y")}, {table.String("p"), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "table_index_attr", buf.Bytes())
@@ -5710,7 +5711,7 @@ func TestGolden_TableIndexCaption(t *testing.T) {
 		WithIndex(),
 		WithCaption("cap", CaptionBottom),
 	)
-	if err := tb.Render([][]any{{"x", "y"}, {"p", "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("y")}, {table.String("p"), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "table_index_caption", buf.Bytes())
@@ -5726,10 +5727,10 @@ func TestGolden_TableIndexFooter(t *testing.T) {
 			return [][]string{{"total", "297"}}
 		}),
 	)
-	if err := tb.Render([][]any{
-		{"alice", 100},
-		{"bob", 99},
-		{"carol", 98},
+	if err := tb.Render([][]table.Value{
+		{table.String("alice"), table.Int(100)},
+		{table.String("bob"), table.Int(99)},
+		{table.String("carol"), table.Int(98)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -5744,7 +5745,7 @@ func TestGolden_TableIndexPadding(t *testing.T) {
 		WithIndex(),
 		WithPadding(Columns(1), 3, 0),
 	)
-	if err := tb.Render([][]any{{"x", "y"}, {"p", "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("y")}, {table.String("p"), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "table_index_padding", buf.Bytes())
@@ -5763,7 +5764,7 @@ func TestGolden_TableIndexTransformer(t *testing.T) {
 			return "", nil
 		}),
 	)
-	if err := tb.Render([][]any{{"x", "raw"}, {"p", "q"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("x"), table.String("raw")}, {table.String("p"), table.String("q")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "table_index_transformer", buf.Bytes())
@@ -5778,7 +5779,7 @@ func TestGolden_TableIndexTruncate(t *testing.T) {
 		WithWidth(Columns(0), 5),
 		WithTruncate(Columns(0)),
 	)
-	if err := tb.Render([][]any{{"a long value", "x"}, {"y", "z"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a long value"), table.String("x")}, {table.String("y"), table.String("z")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "table_index_truncate", buf.Bytes())
@@ -5789,10 +5790,10 @@ func TestGolden_TableLongValue(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := tb.Render([][]any{
-		{"s", 1},
-		{strings.Repeat("longvalue", 40), 2},
-		{"t", 3},
+	if err := tb.Render([][]table.Value{
+		{table.String("s"), table.Int(1)},
+		{table.Any(strings.Repeat("longvalue", 40)), table.Int(2)},
+		{table.String("t"), table.Int(3)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -5804,9 +5805,9 @@ func TestGolden_TableNoHeaderRagged(t *testing.T) {
 	tb := NewTable(&buf,
 		WithStyle(StyleLight),
 	)
-	if err := tb.Render([][]any{
-		{"a", 1},
-		{"b"},
+	if err := tb.Render([][]table.Value{
+		{table.String("a"), table.Int(1)},
+		{table.String("b")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -5821,7 +5822,7 @@ func TestGolden_TableRowspanIndex(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithIndex(),
 	)
-	if err := tb.Render([][]any{{"s", "s"}, {"s", "s"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "table_rowspan_index", buf.Bytes())
@@ -5833,10 +5834,10 @@ func TestGolden_TableSingleColumn(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"x"}),
 	)
-	if err := tb.Render([][]any{
-		{"a"},
-		{"bb"},
-		{"ccc"},
+	if err := tb.Render([][]table.Value{
+		{table.String("a")},
+		{table.String("bb")},
+		{table.String("ccc")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -5848,13 +5849,13 @@ func TestGolden_TableSpecialChars(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"Char", "Value"}),
 	)
-	if err := tb.Render([][]any{
-		{"less-than", "<"},
-		{"pipe", "|"},
-		{"backslash", "\\"},
-		{"ampersand", "&"},
-		{"asterisk", "*"},
-		{"underscore", "_"},
+	if err := tb.Render([][]table.Value{
+		{table.String("less-than"), table.String("<")},
+		{table.String("pipe"), table.String("|")},
+		{table.String("backslash"), table.String("\\")},
+		{table.String("ampersand"), table.String("&")},
+		{table.String("asterisk"), table.String("*")},
+		{table.String("underscore"), table.String("_")},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -5867,12 +5868,12 @@ func TestGolden_TableTypeMixed(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"Label", "Value"}),
 	)
-	if err := tb.Render([][]any{
-		{"text", "hello"},
-		{"number", 42},
-		{"big-num", 100000},
-		{"empty", nil},
-		{"neg", -7},
+	if err := tb.Render([][]table.Value{
+		{table.String("text"), table.String("hello")},
+		{table.String("number"), table.Int(42)},
+		{table.String("big-num"), table.Int(100000)},
+		{table.String("empty"), table.Any(nil)},
+		{table.String("neg"), table.Any(-7)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -5885,14 +5886,14 @@ func TestGolden_TableTypeSlice(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"Type", "Value"}),
 	)
-	if err := tb.Render([][]any{
-		{"[]int", []int{1, 2, 3}},
-		{"[]float64", []float64{1.1, 2.2}},
-		{"[]bool", []bool{true, false, true}},
-		{"[]byte", []byte("hello")},
-		{"[]byte (raw)", []byte{0x00, 0xff}},
-		{"[]string", []string{"a", "b"}},
-		{"[]any", []any{"x", 1, nil}},
+	if err := tb.Render([][]table.Value{
+		{table.String("[]int"), table.Any([]int{1, 2, 3})},
+		{table.String("[]float64"), table.Any([]float64{1.1, 2.2})},
+		{table.String("[]bool"), table.Any([]bool{true, false, true})},
+		{table.String("[]byte"), table.Any([]byte("hello"))},
+		{table.String("[]byte (raw)"), table.Any([]byte{0x00, 0xff})},
+		{table.String("[]string"), table.Any([]string{"a", "b"})},
+		{table.String("[]any"), table.Any([]any{"x", 1, nil})},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -5905,10 +5906,10 @@ func TestGolden_TableWideNumber(t *testing.T) {
 		WithStyle(StyleLight),
 		WithHeader([]string{"N", "V"}),
 	)
-	if err := tb.Render([][]any{
-		{1, 1},
-		{2, 1000000},
-		{3, -99},
+	if err := tb.Render([][]table.Value{
+		{table.Int(1), table.Int(1)},
+		{table.Int(2), table.Int(1000000)},
+		{table.Int(3), table.Any(-99)},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -5923,7 +5924,7 @@ func TestGolden_TableWidthIndex(t *testing.T) {
 		WithWidth(Columns(0), 5),
 		WithIndex(),
 	)
-	if err := tb.Render([][]any{{"a long value", "x"}, {"y", "z"}}); err != nil {
+	if err := tb.Render([][]table.Value{{table.String("a long value"), table.String("x")}, {table.String("y"), table.String("z")}}); err != nil {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "table_width_index", buf.Bytes())

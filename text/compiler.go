@@ -3,6 +3,7 @@ package text
 import (
 	"slices"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/internal/display"
 	"github.com/nekrassov01/table/internal/param"
 	"github.com/nekrassov01/table/internal/scope"
@@ -85,7 +86,7 @@ func (o *compiler) compileHeader() {
 }
 
 // compileBody compiles and retains body rows in input order.
-func (o *compiler) compileBody(sources [][]any) {
+func (o *compiler) compileBody(sources [][]table.Value) {
 	for i, source := range sources {
 		o.compileRow(source, i)
 		if o.err != nil {
@@ -150,7 +151,7 @@ func (o *compiler) compileBand(labels []string, sc Scope) row {
 }
 
 // compileRow validates and compiles one body row.
-func (o *compiler) compileRow(source []any, rowIndex int) {
+func (o *compiler) compileRow(source []table.Value, rowIndex int) {
 	config := &o.input
 	state := o.state
 	rowColumns := len(source) + config.option.indexOffset
@@ -173,7 +174,7 @@ func (o *compiler) compileRow(source []any, rowIndex int) {
 }
 
 // compileCells formats the values and resolves the attributes of one body row.
-func (o *compiler) compileCells(r row, source []any, rowIndex int) {
+func (o *compiler) compileCells(r row, source []table.Value, rowIndex int) {
 	config := &o.input
 	for index := range config.columns {
 		compiled := &r.cells[index]
@@ -192,7 +193,7 @@ func (o *compiler) compileCells(r row, source []any, rowIndex int) {
 		text := ""
 		attr := transformer.attrs.Resolve(ScopeBody)
 		if transformer.fn != nil {
-			transformed, transformedAttr := transformer.fn(rawValue)
+			transformed, transformedAttr := transformer.fn(rawValue.AsAny())
 			if transformed != "" {
 				text = transformed
 			}

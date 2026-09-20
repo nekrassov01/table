@@ -27,7 +27,7 @@ func NewStream(w io.Writer, opts ...Option) *Stream {
 
 // Render writes one body row. The first call writes the required header and
 // delimiter row.
-func (o *Stream) Render(row []any) error {
+func (o *Stream) Render(row []table.Value) error {
 	if o.err != nil {
 		return o.err
 	}

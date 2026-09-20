@@ -12,6 +12,7 @@ This document is the user guide to the public API.
     - [Output differences](#output-differences)
   - [Common interfaces](#common-interfaces)
   - [Row adapters](#row-adapters)
+  - [Value inputs and migration](#value-inputs-and-migration)
   - [Output specifications](#output-specifications)
   - [Errors](#errors)
     - [Error structure](#error-structure)
@@ -45,14 +46,14 @@ This document is the user guide to the public API.
 
 ## Core API
 
-Every output package provides `Table` and `Stream`. Constructors apply each `Option` in the order supplied. Settings cannot be changed after construction.
+Every output package provides `Table` and `Stream`. The root `table` package provides `Value` and its value constructors. Constructors apply each `Option` in the order supplied. Settings cannot be changed after construction.
 
 ```go
 func NewTable(w io.Writer, opts ...Option) *Table
-func (t *Table) Render(rows [][]any) error
+func (t *Table) Render(rows [][]table.Value) error
 
 func NewStream(w io.Writer, opts ...Option) *Stream
-func (s *Stream) Render(row []any) error
+func (s *Stream) Render(row []table.Value) error
 func (s *Stream) Close() error
 ```
 
@@ -90,13 +91,15 @@ Whitespace added by `markdown` and `backlog` for alignment is not part of the pa
 
 ## Common interfaces
 
+All five output packages accept `table.Value`, so the same rows can be shared across formats without conversion.
+
 ```go
 type Tabular interface {
-    Render(rows [][]any) error
+    Render(rows [][]table.Value) error
 }
 
 type Streamer interface {
-    Render(row []any) error
+    Render(row []table.Value) error
     Close() error
 }
 ```
@@ -108,12 +111,47 @@ type Streamer interface {
 The root package provides helpers that convert typed data into rows accepted by `Render`.
 
 ```go
-func TableOf[T any](values []T, fn func(T) []any) [][]any
-func StreamOf[T any](values iter.Seq2[T, error], fn func(T) []any) iter.Seq2[[]any, error]
+func TableOf[T any](values []T, fn func(T) []table.Value) [][]table.Value
+func StreamOf[T any](values iter.Seq2[T, error], fn func(T) []table.Value) iter.Seq2[[]table.Value, error]
 ```
 
-- `TableOf` converts a typed slice to `[][]any`.
-- `StreamOf` converts each iterator value to `[]any` and stops at the first error.
+- `TableOf` converts a typed slice to `[][]table.Value`.
+- `StreamOf` converts each iterator value to `[]table.Value` and stops at the first error.
+
+## Value inputs and migration
+
+The root `table` package provides `Value` and its constructors. Body input is `[][]table.Value` for Table and `[]table.Value` for Stream. This replaces `[][]any` and `[]any`; constructors, options, TableOf and StreamOf keep their call shapes. `NewTable(w, opts...)` and `NewStream(w, opts...)` do not require a type parameter or row callback.
+
+```go
+rows := [][]table.Value{
+    {table.String("worker"), table.Int(1000), table.Bool(true)},
+}
+err := text.NewTable(w).Render(rows)
+```
+
+Use `String`, `Bytes`, `Int`, `Int8`, `Int16`, `Int32`, `Int64`, `Uint`, `Uint8`, `Uint16`, `Uint32`, `Uint64`, `Uintptr`, `Float32`, `Float64`, and `Bool` for primitive values. Each constructor preserves its Go type. `Any` preserves arbitrary values, including named types and their `String` or `Error` methods, but their boxing may allocate. The zero Value is empty. Values are not comparable.
+
+`Value.AsAny()` restores the value for inspection or serialization and may box it again. Values do not implement JSON or text marshaling; convert them back to their values before serializing rows.
+
+Every primitive constructor has a matching accessor: `AsString`, `AsBytes`, `AsInt`, `AsInt8`, `AsInt16`, `AsInt32`, `AsInt64`, `AsUint`, `AsUint8`, `AsUint16`, `AsUint32`, `AsUint64`, `AsUintptr`, `AsFloat32`, `AsFloat64`, and `AsBool`. These return the exact stored type without boxing, including values stored through `Any`. They panic on a type mismatch; no numeric conversion occurs, and named types remain distinct. The zero Value returns nil from `AsAny` and panics for typed accessors. `AsBytes` borrows the retained bytes; primitive `Bytes` values have capacity equal to length, while `Any` preserves the original capacity. The `As` prefix avoids implementing `fmt.Stringer`.
+
+Primitive formatting reads stored values directly. On 64-bit platforms a Value occupies 24 bytes, compared with 16 bytes for an interface; inputs whose boxing was already free can therefore consume more row storage. Reuse a Stream row buffer when appropriate.
+
+Type and output changes:
+
+| Input change | Type and output effect |
+| --- | --- |
+| `"worker"` → `table.String("worker")` | Keeps `string` and its display. |
+| `1000` → `table.Int(1000)` | Keeps `int`, including for transformers; does not widen to `int64`. |
+| `float32(v)` → `table.Float32(v)` | Keeps 32-bit formatting. Using `Float64(float64(v))` instead may add decimal digits. |
+| Named value → `table.Any(v)` | Keeps its named type and formatting methods. Converting to a primitive constructor discards that named type and its methods. |
+| Byte slice → `table.Bytes(v)` | Borrows the bytes; does not copy. `AsAny()` and column transformers see the same length and contents, with capacity equal to length. Use `table.Any(v)` to preserve the original slice capacity. |
+
+Do not modify borrowed bytes until Render returns. A Value retains borrowed data across garbage collection. For a reused scan buffer, `table.String(string(buffer))` makes a copy.
+
+`WithTransformer` keeps its existing `func(any)` signature, including support for nil functions. Only a configured transformer calls `Value.AsAny()`. This may allocate when restoring strings, byte slices, or large numeric values. Columns without a transformer format their Values directly. `Any` inputs retain their original boxed values, so those values do not need to be boxed again. The change moves boxing out of untransformed columns; it does not eliminate boxing inside transformers.
+
+Mapping order, footer evaluation, error handling, and default output bytes remain unchanged for equivalent input values. Existing golden outputs are unchanged.
 
 ## Output specifications
 
@@ -463,7 +501,7 @@ When a value implements both `error` and `fmt.Stringer`, `Error()` takes precede
 
 ### Transformers
 
-`WithTransformer` receives the raw value of an existing body cell. A non-empty returned string replaces the displayed value and skips default conversion; an empty string selects default conversion. A transformer cannot explicitly produce an empty displayed value.
+`WithTransformer` receives the raw value of an existing body cell as `any`, restored through `Value.AsAny()`. A non-empty returned string replaces the displayed value and skips default conversion; an empty string selects default conversion. A transformer cannot explicitly produce an empty displayed value.
 
 A `nil` color, decoration, or `Attr` preserves the corresponding column setting.
 

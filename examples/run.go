@@ -149,7 +149,7 @@ func (o runner) runExample() error {
 	}
 }
 
-func (o runner) runText(rows [][]any) error {
+func (o runner) runText(rows [][]table.Value) error {
 	var opts []text.Option
 	switch o.data {
 	case dataASCII:
@@ -182,7 +182,7 @@ func (o runner) runText(rows [][]any) error {
 	return example.run()
 }
 
-func (o runner) runHTML(rows [][]any) error {
+func (o runner) runHTML(rows [][]table.Value) error {
 	var opts []html.Option
 	switch o.data {
 	case dataSimple:
@@ -211,7 +211,7 @@ func (o runner) runHTML(rows [][]any) error {
 	return example.run()
 }
 
-func (o runner) runMarkdown(rows [][]any) error {
+func (o runner) runMarkdown(rows [][]table.Value) error {
 	var opts []markdown.Option
 	switch o.data {
 	case dataSimple:
@@ -236,7 +236,7 @@ func (o runner) runMarkdown(rows [][]any) error {
 	return example.run()
 }
 
-func (o runner) runBacklog(rows [][]any) error {
+func (o runner) runBacklog(rows [][]table.Value) error {
 	var opts []backlog.Option
 	switch o.data {
 	case dataSimple:
@@ -265,7 +265,7 @@ func (o runner) runBacklog(rows [][]any) error {
 	return example.run()
 }
 
-func (o runner) runCSV(rows [][]any) error {
+func (o runner) runCSV(rows [][]table.Value) error {
 	var opts []csv.Option
 	switch o.data {
 	case dataSimple:
@@ -291,12 +291,12 @@ func (o runner) runCSV(rows [][]any) error {
 }
 
 type example struct {
-	rows     [][]any
+	rows     [][]table.Value
 	tabular  table.Tabular
 	streamer table.Streamer
 }
 
-func newExample(rows [][]any) example {
+func newExample(rows [][]table.Value) example {
 	return example{rows: rows}
 }
 

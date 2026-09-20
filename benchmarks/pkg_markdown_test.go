@@ -2,8 +2,11 @@ package benchmarks
 
 import (
 	"bytes"
+	"io"
+	"strconv"
 	"testing"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/examples"
 	"github.com/nekrassov01/table/markdown"
 )
@@ -188,6 +191,108 @@ func BenchmarkMarkdownStreamComplex(b *testing.B) {
 		w.Reset()
 		s := markdown.NewStream(w, examples.MarkdownOptionComplex...)
 		for _, row := range examples.ComplexData.Body {
+			if err := s.Render(row); err != nil {
+				b.Fatal(err)
+			}
+		}
+		if err := s.Close(); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkMarkdownTableValueInputMixed(b *testing.B) {
+	records := make([]struct {
+		name   string
+		number int
+		ratio  float64
+		data   []byte
+	}, 1000)
+	for i := range records {
+		records[i].name = "resource-" + strconv.Itoa(i)
+		records[i].number = 1000 + i
+		records[i].ratio = float64(i) + 0.25
+		records[i].data = []byte("payload")
+	}
+	header := []string{"a", "b", "c", "d", "e", "f", "g", "h"}
+	t := markdown.NewTable(io.Discard, markdown.WithHeader(header))
+	b.ReportAllocs()
+	for b.Loop() {
+		rows := make([][]table.Value, len(records))
+		cells := make([]table.Value, len(records)*8)
+		for i, v := range records {
+			rows[i] = append(cells[i*8:i*8:i*8+8], table.String(v.name), table.String(v.name), table.String(v.name), table.Int(v.number), table.Int64(int64(v.number)), table.Float64(v.ratio), table.Bool(true), table.Bytes(v.data))
+		}
+		if err := t.Render(rows); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkMarkdownStreamValueInputMixed(b *testing.B) {
+	records := make([]struct {
+		name   string
+		number int
+		ratio  float64
+		data   []byte
+	}, 1000)
+	for i := range records {
+		records[i].name = "resource-" + strconv.Itoa(i)
+		records[i].number = 1000 + i
+		records[i].ratio = float64(i) + 0.25
+		records[i].data = []byte("payload")
+	}
+	header := []string{"a", "b", "c", "d", "e", "f", "g", "h"}
+	row := make([]table.Value, 0, 8)
+	b.ReportAllocs()
+	for b.Loop() {
+		s := markdown.NewStream(io.Discard, markdown.WithHeader(header))
+		for _, v := range records {
+			row = append(row[:0], table.String(v.name), table.String(v.name), table.String(v.name), table.Int(v.number), table.Int64(int64(v.number)), table.Float64(v.ratio), table.Bool(true), table.Bytes(v.data))
+			if err := s.Render(row); err != nil {
+				b.Fatal(err)
+			}
+		}
+		if err := s.Close(); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkMarkdownTableValueInputSmallInts(b *testing.B) {
+	records := make([]int, 1000)
+	for i := range records {
+		records[i] = 1000 + i
+	}
+	header := []string{"a", "b", "c", "d", "e", "f", "g", "h"}
+	t := markdown.NewTable(io.Discard, markdown.WithHeader(header))
+	b.ReportAllocs()
+	for b.Loop() {
+		rows := make([][]table.Value, len(records))
+		cells := make([]table.Value, len(records)*8)
+		for i, v := range records {
+			n := v % 128
+			rows[i] = append(cells[i*8:i*8:i*8+8], table.Int(n), table.Int(n), table.Int(n), table.Int(n), table.Int(n), table.Int(n), table.Int(n), table.Int(n))
+		}
+		if err := t.Render(rows); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkMarkdownStreamValueInputSmallInts(b *testing.B) {
+	records := make([]int, 1000)
+	for i := range records {
+		records[i] = 1000 + i
+	}
+	header := []string{"a", "b", "c", "d", "e", "f", "g", "h"}
+	row := make([]table.Value, 0, 8)
+	b.ReportAllocs()
+	for b.Loop() {
+		s := markdown.NewStream(io.Discard, markdown.WithHeader(header))
+		for _, v := range records {
+			n := v % 128
+			row = append(row[:0], table.Int(n), table.Int(n), table.Int(n), table.Int(n), table.Int(n), table.Int(n), table.Int(n), table.Int(n))
 			if err := s.Render(row); err != nil {
 				b.Fatal(err)
 			}

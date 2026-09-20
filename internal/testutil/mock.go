@@ -1,32 +1,32 @@
 package testutil
 
 // Tabular records rows passed to Render and returns Err.
-type Tabular struct {
-	Rows [][]any
+type Tabular[T any] struct {
+	Rows [][]T
 	Err  error
 }
 
 // Render records rows and returns Err.
-func (o *Tabular) Render(rows [][]any) error {
+func (o *Tabular[T]) Render(rows [][]T) error {
 	o.Rows = rows
 	return o.Err
 }
 
 // Streamer records rows passed to Render and returns configured errors.
-type Streamer struct {
-	Rows      [][]any
+type Streamer[T any] struct {
+	Rows      [][]T
 	RenderErr error
 	CloseErr  error
 }
 
 // Render records row and returns RenderErr.
-func (o *Streamer) Render(row []any) error {
+func (o *Streamer[T]) Render(row []T) error {
 	o.Rows = append(o.Rows, row)
 	return o.RenderErr
 }
 
 // Close returns CloseErr.
-func (o *Streamer) Close() error {
+func (o *Streamer[T]) Close() error {
 	return o.CloseErr
 }
 
@@ -58,6 +58,19 @@ type Stringer struct {
 // String returns o.Value.
 func (o Stringer) String() string {
 	return o.Value
+}
+
+// StringerError returns distinct strings to test interface precedence.
+type StringerError struct{}
+
+// Error returns the error representation.
+func (o StringerError) Error() string {
+	return "error"
+}
+
+// String returns the fmt.Stringer representation.
+func (o StringerError) String() string {
+	return "stringer"
 }
 
 // PanicStringer panics if String is called.
@@ -101,3 +114,7 @@ func (o *MatchErrorWriter) Write(value []byte) (int, error) {
 	}
 	return len(value), nil
 }
+
+// CyclicPointer supports pointer chains and cycles
+// in reference traversal tests.
+type CyclicPointer *CyclicPointer

@@ -3,6 +3,7 @@ package html
 import (
 	"slices"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/internal/param"
 	"github.com/nekrassov01/table/internal/scope"
 	"github.com/nekrassov01/table/internal/span"
@@ -80,7 +81,7 @@ func (o *compiler) compileHeader() {
 }
 
 // compileBody compiles and retains body rows in input order.
-func (o *compiler) compileBody(sources [][]any) {
+func (o *compiler) compileBody(sources [][]table.Value) {
 	for index, source := range sources {
 		o.compileRow(source, index)
 		if o.err != nil {
@@ -148,7 +149,7 @@ func (o *compiler) compileBand(labels []string, sc Scope) row {
 }
 
 // compileRow validates and compiles one body row.
-func (o *compiler) compileRow(source []any, rowIndex int) {
+func (o *compiler) compileRow(source []table.Value, rowIndex int) {
 	config := &o.input
 	state := o.state
 	rowColumns := len(source) + config.option.indexOffset
@@ -185,7 +186,7 @@ func (o *compiler) compileRow(source []any, rowIndex int) {
 		color := transformer.colors.Resolve(ScopeBody)
 		decoration := transformer.decorations.Resolve(ScopeBody)
 		if transformer.fn != nil {
-			transformed, transformedColor, transformedDecoration := transformer.fn(rawValue)
+			transformed, transformedColor, transformedDecoration := transformer.fn(rawValue.AsAny())
 			if transformed != "" {
 				text = transformed
 			}

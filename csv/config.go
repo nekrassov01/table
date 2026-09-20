@@ -87,7 +87,8 @@ func (o *columnSet) resolve(columns []columnConfig, columnCount, indexOffset int
 
 // columnConfig holds CSV settings for one logical column.
 type columnConfig struct {
-	transformer func(any) string // Optional body-value transformation.
+	// Optional body-value transformation.
+	transformer func(any) string
 }
 
 // validDelimiter reports whether delimiter can separate fields.

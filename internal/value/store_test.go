@@ -354,6 +354,184 @@ func TestStore_AppendFloat(t *testing.T) {
 	}
 }
 
+func TestStore_AppendDefault(t *testing.T) {
+	type fields struct {
+		buf []byte
+	}
+	type args struct {
+		value any
+	}
+	type want struct {
+		val string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   want
+	}{
+		{
+			name: "nil",
+			args: args{
+				value: nil,
+			},
+			want: want{
+				val: "<nil>",
+			},
+		},
+		{
+			name: "struct",
+			args: args{
+				value: struct{ Count int }{Count: 42},
+			},
+			want: want{
+				val: "{42}",
+			},
+		},
+		{
+			name: "appends",
+			fields: fields{
+				buf: []byte("prefix:"),
+			},
+			args: args{
+				value: []int{1, 2},
+			},
+			want: want{
+				val: "prefix:[1 2]",
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			o := &Store{
+				buf: test.fields.buf,
+			}
+			o.AppendDefault(test.args.value)
+			testutil.AssertValue(t, string(o.buf), test.want.val, "AppendDefault")
+		})
+	}
+}
+
+func TestStore_AppendViews(t *testing.T) {
+	type fields struct {
+		buf []byte
+	}
+	type args struct {
+		appendValue func(*Store) string
+	}
+	type want struct {
+		text   string
+		buffer string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   want
+	}{
+		{
+			name: "string",
+			fields: fields{
+				buf: []byte("prefix:"),
+			},
+			args: args{
+				appendValue: func(o *Store) string {
+					return o.AppendString("value")
+				},
+			},
+			want: want{
+				text:   "value",
+				buffer: "prefix:value",
+			},
+		},
+		{
+			name: "bytes",
+			fields: fields{
+				buf: []byte("prefix:"),
+			},
+			args: args{
+				appendValue: func(o *Store) string {
+					return o.AppendBytes([]byte("value"))
+				},
+			},
+			want: want{
+				text:   "value",
+				buffer: "prefix:value",
+			},
+		},
+		{
+			name: "integer",
+			fields: fields{
+				buf: []byte("prefix:"),
+			},
+			args: args{
+				appendValue: func(o *Store) string {
+					return o.AppendInt(-42)
+				},
+			},
+			want: want{
+				text:   "-42",
+				buffer: "prefix:-42",
+			},
+		},
+		{
+			name: "unsigned integer",
+			fields: fields{
+				buf: []byte("prefix:"),
+			},
+			args: args{
+				appendValue: func(o *Store) string {
+					return o.AppendUint(42)
+				},
+			},
+			want: want{
+				text:   "42",
+				buffer: "prefix:42",
+			},
+		},
+		{
+			name: "floating point",
+			fields: fields{
+				buf: []byte("prefix:"),
+			},
+			args: args{
+				appendValue: func(o *Store) string {
+					return o.AppendFloat(1.25, 64)
+				},
+			},
+			want: want{
+				text:   "1.25",
+				buffer: "prefix:1.25",
+			},
+		},
+		{
+			name: "default",
+			fields: fields{
+				buf: []byte("prefix:"),
+			},
+			args: args{
+				appendValue: func(o *Store) string {
+					return o.AppendDefault(map[string]int{"key": 1})
+				},
+			},
+			want: want{
+				text:   "map[key:1]",
+				buffer: "prefix:map[key:1]",
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			o := &Store{
+				buf: test.fields.buf,
+			}
+			got := test.args.appendValue(o)
+			testutil.AssertValue(t, got, test.want.text, "appended view")
+			testutil.AssertValue(t, o.Since(0), test.want.buffer, "buffer")
+		})
+	}
+}
+
 func TestStore_grow(t *testing.T) {
 	type fields struct {
 		buf []byte

@@ -5,6 +5,7 @@ import (
 	"io"
 	"testing"
 
+	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/internal/testutil"
 )
 
@@ -337,50 +338,50 @@ func Test_runner_runExample(t *testing.T) {
 }
 
 func Test_runner_runText(t *testing.T) {
-	testRunnerTarget(t, targetText, dataASCII, func(o runner, rows [][]any) error {
+	testRunnerTarget(t, targetText, dataASCII, func(o runner, rows [][]table.Value) error {
 		return o.runText(rows)
 	})
 }
 
 func Test_runner_runHTML(t *testing.T) {
-	testRunnerTarget(t, targetHTML, dataSimple, func(o runner, rows [][]any) error {
+	testRunnerTarget(t, targetHTML, dataSimple, func(o runner, rows [][]table.Value) error {
 		return o.runHTML(rows)
 	})
 }
 
 func Test_runner_runMarkdown(t *testing.T) {
-	testRunnerTarget(t, targetMarkdown, dataSimple, func(o runner, rows [][]any) error {
+	testRunnerTarget(t, targetMarkdown, dataSimple, func(o runner, rows [][]table.Value) error {
 		return o.runMarkdown(rows)
 	})
 }
 
 func Test_runner_runBacklog(t *testing.T) {
-	testRunnerTarget(t, targetBacklog, dataSimple, func(o runner, rows [][]any) error {
+	testRunnerTarget(t, targetBacklog, dataSimple, func(o runner, rows [][]table.Value) error {
 		return o.runBacklog(rows)
 	})
 }
 
 func Test_runner_runCSV(t *testing.T) {
-	testRunnerTarget(t, targetCSV, dataSimple, func(o runner, rows [][]any) error {
+	testRunnerTarget(t, targetCSV, dataSimple, func(o runner, rows [][]table.Value) error {
 		return o.runCSV(rows)
 	})
 }
 
 func Test_newExample(t *testing.T) {
 	type args struct {
-		rows [][]any
+		rows [][]table.Value
 	}
 	tests := []struct {
 		name string
 		args args
-		want [][]any
+		want [][]table.Value
 	}{
 		{
 			name: "rows",
 			args: args{
-				rows: [][]any{{"value"}},
+				rows: [][]table.Value{{table.String("value")}},
 			},
-			want: [][]any{{"value"}},
+			want: [][]table.Value{{table.String("value")}},
 		},
 	}
 	for _, test := range tests {
@@ -394,12 +395,12 @@ func Test_newExample(t *testing.T) {
 func Test_example_run(t *testing.T) {
 	testError := testutil.NewError()
 	type fields struct {
-		rows     [][]any
-		tabular  *testutil.Tabular
-		streamer *testutil.Streamer
+		rows     [][]table.Value
+		tabular  *testutil.Tabular[table.Value]
+		streamer *testutil.Streamer[table.Value]
 	}
 	type want struct {
-		rows [][]any
+		rows [][]table.Value
 		err  bool
 	}
 	tests := []struct {
@@ -410,53 +411,53 @@ func Test_example_run(t *testing.T) {
 		{
 			name: "table",
 			fields: fields{
-				rows:    [][]any{{"first"}, {"second"}},
-				tabular: &testutil.Tabular{},
+				rows:    [][]table.Value{{table.String("first")}, {table.String("second")}},
+				tabular: &testutil.Tabular[table.Value]{},
 			},
 			want: want{
-				rows: [][]any{{"first"}, {"second"}},
+				rows: [][]table.Value{{table.String("first")}, {table.String("second")}},
 			},
 		},
 		{
 			name: "table error",
 			fields: fields{
-				rows: [][]any{{"value"}},
-				tabular: &testutil.Tabular{
+				rows: [][]table.Value{{table.String("value")}},
+				tabular: &testutil.Tabular[table.Value]{
 					Err: testError,
 				},
 			},
 			want: want{
-				rows: [][]any{{"value"}},
+				rows: [][]table.Value{{table.String("value")}},
 				err:  true,
 			},
 		},
 		{
 			name: "stream",
 			fields: fields{
-				rows:     [][]any{{"first"}, {"second"}},
-				streamer: &testutil.Streamer{},
+				rows:     [][]table.Value{{table.String("first")}, {table.String("second")}},
+				streamer: &testutil.Streamer[table.Value]{},
 			},
 			want: want{
-				rows: [][]any{{"first"}, {"second"}},
+				rows: [][]table.Value{{table.String("first")}, {table.String("second")}},
 			},
 		},
 		{
 			name: "stream render error",
 			fields: fields{
-				rows: [][]any{{"value"}},
-				streamer: &testutil.Streamer{
+				rows: [][]table.Value{{table.String("value")}},
+				streamer: &testutil.Streamer[table.Value]{
 					RenderErr: testError,
 				},
 			},
 			want: want{
-				rows: [][]any{{"value"}},
+				rows: [][]table.Value{{table.String("value")}},
 				err:  true,
 			},
 		},
 		{
 			name: "stream close error",
 			fields: fields{
-				streamer: &testutil.Streamer{
+				streamer: &testutil.Streamer[table.Value]{
 					CloseErr: testError,
 				},
 			},
@@ -477,7 +478,7 @@ func Test_example_run(t *testing.T) {
 				o.streamer = test.fields.streamer
 			}
 			err := o.run()
-			var rows [][]any
+			var rows [][]table.Value
 			if test.fields.tabular != nil {
 				rows = test.fields.tabular.Rows
 			}
@@ -589,12 +590,12 @@ func Test_newError(t *testing.T) {
 	}
 }
 
-func testRunnerTarget(t *testing.T, target, data string, run func(runner, [][]any) error) {
+func testRunnerTarget(t *testing.T, target, data string, run func(runner, [][]table.Value) error) {
 	t.Helper()
 	type fields struct {
 		mode string
 		data string
-		rows [][]any
+		rows [][]table.Value
 	}
 	tests := []struct {
 		name   string
@@ -622,7 +623,7 @@ func testRunnerTarget(t *testing.T, target, data string, run func(runner, [][]an
 			fields: fields{
 				mode: modeTable,
 				data: dataTransformer,
-				rows: [][]any{make([]any, len(FooterData.Header[0]))},
+				rows: [][]table.Value{make([]table.Value, len(FooterData.Header[0]))},
 			},
 		},
 		{
@@ -630,7 +631,7 @@ func testRunnerTarget(t *testing.T, target, data string, run func(runner, [][]an
 			fields: fields{
 				mode: modeTable,
 				data: dataComplex,
-				rows: [][]any{make([]any, len(ComplexData.Header[0]))},
+				rows: [][]table.Value{make([]table.Value, len(ComplexData.Header[0]))},
 			},
 		},
 		{

@@ -29,17 +29,17 @@ This document describes the architecture for maintainers.
 
 The repository contains the following directories.
 
-| Directory    | Category          | Role                                                  |
-| ------------ | ----------------- | ----------------------------------------------------- |
-| `.`          | Shared contract   | Common interfaces, row adapters, and errors           |
-| `text`       | Output format     | Unicode or ASCII bordered text tables                 |
-| `html`       | Output format     | Semantic HTML tables                                  |
-| `markdown`   | Output format     | GitHub Flavored Markdown tables                       |
-| `backlog`    | Output format     | Backlog notation tables                               |
-| `csv`        | Output format     | Records separated by a configurable delimiter         |
-| `internal/*` | Internal packages | Shared processing and repository maintenance commands |
-| `examples`   | Samples           | Input data used by examples and benchmarks            |
-| `benchmarks` | Benchmarks        | Performance measurements in an independent Go module  |
+| Directory    | Category          | Role                                                      |
+| ------------ | ----------------- | --------------------------------------------------------- |
+| `.`          | Shared contract   | Input values, common interfaces, row adapters, and errors |
+| `text`       | Output format     | Unicode or ASCII bordered text tables                     |
+| `html`       | Output format     | Semantic HTML tables                                      |
+| `markdown`   | Output format     | GitHub Flavored Markdown tables                           |
+| `backlog`    | Output format     | Backlog notation tables                                   |
+| `csv`        | Output format     | Records separated by a configurable delimiter             |
+| `internal/*` | Internal packages | Shared processing and repository maintenance commands     |
+| `examples`   | Samples           | Input data used by examples and benchmarks                |
+| `benchmarks` | Benchmarks        | Performance measurements in an independent Go module      |
 
 The five output packages do not depend on one another. Shared packages do not refer to the types or control flow of a specific output format.
 
@@ -105,6 +105,8 @@ Text options determine terminal status once during construction. The constructor
 `configResult` retains the `option` reference, headers, body row count, and resolved column settings. In `text`, `html`, `backlog`, and `csv`, it also retains the current pass's footer and `footerColumns`. `compiler` uses that count to ensure the footer does not exceed the resolved column count.
 
 ### Compiler
+
+The root package exposes `table.Value` as an alias for the compact value representation in `internal/value`, with primitive constructors in `value.go`. All output packages, common interfaces, and row adapters use `table.Value`. Primitive constructors retain numeric bits or borrowed string and byte pointers without boxing. The compiler formats input values through `value.Format`. `Format` uses a direct string fast path followed by one type dispatch for both compact values and values retained by `Any`. Both representations use the same typed `Store` append methods. Only types outside these direct cases use reflection to resolve references, named values, and collections. The output packages retain their own `cell` types for resolved display text and format-specific attributes. Only columns with a transformer restore their values through `Value.AsAny()`; transformer signatures and configuration are unchanged. Table and Stream retain their existing pipeline and workspace ownership.
 
 `prepare` uses `configResult` and `compilerState` to reserve the required row and cell storage. In `text`, `html`, `markdown`, and `backlog`, it initializes per-column span settings. It also prepares scratch storage for escaping in `html`, `markdown`, and `backlog`, or quoting in `csv`. HTML escapes its caption at this stage.
 
@@ -219,7 +221,11 @@ Before returning an arena to the pool, `release` performs the following work:
 - Detach row and horizontal-line views currently used by `painter`.
 - Retain reusable byte-buffer and slice capacity.
 
-Strings obtained from `internal/value.Store` refer to the same memory as the store's byte buffer. The following restrictions therefore apply:
+`internal/value/view.go` provides only `View`, the zero-copy conversion from bytes to a string used by `Store` and format-specific escaping and quoting. Callers keep the viewed bytes unchanged until the string is no longer in use.
+
+`internal/value/pack.go` owns the unsafe retention and restoration of caller-owned strings and bytes. Retention produces a complete `Value`; restoration consumes that value, keeping the typed pointer and original length together at this boundary. These references do not belong to `Store` and are not invalidated by `Store.Reset`. Borrowed bytes must not be modified while Render reads them.
+
+`Store` owns only the buffer used for formatted output. All writes, including the `fmt` fallback, go through its append methods, which return views of the appended text. Formatting code neither accesses the buffer directly nor wraps individual appends with a separate mark-and-view function. Its `Since` method uses `View` to return a string without copying. Strings obtained from `internal/value.Store` refer to the same memory as the store's byte buffer. The following restrictions therefore apply:
 
 - Do not reset the store while rows or cells still refer to its string views.
 - Do not save a string view in a value returned to the caller.

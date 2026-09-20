@@ -114,7 +114,7 @@ go get github.com/nekrassov01/table
 
 ## Quick start
 
-`TableOf` and `StreamOf` adapt typed application data to the rows accepted by every output package.
+`TableOf` and `StreamOf` adapt typed application data to rows of `table.Value`. Primitive cell constructors avoid interface boxing. See [Value inputs and migration](docs/API.md#value-inputs-and-migration) for input types and transformer behavior.
 
 ### Table
 
@@ -138,12 +138,12 @@ type Deployment struct {
     Status  string
 }
 
-func deploymentRow(deployment Deployment) []any {
-    return []any{
-        deployment.Service,
-        deployment.Desired,
-        deployment.Ready,
-        deployment.Status,
+func deploymentRow(deployment Deployment) []table.Value {
+    return []table.Value{
+        table.String(deployment.Service),
+        table.Int(deployment.Desired),
+        table.Int(deployment.Ready),
+        table.String(deployment.Status),
     }
 }
 
@@ -211,12 +211,12 @@ func WriteAuditEvents(w io.Writer, events iter.Seq2[AuditEvent, error]) (err err
         }
     }()
 
-    rows := table.StreamOf(events, func(event AuditEvent) []any {
-        return []any{
-            event.Time.Format(time.RFC3339),
-            event.Actor,
-            event.Action,
-            event.Resource,
+    rows := table.StreamOf(events, func(event AuditEvent) []table.Value {
+        return []table.Value{
+            table.String(event.Time.Format(time.RFC3339)),
+            table.String(event.Actor),
+            table.String(event.Action),
+            table.String(event.Resource),
         }
     })
     for row, sourceErr := range rows {
