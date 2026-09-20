@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.2.0](https://github.com/nekrassov01/table/compare/v0.1.4...v0.2.0) - 2026-09-20
+
+- Use table.Value for row inputs and transformers by @nekrassov01 in https://github.com/nekrassov01/table/pull/40
+- Remove automatic row indexing by @nekrassov01 in https://github.com/nekrassov01/table/pull/42
+
 ## [v0.1.4](https://github.com/nekrassov01/table/compare/v0.1.3...v0.1.4) - 2026-09-11
 
 - Update logo to a grid by @nekrassov01 in https://github.com/nekrassov01/table/pull/27
