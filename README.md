@@ -32,16 +32,16 @@
 
 ## Overview
 
-`nekrassov01/table` renders Go data as terminal tables, markup tables, or CSV records. Each output package provides `Table` for complete data sets and `Stream` for row-at-a-time output while retaining the selected format's own structure and escaping rules.
+`nekrassov01/table` renders Go data as terminal tables, markup tables, or CSV records. Each output package provides `Table` for complete data sets and `Stream` for row-at-a-time output. Both preserve the selected format's structure and escaping rules.
 
 See [Runnable examples](#runnable-examples) for a generated catalog of inputs, options, commands, and exact output.
 
 - `table` uses functional options for clear, reusable configuration.
-- In the bundled comparisons, `table` runs 5.9 to 7.0 times as fast as the next-fastest alternative; see [Performance](#performance).
+- In the bundled comparisons, `table` runs 6.3 to 6.7 times as fast as the next-fastest alternative; see [Performance](#performance).
 - `table` reuses internal buffers to minimize steady-state allocations.
 - `TableOf` and `StreamOf` adapt typed slices and error-returning iterators.
 - `text` measures Unicode by terminal display width, including ambiguous character widths in CJK locales.
-- Format-specific options add headers, calculated footers, indexes, placeholders, transformations, alignment, decoration, and cell spans.
+- Format-specific options add headers, calculated footers, indexes, and placeholders. They also support transformations, alignment, decoration, and cell spans.
 
 ## Motivation
 
@@ -247,7 +247,7 @@ Given an iterator of audit events, the function produces output like this:
 
 The generated [examples catalog](./docs/EXAMPLES.md) pairs shared input data with the exact options, commands, and output for every supported scenario. The same definitions drive the catalog, runnable examples, and benchmarks.
 
-Use `target`, `mode`, and `data` to select the output package, API, and scenario. This command runs the simple text `Table` example:
+Use `target` to select the output package and `mode` to select the API. Use `data` to select the scenario. This command runs the simple text `Table` example:
 
 ```sh
 make example target=text mode=table data=simple
@@ -312,66 +312,66 @@ The `go-pretty` placeholder entry refers to its HTML `EmptyColumn` setting.
 >
 > Run `make bench target=comparison benchtime=1x count=1` to reduce steady-state amortization and expose one-iteration setup costs. For explicit pool-drained measurements of `table`, run `make bench target=cold`.
 
-Run the comparison on your machine with `make bench target=comparison`. The following output records all five samples on an Apple M2 with Go 1.27.0:
+Run the comparison on your machine with `make bench target=comparison benchtime=10000x count=5 cpuprofile= memprofile=`. The following output records all five samples at commit `955be10` on an Apple M2 with Go 1.27.1, with profiling disabled:
 
-```powershell
-$ make bench target=comparison
-go test -benchmem -count 5 -benchtime 10000x -cpuprofile cpu.prof -memprofile mem.prof . -bench '^BenchmarkComparison'
+```text
+$ make bench target=comparison benchtime=10000x count=5 cpuprofile= memprofile=
+go test -benchmem -count 5 -benchtime 10000x   . -bench '^BenchmarkComparison'
 goos: darwin
 goarch: arm64
 pkg: benchmarks
 cpu: Apple M2
-BenchmarkComparisonTableSimple-8           10000        2436 ns/op       225 B/op         1 allocs/op
-BenchmarkComparisonTableSimple-8           10000        1847 ns/op       224 B/op         1 allocs/op
-BenchmarkComparisonTableSimple-8           10000        1739 ns/op       224 B/op         1 allocs/op
-BenchmarkComparisonTableSimple-8           10000        1804 ns/op       224 B/op         1 allocs/op
-BenchmarkComparisonTableSimple-8           10000        1773 ns/op       224 B/op         1 allocs/op
-BenchmarkComparisonGoPrettySimple-8        10000       10580 ns/op      8155 B/op       110 allocs/op
-BenchmarkComparisonGoPrettySimple-8        10000       10572 ns/op      8153 B/op       110 allocs/op
-BenchmarkComparisonGoPrettySimple-8        10000       11115 ns/op      8153 B/op       110 allocs/op
-BenchmarkComparisonGoPrettySimple-8        10000       11826 ns/op      8153 B/op       110 allocs/op
-BenchmarkComparisonGoPrettySimple-8        10000       10688 ns/op      8153 B/op       110 allocs/op
-BenchmarkComparisonTableWriterSimple-8     10000       81974 ns/op    486948 B/op       973 allocs/op
-BenchmarkComparisonTableWriterSimple-8     10000       79278 ns/op    486948 B/op       973 allocs/op
-BenchmarkComparisonTableWriterSimple-8     10000       81598 ns/op    486948 B/op       973 allocs/op
-BenchmarkComparisonTableWriterSimple-8     10000       87737 ns/op    486949 B/op       973 allocs/op
-BenchmarkComparisonTableWriterSimple-8     10000       80748 ns/op    486948 B/op       973 allocs/op
-BenchmarkComparisonSimpleTableSimple-8     10000       23490 ns/op     13109 B/op       425 allocs/op
-BenchmarkComparisonSimpleTableSimple-8     10000       23955 ns/op     13098 B/op       425 allocs/op
-BenchmarkComparisonSimpleTableSimple-8     10000       22876 ns/op     13121 B/op       425 allocs/op
-BenchmarkComparisonSimpleTableSimple-8     10000       22583 ns/op     13116 B/op       425 allocs/op
-BenchmarkComparisonSimpleTableSimple-8     10000       22650 ns/op     13098 B/op       425 allocs/op
-BenchmarkComparisonTableComplex-8          10000        9192 ns/op      1150 B/op        35 allocs/op
-BenchmarkComparisonTableComplex-8          10000        9158 ns/op      1150 B/op        35 allocs/op
-BenchmarkComparisonTableComplex-8          10000        9176 ns/op      1149 B/op        35 allocs/op
-BenchmarkComparisonTableComplex-8          10000        9128 ns/op      1149 B/op        35 allocs/op
-BenchmarkComparisonTableComplex-8          10000        9106 ns/op      1150 B/op        35 allocs/op
-BenchmarkComparisonGoPrettyComplex-8       10000       63998 ns/op     49260 B/op       317 allocs/op
-BenchmarkComparisonGoPrettyComplex-8       10000       63791 ns/op     49260 B/op       317 allocs/op
-BenchmarkComparisonGoPrettyComplex-8       10000       61935 ns/op     49263 B/op       317 allocs/op
-BenchmarkComparisonGoPrettyComplex-8       10000       64352 ns/op     49261 B/op       317 allocs/op
-BenchmarkComparisonGoPrettyComplex-8       10000       62202 ns/op     49261 B/op       317 allocs/op
-BenchmarkComparisonTableWriterComplex-8    10000      276792 ns/op    720005 B/op      4749 allocs/op
-BenchmarkComparisonTableWriterComplex-8    10000      280501 ns/op    719999 B/op      4749 allocs/op
-BenchmarkComparisonTableWriterComplex-8    10000      277848 ns/op    720000 B/op      4749 allocs/op
-BenchmarkComparisonTableWriterComplex-8    10000      278027 ns/op    719994 B/op      4749 allocs/op
-BenchmarkComparisonTableWriterComplex-8    10000      279195 ns/op    719997 B/op      4749 allocs/op
+BenchmarkComparisonTableSimple-8          	   10000	      2000 ns/op	     226 B/op	       1 allocs/op
+BenchmarkComparisonTableSimple-8          	   10000	      1775 ns/op	     224 B/op	       1 allocs/op
+BenchmarkComparisonTableSimple-8          	   10000	      1723 ns/op	     224 B/op	       1 allocs/op
+BenchmarkComparisonTableSimple-8          	   10000	      1719 ns/op	     224 B/op	       1 allocs/op
+BenchmarkComparisonTableSimple-8          	   10000	      1684 ns/op	     224 B/op	       1 allocs/op
+BenchmarkComparisonGoPrettySimple-8       	   10000	     10721 ns/op	    8152 B/op	     110 allocs/op
+BenchmarkComparisonGoPrettySimple-8       	   10000	     11938 ns/op	    8152 B/op	     110 allocs/op
+BenchmarkComparisonGoPrettySimple-8       	   10000	     10871 ns/op	    8152 B/op	     110 allocs/op
+BenchmarkComparisonGoPrettySimple-8       	   10000	     10894 ns/op	    8152 B/op	     110 allocs/op
+BenchmarkComparisonGoPrettySimple-8       	   10000	     10875 ns/op	    8151 B/op	     110 allocs/op
+BenchmarkComparisonTableWriterSimple-8    	   10000	    114722 ns/op	  486936 B/op	     973 allocs/op
+BenchmarkComparisonTableWriterSimple-8    	   10000	     91608 ns/op	  486936 B/op	     973 allocs/op
+BenchmarkComparisonTableWriterSimple-8    	   10000	     90447 ns/op	  486936 B/op	     973 allocs/op
+BenchmarkComparisonTableWriterSimple-8    	   10000	     95278 ns/op	  486936 B/op	     973 allocs/op
+BenchmarkComparisonTableWriterSimple-8    	   10000	     96234 ns/op	  486936 B/op	     973 allocs/op
+BenchmarkComparisonSimpleTableSimple-8    	   10000	     22813 ns/op	   13097 B/op	     425 allocs/op
+BenchmarkComparisonSimpleTableSimple-8    	   10000	     23857 ns/op	   13078 B/op	     425 allocs/op
+BenchmarkComparisonSimpleTableSimple-8    	   10000	     23338 ns/op	   13082 B/op	     425 allocs/op
+BenchmarkComparisonSimpleTableSimple-8    	   10000	     22763 ns/op	   13078 B/op	     425 allocs/op
+BenchmarkComparisonSimpleTableSimple-8    	   10000	     22696 ns/op	   13097 B/op	     425 allocs/op
+BenchmarkComparisonTableComplex-8         	   10000	      9398 ns/op	    1149 B/op	      35 allocs/op
+BenchmarkComparisonTableComplex-8         	   10000	      9269 ns/op	    1148 B/op	      35 allocs/op
+BenchmarkComparisonTableComplex-8         	   10000	      9504 ns/op	    1149 B/op	      35 allocs/op
+BenchmarkComparisonTableComplex-8         	   10000	      9281 ns/op	    1149 B/op	      35 allocs/op
+BenchmarkComparisonTableComplex-8         	   10000	      9288 ns/op	    1149 B/op	      35 allocs/op
+BenchmarkComparisonGoPrettyComplex-8      	   10000	     62219 ns/op	   49249 B/op	     317 allocs/op
+BenchmarkComparisonGoPrettyComplex-8      	   10000	     62059 ns/op	   49250 B/op	     317 allocs/op
+BenchmarkComparisonGoPrettyComplex-8      	   10000	     60829 ns/op	   49248 B/op	     317 allocs/op
+BenchmarkComparisonGoPrettyComplex-8      	   10000	     63213 ns/op	   49248 B/op	     317 allocs/op
+BenchmarkComparisonGoPrettyComplex-8      	   10000	     61114 ns/op	   49251 B/op	     317 allocs/op
+BenchmarkComparisonTableWriterComplex-8   	   10000	    296093 ns/op	  720109 B/op	    4749 allocs/op
+BenchmarkComparisonTableWriterComplex-8   	   10000	    295031 ns/op	  720110 B/op	    4749 allocs/op
+BenchmarkComparisonTableWriterComplex-8   	   10000	    297897 ns/op	  720109 B/op	    4749 allocs/op
+BenchmarkComparisonTableWriterComplex-8   	   10000	    303021 ns/op	  720112 B/op	    4749 allocs/op
+BenchmarkComparisonTableWriterComplex-8   	   10000	    297169 ns/op	  720110 B/op	    4749 allocs/op
 PASS
-ok      benchmarks      24.222s
+ok  	benchmarks	25.500s
 ```
 
 The table summarizes those five samples. Each cell shows `allocs/op · ns/op`; both values are medians.
 
 | Scenario       | `table`        | `go-pretty`  | `tablewriter`   | `simpletable` |
 | -------------- | -------------- | ------------ | --------------- | ------------- |
-| Simple         | **1 · 1,804**  | 110 · 10,688 | 973 · 81,598    | 425 · 22,876  |
-| Complex values | **35 · 9,158** | 317 · 63,791 | 4,749 · 278,027 | -             |
+| Simple         | **1 · 1,723**  | 110 · 10,875 | 973 · 95,278    | 425 · 22,813  |
+| Complex values | **35 · 9,288** | 317 · 62,059 | 4,749 · 297,169 | -             |
 
 `-` indicates that a library cannot express the scenario with the benchmark input.
 
 The comparison benchmark uses the shared Simple and Complex data sets. Static data is converted to each library's required row type before timing begins. Each timed iteration constructs a table, processes the rows, and writes the result to a reused buffer. Complex compares native value handling rather than equivalent rendered bytes.
 
-The benchmark preserves each library's configuration model: `table` uses only functional options, `go-pretty` accumulates settings through setters, `tablewriter` combines constructor options with methods, and `simpletable` receives prebuilt cells through exposed table sections. These native construction paths remain inside each timed iteration. Only the settings needed to align table structure and preserve header text are applied; border characters and value formatting retain each library's defaults.
+The benchmark preserves each library's configuration model. `table` uses only functional options, while `go-pretty` accumulates settings through setters. `tablewriter` combines constructor options with methods. `simpletable` receives prebuilt cells through exposed table sections. These native construction paths remain inside each timed iteration. Only the settings needed to align table structure and preserve header text are applied. Border characters and value formatting retain each library's defaults.
 
 ## Documentation
 
