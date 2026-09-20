@@ -36,7 +36,7 @@ func Test_config_prepare(t *testing.T) {
 			},
 		},
 		{
-			name: "index defaults and explicit columns",
+			name: "defaults and explicit columns",
 			fields: fields{
 				output: func() configResult {
 					defaults := columnConfig{
@@ -52,7 +52,6 @@ func Test_config_prepare(t *testing.T) {
 								},
 								&defaults,
 							),
-							indexOffset: 1,
 						},
 						header:   []string{"a", "b"},
 						bodyRows: 2,
@@ -64,7 +63,6 @@ func Test_config_prepare(t *testing.T) {
 			},
 			want: want{
 				columns: []columnConfig{
-					{},
 					{
 						align: AlignRight,
 					},
@@ -101,14 +99,12 @@ func Test_config_prepare(t *testing.T) {
 func Test_option_apply(t *testing.T) {
 	type fields struct {
 		placeholder string
-		indexOffset int
 	}
 	type args struct {
 		opts []Option
 	}
 	type want struct {
 		placeholder string
-		indexOffset int
 	}
 	tests := []struct {
 		name   string
@@ -131,12 +127,10 @@ func Test_option_apply(t *testing.T) {
 				opts: []Option{
 					WithPlaceholder("first"),
 					WithPlaceholder("last"),
-					WithIndex(),
 				},
 			},
 			want: want{
 				placeholder: "last",
-				indexOffset: 1,
 			},
 		},
 	}
@@ -144,12 +138,10 @@ func Test_option_apply(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{
 				placeholder: test.fields.placeholder,
-				indexOffset: test.fields.indexOffset,
 			}
 			o.apply(test.args.opts...)
 			got := want{
 				placeholder: o.placeholder,
-				indexOffset: o.indexOffset,
 			}
 			testutil.AssertValue(t, got, test.want, "apply")
 		})
@@ -243,7 +235,7 @@ func Test_columnSet_apply(t *testing.T) {
 			o := columnSetOf(test.fields.values, test.fields.defaults)
 			o.apply(test.args.selector, test.args.fn)
 			got := want{
-				values:   o.resolve(nil, len(test.want.values), 0),
+				values:   o.resolve(nil, len(test.want.values)),
 				defaults: (*column.Set[columnConfig])(&o).Default(),
 			}
 			testutil.AssertValue(t, got, test.want, "apply")

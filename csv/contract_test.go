@@ -579,7 +579,6 @@ func TestContract_TableLineCapacity(t *testing.T) {
 		WithHeader([]string{"Group", "Message", "Score"}),
 		WithDelimiter(','),
 		WithCRLF(),
-		WithIndex(),
 		WithFooter(func() [][]string {
 			return [][]string{{"", "", "297"}}
 		}),
@@ -634,7 +633,6 @@ func TestContract_ColumnSelectors(t *testing.T) {
 	indexes[0] = 0
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
-		WithIndex(),
 		WithTransformer(AllColumns(), func(table.Value) string {
 			return "all"
 		}),
@@ -651,7 +649,7 @@ func TestContract_ColumnSelectors(t *testing.T) {
 	if err := tb.Render([][]table.Value{{table.String("a"), table.String("b"), table.String("c")}}); err != nil {
 		t.Fatal(err)
 	}
-	testutil.AssertBytes(t, buf.Bytes(), []byte("1\tall\texplicit\tall\n"), "selectors")
+	testutil.AssertBytes(t, buf.Bytes(), []byte("all\texplicit\tall\n"), "selectors")
 }
 
 func TestContract_ConcurrentInstances(t *testing.T) {
@@ -864,12 +862,6 @@ func contractCases() []contractCase {
 			name:   "numeric",
 			header: []string{"Int", "Float"},
 			rows:   [][]table.Value{{table.Int(100), table.Float64(1.25)}, {table.Int(200), table.Float64(2.50)}, {table.Int(300), table.Float64(3.75)}},
-		},
-		{
-			name:   "index",
-			opts:   []Option{WithIndex()},
-			header: []string{"Name", "Score"},
-			rows:   [][]table.Value{{table.String("alice"), table.Int(100)}, {table.String("bob"), table.Int(200)}},
 		},
 	}
 }

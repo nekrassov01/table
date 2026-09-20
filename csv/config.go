@@ -34,10 +34,7 @@ func (o *config) prepare() {
 	if columnCount == 0 {
 		columnCount = max(o.bodyColumns, footerColumns)
 	}
-	if columnCount > 0 {
-		columnCount += option.indexOffset
-	}
-	columns := option.columns.resolve(o.state.columns, columnCount, option.indexOffset)
+	columns := option.columns.resolve(o.state.columns, columnCount)
 	o.state.columns = columns
 	result.columns = columns
 	result.footerColumns = footerColumns
@@ -61,7 +58,6 @@ type option struct {
 	columns     columnSet         // Input columns and their defaults.
 	delimiter   rune              // Field delimiter.
 	crlf        bool              // Whether records use CRLF line endings.
-	indexOffset int               // Synthetic leading column count: 0 or 1.
 }
 
 // apply sets defaults and applies opts in order.
@@ -82,8 +78,8 @@ func (o *columnSet) apply(selector ColumnSelector, fn func(*columnConfig)) {
 }
 
 // resolve applies input settings to logical columns.
-func (o *columnSet) resolve(columns []columnConfig, columnCount, indexOffset int) []columnConfig {
-	return (*column.Set[columnConfig])(o).Resolve(columns, columnCount, indexOffset, columnConfig{})
+func (o *columnSet) resolve(columns []columnConfig, columnCount int) []columnConfig {
+	return (*column.Set[columnConfig])(o).Resolve(columns, columnCount, columnConfig{})
 }
 
 // columnConfig holds CSV settings for one logical column.

@@ -418,12 +418,10 @@ func Test_compiler_compileBand(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "header index and labels",
+			name: "header labels",
 			fields: fields{
 				input: configResult{
-					option: &option{
-						indexOffset: 1,
-					},
+					option:  &option{},
 					columns: columns,
 				},
 				state: compilerState{
@@ -437,16 +435,14 @@ func Test_compiler_compileBand(t *testing.T) {
 				scope:  ScopeHeader,
 			},
 			want: want{
-				values: []string{"#", "label", ""},
+				values: []string{"label", "", ""},
 			},
 		},
 		{
-			name: "footer labels omit index",
+			name: "footer labels and missing values",
 			fields: fields{
 				input: configResult{
-					option: &option{
-						indexOffset: 1,
-					},
+					option:  &option{},
 					columns: columns,
 				},
 				state: compilerState{
@@ -460,7 +456,7 @@ func Test_compiler_compileBand(t *testing.T) {
 				scope:  ScopeFooter,
 			},
 			want: want{
-				values: []string{"", "total", ""},
+				values: []string{"total", "", ""},
 			},
 		},
 	}
@@ -489,8 +485,7 @@ func Test_compiler_compileRow(t *testing.T) {
 		state compilerState
 	}
 	type args struct {
-		source   []table.Value
-		rowIndex int
+		source []table.Value
 	}
 	type want struct {
 		values []string
@@ -503,12 +498,11 @@ func Test_compiler_compileRow(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "index and placeholder",
+			name: "placeholder for missing value",
 			fields: fields{
 				input: configResult{
 					option: &option{
 						placeholder: "-",
-						indexOffset: 1,
 					},
 					columns: make([]columnConfig, 2),
 				},
@@ -518,11 +512,9 @@ func Test_compiler_compileRow(t *testing.T) {
 					columnSizes: make([]int, 2),
 				},
 			},
-			args: args{
-				rowIndex: 2,
-			},
+			args: args{},
 			want: want{
-				values: []string{"3", "-"},
+				values: []string{"-", "-"},
 			},
 		},
 		{
@@ -589,7 +581,7 @@ func Test_compiler_compileRow(t *testing.T) {
 					configResult: test.fields.input,
 				},
 			}
-			o.compileRow(test.args.source, test.args.rowIndex)
+			o.compileRow(test.args.source)
 			values := []string(nil)
 			if len(o.output.body) > 0 {
 				for _, compiled := range o.output.body[0].cells {

@@ -74,8 +74,8 @@ func (o *compiler) compileHeader() {
 
 // compileBody compiles and retains body rows in input order.
 func (o *compiler) compileBody(sources [][]table.Value) {
-	for index, source := range sources {
-		o.compileRow(source, index)
+	for _, source := range sources {
+		o.compileRow(source)
 		if o.err != nil {
 			return
 		}
@@ -90,7 +90,7 @@ func (o *compiler) compileFooter() {
 	if o.err != nil || len(footer) == 0 {
 		return
 	}
-	footerColumns := o.input.footerColumns + o.input.option.indexOffset
+	footerColumns := o.input.footerColumns
 	if footerColumns > len(o.input.columns) {
 		o.err = newColumnCountError(footerColumns, len(o.input.columns))
 		return
@@ -113,13 +113,8 @@ func (o *compiler) compileBand(labels []string, sc Scope) row {
 		column := &config.columns[index]
 		transformer := &column.transformer
 		var text string
-		if index < config.option.indexOffset && sc == ScopeHeader {
-			text = param.IndexHeader
-		}
-		if index >= config.option.indexOffset {
-			if source := index - config.option.indexOffset; source < len(labels) {
-				text = labels[source]
-			}
+		if index < len(labels) {
+			text = labels[index]
 		}
 		color := transformer.colors.Resolve(sc)
 		decoration := transformer.decorations.Resolve(sc)
@@ -140,10 +135,10 @@ func (o *compiler) compileBand(labels []string, sc Scope) row {
 }
 
 // compileRow validates and compiles one body row.
-func (o *compiler) compileRow(source []table.Value, rowIndex int) {
+func (o *compiler) compileRow(source []table.Value) {
 	config := &o.input
 	state := o.state
-	rowColumns := len(source) + config.option.indexOffset
+	rowColumns := len(source)
 	columnCount := len(config.columns)
 	if rowColumns > columnCount {
 		o.err = newColumnCountError(rowColumns, columnCount)
@@ -157,18 +152,12 @@ func (o *compiler) compileRow(source []table.Value, rowIndex int) {
 	for index := range config.columns {
 		column := &config.columns[index]
 		transformer := &column.transformer
-		if index < config.option.indexOffset {
-			values[index] = value.Number(o.strings, int64(rowIndex)+1)
-			r.cells[index] = cell{}
-			continue
-		}
-		sourceIndex := index - config.option.indexOffset
-		if sourceIndex >= len(source) {
+		if index >= len(source) {
 			values[index] = config.option.placeholder
 			r.cells[index] = cell{}
 			continue
 		}
-		rawValue := source[sourceIndex]
+		rawValue := source[index]
 		text := ""
 		color := transformer.colors.Resolve(ScopeBody)
 		decoration := transformer.decorations.Resolve(ScopeBody)

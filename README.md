@@ -41,7 +41,7 @@ See [Runnable examples](#runnable-examples) for a generated catalog of inputs, o
 - `table` reuses internal buffers to minimize steady-state allocations.
 - `TableOf` and `StreamOf` adapt typed slices and error-returning iterators.
 - `text` measures Unicode by terminal display width, including ambiguous character widths in CJK locales.
-- Format-specific options add headers, calculated footers, indexes, and placeholders. They also support transformations, alignment, decoration, and cell spans.
+- Format-specific options add headers, calculated footers, and placeholders. They also support transformations, alignment, decoration, and cell spans.
 
 ## Motivation
 
@@ -287,7 +287,7 @@ This table records whether each library exposes a direct public API for a capabi
 | Column hiding                   | -       | ✓                                                                      | ✓                                                                             | -                                                                           |
 | Header                          | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
 | Footer                          | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
-| Index column                    | ✓       | ✓                                                                      | -                                                                             | -                                                                           |
+| Index column                    | -       | ✓                                                                      | -                                                                             | -                                                                           |
 | Vertical merge                  | ✓       | ✓                                                                      | ✓                                                                             | -                                                                           |
 | Horizontal merge                | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
 | Placeholder                     | ✓       | ✓ (HTML)                                                               | -                                                                             | -                                                                           |
@@ -321,7 +321,7 @@ The `go-pretty` placeholder entry refers to its HTML `EmptyColumn` setting.
 >
 > Run `make bench target=comparison benchtime=1x count=1` to reduce steady-state amortization and expose one-iteration setup costs. For explicit pool-drained measurements of `table`, run `make bench target=cold`.
 
-Run the comparison on your machine with `make bench target=comparison benchtime=10000x count=5 cpuprofile= memprofile=`. The following output records all five samples at commit `955be10` on an Apple M2 with Go 1.27.1, with profiling disabled:
+Run the comparison on your machine with `make bench target=comparison benchtime=10000x count=5 cpuprofile= memprofile=`. The following output records all five samples at commit `49a56df` on an Apple M2 with Go 1.27.1, with profiling disabled:
 
 ```text
 $ make bench target=comparison benchtime=10000x count=5 cpuprofile= memprofile=
@@ -330,51 +330,51 @@ goos: darwin
 goarch: arm64
 pkg: benchmarks
 cpu: Apple M2
-BenchmarkComparisonTableSimple-8          	   10000	      2000 ns/op	     226 B/op	       1 allocs/op
-BenchmarkComparisonTableSimple-8          	   10000	      1775 ns/op	     224 B/op	       1 allocs/op
-BenchmarkComparisonTableSimple-8          	   10000	      1723 ns/op	     224 B/op	       1 allocs/op
-BenchmarkComparisonTableSimple-8          	   10000	      1719 ns/op	     224 B/op	       1 allocs/op
-BenchmarkComparisonTableSimple-8          	   10000	      1684 ns/op	     224 B/op	       1 allocs/op
-BenchmarkComparisonGoPrettySimple-8       	   10000	     10721 ns/op	    8152 B/op	     110 allocs/op
-BenchmarkComparisonGoPrettySimple-8       	   10000	     11938 ns/op	    8152 B/op	     110 allocs/op
-BenchmarkComparisonGoPrettySimple-8       	   10000	     10871 ns/op	    8152 B/op	     110 allocs/op
-BenchmarkComparisonGoPrettySimple-8       	   10000	     10894 ns/op	    8152 B/op	     110 allocs/op
-BenchmarkComparisonGoPrettySimple-8       	   10000	     10875 ns/op	    8151 B/op	     110 allocs/op
-BenchmarkComparisonTableWriterSimple-8    	   10000	    114722 ns/op	  486936 B/op	     973 allocs/op
-BenchmarkComparisonTableWriterSimple-8    	   10000	     91608 ns/op	  486936 B/op	     973 allocs/op
-BenchmarkComparisonTableWriterSimple-8    	   10000	     90447 ns/op	  486936 B/op	     973 allocs/op
-BenchmarkComparisonTableWriterSimple-8    	   10000	     95278 ns/op	  486936 B/op	     973 allocs/op
-BenchmarkComparisonTableWriterSimple-8    	   10000	     96234 ns/op	  486936 B/op	     973 allocs/op
-BenchmarkComparisonSimpleTableSimple-8    	   10000	     22813 ns/op	   13097 B/op	     425 allocs/op
-BenchmarkComparisonSimpleTableSimple-8    	   10000	     23857 ns/op	   13078 B/op	     425 allocs/op
-BenchmarkComparisonSimpleTableSimple-8    	   10000	     23338 ns/op	   13082 B/op	     425 allocs/op
-BenchmarkComparisonSimpleTableSimple-8    	   10000	     22763 ns/op	   13078 B/op	     425 allocs/op
-BenchmarkComparisonSimpleTableSimple-8    	   10000	     22696 ns/op	   13097 B/op	     425 allocs/op
-BenchmarkComparisonTableComplex-8         	   10000	      9398 ns/op	    1149 B/op	      35 allocs/op
-BenchmarkComparisonTableComplex-8         	   10000	      9269 ns/op	    1148 B/op	      35 allocs/op
-BenchmarkComparisonTableComplex-8         	   10000	      9504 ns/op	    1149 B/op	      35 allocs/op
-BenchmarkComparisonTableComplex-8         	   10000	      9281 ns/op	    1149 B/op	      35 allocs/op
-BenchmarkComparisonTableComplex-8         	   10000	      9288 ns/op	    1149 B/op	      35 allocs/op
-BenchmarkComparisonGoPrettyComplex-8      	   10000	     62219 ns/op	   49249 B/op	     317 allocs/op
-BenchmarkComparisonGoPrettyComplex-8      	   10000	     62059 ns/op	   49250 B/op	     317 allocs/op
-BenchmarkComparisonGoPrettyComplex-8      	   10000	     60829 ns/op	   49248 B/op	     317 allocs/op
-BenchmarkComparisonGoPrettyComplex-8      	   10000	     63213 ns/op	   49248 B/op	     317 allocs/op
-BenchmarkComparisonGoPrettyComplex-8      	   10000	     61114 ns/op	   49251 B/op	     317 allocs/op
-BenchmarkComparisonTableWriterComplex-8   	   10000	    296093 ns/op	  720109 B/op	    4749 allocs/op
-BenchmarkComparisonTableWriterComplex-8   	   10000	    295031 ns/op	  720110 B/op	    4749 allocs/op
-BenchmarkComparisonTableWriterComplex-8   	   10000	    297897 ns/op	  720109 B/op	    4749 allocs/op
-BenchmarkComparisonTableWriterComplex-8   	   10000	    303021 ns/op	  720112 B/op	    4749 allocs/op
-BenchmarkComparisonTableWriterComplex-8   	   10000	    297169 ns/op	  720110 B/op	    4749 allocs/op
+BenchmarkComparisonTableSimple-8          	   10000	      3129 ns/op	     210 B/op	       1 allocs/op
+BenchmarkComparisonTableSimple-8          	   10000	      2157 ns/op	     208 B/op	       1 allocs/op
+BenchmarkComparisonTableSimple-8          	   10000	      1834 ns/op	     208 B/op	       1 allocs/op
+BenchmarkComparisonTableSimple-8          	   10000	      1696 ns/op	     208 B/op	       1 allocs/op
+BenchmarkComparisonTableSimple-8          	   10000	      1657 ns/op	     208 B/op	       1 allocs/op
+BenchmarkComparisonGoPrettySimple-8       	   10000	     10320 ns/op	    8152 B/op	     110 allocs/op
+BenchmarkComparisonGoPrettySimple-8       	   10000	     10697 ns/op	    8152 B/op	     110 allocs/op
+BenchmarkComparisonGoPrettySimple-8       	   10000	     10836 ns/op	    8152 B/op	     110 allocs/op
+BenchmarkComparisonGoPrettySimple-8       	   10000	     10369 ns/op	    8152 B/op	     110 allocs/op
+BenchmarkComparisonGoPrettySimple-8       	   10000	     11590 ns/op	    8152 B/op	     110 allocs/op
+BenchmarkComparisonTableWriterSimple-8    	   10000	     89390 ns/op	  486951 B/op	     973 allocs/op
+BenchmarkComparisonTableWriterSimple-8    	   10000	     88622 ns/op	  486951 B/op	     973 allocs/op
+BenchmarkComparisonTableWriterSimple-8    	   10000	     90418 ns/op	  486951 B/op	     973 allocs/op
+BenchmarkComparisonTableWriterSimple-8    	   10000	     88937 ns/op	  486951 B/op	     973 allocs/op
+BenchmarkComparisonTableWriterSimple-8    	   10000	     91323 ns/op	  486951 B/op	     973 allocs/op
+BenchmarkComparisonSimpleTableSimple-8    	   10000	     23144 ns/op	   13082 B/op	     425 allocs/op
+BenchmarkComparisonSimpleTableSimple-8    	   10000	     24135 ns/op	   13089 B/op	     425 allocs/op
+BenchmarkComparisonSimpleTableSimple-8    	   10000	     23233 ns/op	   13075 B/op	     425 allocs/op
+BenchmarkComparisonSimpleTableSimple-8    	   10000	     23404 ns/op	   13082 B/op	     425 allocs/op
+BenchmarkComparisonSimpleTableSimple-8    	   10000	     22597 ns/op	   13071 B/op	     425 allocs/op
+BenchmarkComparisonTableComplex-8         	   10000	      9278 ns/op	    1133 B/op	      35 allocs/op
+BenchmarkComparisonTableComplex-8         	   10000	      9216 ns/op	    1133 B/op	      35 allocs/op
+BenchmarkComparisonTableComplex-8         	   10000	      9175 ns/op	    1133 B/op	      35 allocs/op
+BenchmarkComparisonTableComplex-8         	   10000	      9136 ns/op	    1133 B/op	      35 allocs/op
+BenchmarkComparisonTableComplex-8         	   10000	      9209 ns/op	    1133 B/op	      35 allocs/op
+BenchmarkComparisonGoPrettyComplex-8      	   10000	     63260 ns/op	   49250 B/op	     317 allocs/op
+BenchmarkComparisonGoPrettyComplex-8      	   10000	     60747 ns/op	   49251 B/op	     317 allocs/op
+BenchmarkComparisonGoPrettyComplex-8      	   10000	     60804 ns/op	   49251 B/op	     317 allocs/op
+BenchmarkComparisonGoPrettyComplex-8      	   10000	     62962 ns/op	   49251 B/op	     317 allocs/op
+BenchmarkComparisonGoPrettyComplex-8      	   10000	     60516 ns/op	   49249 B/op	     317 allocs/op
+BenchmarkComparisonTableWriterComplex-8   	   10000	    301172 ns/op	  720130 B/op	    4749 allocs/op
+BenchmarkComparisonTableWriterComplex-8   	   10000	    296691 ns/op	  720124 B/op	    4749 allocs/op
+BenchmarkComparisonTableWriterComplex-8   	   10000	    295675 ns/op	  720126 B/op	    4749 allocs/op
+BenchmarkComparisonTableWriterComplex-8   	   10000	    299385 ns/op	  720127 B/op	    4749 allocs/op
+BenchmarkComparisonTableWriterComplex-8   	   10000	    297917 ns/op	  720126 B/op	    4749 allocs/op
 PASS
-ok  	benchmarks	25.500s
+ok  	benchmarks	25.122s
 ```
 
-The table summarizes those five samples. Each cell shows `allocs/op · ns/op`; both values are medians.
+The table summarizes those five samples. Each cell shows `allocs/op · ns/op · B/op`; all values are medians.
 
-| Scenario       | `table`        | `go-pretty`  | `tablewriter`   | `simpletable` |
-| -------------- | -------------- | ------------ | --------------- | ------------- |
-| Simple         | **1 · 1,723**  | 110 · 10,875 | 973 · 95,278    | 425 · 22,813  |
-| Complex values | **35 · 9,288** | 317 · 62,059 | 4,749 · 297,169 | -             |
+| Scenario       | `table`                | `go-pretty`           | `tablewriter`             | `simpletable`         |
+| -------------- | ---------------------- | --------------------- | ------------------------- | --------------------- |
+| Simple         | **1 · 1,834 · 208**    | 110 · 10,697 · 8,152  | 973 · 89,390 · 486,951    | 425 · 23,233 · 13,082 |
+| Complex values | **35 · 9,209 · 1,133** | 317 · 60,804 · 49,251 | 4,749 · 297,917 · 720,126 | -                     |
 
 `-` indicates that a library cannot express the scenario with the benchmark input.
 

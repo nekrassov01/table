@@ -24,9 +24,6 @@ func (o *solver) prepare() {
 	}
 	for index := range state.columnMetrics {
 		align := columns[index].align
-		if index < o.input.option.indexOffset {
-			align = AlignRight
-		}
 		state.columnMetrics[index] = columnMetric{
 			box:       box{align: align},
 			separator: resolveSeparator(align),

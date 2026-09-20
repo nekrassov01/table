@@ -431,37 +431,6 @@ func TestGolden_StreamCaptionEscape(t *testing.T) {
 	testutil.AssertGolden(t, "common_caption_escape", buf.Bytes())
 }
 
-func TestGolden_TableCaptionIndex(t *testing.T) {
-	var buf bytes.Buffer
-	tb := NewTable(&buf,
-		WithHeader([]string{"A", "B"}),
-		WithCaption("cap", CaptionBottom),
-		WithIndex(),
-	)
-	if err := tb.Render([][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}}); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_caption_index", buf.Bytes())
-}
-
-func TestGolden_StreamCaptionIndex(t *testing.T) {
-	var buf bytes.Buffer
-	s := NewStream(&buf,
-		WithHeader([]string{"A", "B"}),
-		WithCaption("cap", CaptionBottom),
-		WithIndex(),
-	)
-	for _, r := range [][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}} {
-		if err := s.Render(r); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := s.Close(); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_caption_index", buf.Bytes())
-}
-
 func TestGolden_TableCaptionPlaceholder(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
@@ -1972,41 +1941,6 @@ func TestGolden_StreamFooterEmptyBody(t *testing.T) {
 	testutil.AssertGolden(t, "common_footer_empty_body", buf.Bytes())
 }
 
-func TestGolden_TableFooterIndex(t *testing.T) {
-	var buf bytes.Buffer
-	tb := NewTable(&buf,
-		WithHeader([]string{"A", "B"}),
-		WithFooter(func() [][]string {
-			return [][]string{{"t", "u"}}
-		}),
-		WithIndex(),
-	)
-	if err := tb.Render([][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}}); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_footer_index", buf.Bytes())
-}
-
-func TestGolden_StreamFooterIndex(t *testing.T) {
-	var buf bytes.Buffer
-	s := NewStream(&buf,
-		WithHeader([]string{"A", "B"}),
-		WithFooter(func() [][]string {
-			return [][]string{{"t", "u"}}
-		}),
-		WithIndex(),
-	)
-	for _, r := range [][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}} {
-		if err := s.Render(r); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := s.Close(); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_footer_index", buf.Bytes())
-}
-
 func TestGolden_TableFooterNoHeader(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
@@ -2164,233 +2098,6 @@ func TestGolden_StreamHeaderWiderThanRows(t *testing.T) {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_header_wider_than_rows", buf.Bytes())
-}
-
-func TestGolden_TableIndexAlign(t *testing.T) {
-	var buf bytes.Buffer
-	tb := NewTable(&buf,
-		WithHeader([]string{"A", "B"}),
-		WithIndex(),
-		WithAlign(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), AlignRight),
-	)
-	if err := tb.Render([][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}}); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_index_align", buf.Bytes())
-}
-
-func TestGolden_StreamIndexAlign(t *testing.T) {
-	var buf bytes.Buffer
-	s := NewStream(&buf,
-		WithHeader([]string{"A", "B"}),
-		WithIndex(),
-		WithAlign(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), AlignRight),
-	)
-	for _, r := range [][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}} {
-		if err := s.Render(r); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := s.Close(); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_index_align", buf.Bytes())
-}
-
-func TestGolden_TableIndexCellAttr(t *testing.T) {
-	var buf bytes.Buffer
-	tb := NewTable(&buf,
-		WithHeader([]string{"A", "B"}),
-		WithIndex(),
-		WithCellAttr(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), Attr{Class: "c"}),
-	)
-	if err := tb.Render([][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}}); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_index_cellattr", buf.Bytes())
-}
-
-func TestGolden_StreamIndexCellAttr(t *testing.T) {
-	var buf bytes.Buffer
-	s := NewStream(&buf,
-		WithHeader([]string{"A", "B"}),
-		WithIndex(),
-		WithCellAttr(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), Attr{Class: "c"}),
-	)
-	for _, r := range [][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}} {
-		if err := s.Render(r); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := s.Close(); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_index_cellattr", buf.Bytes())
-}
-
-func TestGolden_TableIndexColor(t *testing.T) {
-	var buf bytes.Buffer
-	tb := NewTable(&buf,
-		WithHeader([]string{"A", "B"}),
-		WithIndex(),
-		WithColor(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), ColorFgRed),
-	)
-	if err := tb.Render([][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}}); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_index_color", buf.Bytes())
-}
-
-func TestGolden_StreamIndexColor(t *testing.T) {
-	var buf bytes.Buffer
-	s := NewStream(&buf,
-		WithHeader([]string{"A", "B"}),
-		WithIndex(),
-		WithColor(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), ColorFgRed),
-	)
-	for _, r := range [][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}} {
-		if err := s.Render(r); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := s.Close(); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_index_color", buf.Bytes())
-}
-
-func TestGolden_TableIndexColspan(t *testing.T) {
-	var buf bytes.Buffer
-	tb := NewTable(&buf,
-		WithIndex(),
-		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
-		WithHeader([]string{"A", "B", "C"}),
-	)
-	if err := tb.Render([][]table.Value{{table.String("x"), table.String("x"), table.String("y")}, {table.String("p"), table.String("q"), table.String("q")}}); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_index_colspan", buf.Bytes())
-}
-
-func TestGolden_StreamIndexColspan(t *testing.T) {
-	var buf bytes.Buffer
-	s := NewStream(&buf,
-		WithIndex(),
-		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
-		WithHeader([]string{"A", "B", "C"}),
-	)
-	for _, r := range [][]table.Value{{table.String("x"), table.String("x"), table.String("y")}, {table.String("p"), table.String("q"), table.String("q")}} {
-		if err := s.Render(r); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := s.Close(); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_index_colspan", buf.Bytes())
-}
-
-func TestGolden_TableIndexDecoration(t *testing.T) {
-	var buf bytes.Buffer
-	tb := NewTable(&buf,
-		WithHeader([]string{"A", "B"}),
-		WithIndex(),
-		WithDecoration(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), DecorationBold),
-	)
-	if err := tb.Render([][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}}); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_index_decoration", buf.Bytes())
-}
-
-func TestGolden_StreamIndexDecoration(t *testing.T) {
-	var buf bytes.Buffer
-	s := NewStream(&buf,
-		WithHeader([]string{"A", "B"}),
-		WithIndex(),
-		WithDecoration(ScopeHeader|ScopeBody|ScopeFooter, Columns(1), DecorationBold),
-	)
-	for _, r := range [][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}} {
-		if err := s.Render(r); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := s.Close(); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_index_decoration", buf.Bytes())
-}
-
-func TestGolden_TableIndexPlaceholder(t *testing.T) {
-	var buf bytes.Buffer
-	tb := NewTable(&buf,
-		WithHeader([]string{"A", "B"}),
-		WithIndex(),
-		WithPlaceholder("-"),
-	)
-	if err := tb.Render([][]table.Value{{table.String("x"), table.Any(nil)}, {table.Any(nil), table.String("q")}}); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_index_placeholder", buf.Bytes())
-}
-
-func TestGolden_StreamIndexPlaceholder(t *testing.T) {
-	var buf bytes.Buffer
-	s := NewStream(&buf,
-		WithHeader([]string{"A", "B"}),
-		WithIndex(),
-		WithPlaceholder("-"),
-	)
-	for _, r := range [][]table.Value{{table.String("x"), table.Any(nil)}, {table.Any(nil), table.String("q")}} {
-		if err := s.Render(r); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := s.Close(); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_index_placeholder", buf.Bytes())
-}
-
-func TestGolden_TableIndexTransformer(t *testing.T) {
-	var buf bytes.Buffer
-	tb := NewTable(&buf,
-		WithHeader([]string{"A", "B"}),
-		WithIndex(),
-		WithTransformer(Columns(1), func(v table.Value) (string, *Color, *Decoration) {
-			if s, ok := v.AsAny().(string); ok && s == "raw" {
-				return "T", nil, nil
-			}
-			return "", nil, nil
-		}),
-	)
-	if err := tb.Render([][]table.Value{{table.String("x"), table.String("raw")}, {table.String("p"), table.String("q")}}); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_index_transformer", buf.Bytes())
-}
-
-func TestGolden_StreamIndexTransformer(t *testing.T) {
-	var buf bytes.Buffer
-	s := NewStream(&buf,
-		WithHeader([]string{"A", "B"}),
-		WithIndex(),
-		WithTransformer(Columns(1), func(v table.Value) (string, *Color, *Decoration) {
-			if s, ok := v.AsAny().(string); ok && s == "raw" {
-				return "T", nil, nil
-			}
-			return "", nil, nil
-		}),
-	)
-	for _, r := range [][]table.Value{{table.String("x"), table.String("raw")}, {table.String("p"), table.String("q")}} {
-		if err := s.Render(r); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := s.Close(); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_index_transformer", buf.Bytes())
 }
 
 func TestGolden_TableInvalidUtf8(t *testing.T) {
@@ -3200,43 +2907,6 @@ func TestGolden_StreamTableAttrDecoration(t *testing.T) {
 	testutil.AssertGolden(t, "common_tableattr_decoration", buf.Bytes())
 }
 
-func TestGolden_TableTableAttrIndex(t *testing.T) {
-	var buf bytes.Buffer
-	tb := NewTable(&buf,
-		WithHeader([]string{"A", "B"}),
-		WithTableAttr(TableAttr{
-			Table: Attr{Class: "t"},
-			Body:  SectionAttr{Cell: Attr{Class: "b"}},
-		}),
-		WithIndex(),
-	)
-	if err := tb.Render([][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}}); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_tableattr_index", buf.Bytes())
-}
-
-func TestGolden_StreamTableAttrIndex(t *testing.T) {
-	var buf bytes.Buffer
-	s := NewStream(&buf,
-		WithHeader([]string{"A", "B"}),
-		WithTableAttr(TableAttr{
-			Table: Attr{Class: "t"},
-			Body:  SectionAttr{Cell: Attr{Class: "b"}},
-		}),
-		WithIndex(),
-	)
-	for _, r := range [][]table.Value{{table.String("s"), table.String("s")}, {table.String("s"), table.String("s")}} {
-		if err := s.Render(r); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := s.Close(); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_tableattr_index", buf.Bytes())
-}
-
 func TestGolden_TableTableAttrPlaceholder(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
@@ -3777,24 +3447,6 @@ func TestGolden_StreamFooterRowspan(t *testing.T) {
 	testutil.AssertGolden(t, "stream_footer_rowspan", buf.Bytes())
 }
 
-func TestGolden_StreamIndex(t *testing.T) {
-	var buf bytes.Buffer
-	s := NewStream(&buf,
-		WithIndex(),
-		WithHeader([]string{"Name", "Score"}),
-	)
-	if err := s.Render([]table.Value{table.String("alice"), table.Int(100)}); err != nil {
-		t.Fatal(err)
-	}
-	if err := s.Render([]table.Value{table.String("bob"), table.Int(99)}); err != nil {
-		t.Fatal(err)
-	}
-	if err := s.Close(); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "stream_index", buf.Bytes())
-}
-
 func TestGolden_StreamRowspan(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
@@ -4203,23 +3855,6 @@ func TestGolden_TableFooterRowspan(t *testing.T) {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "table_footer_rowspan", buf.Bytes())
-}
-
-func TestGolden_TableIndex(t *testing.T) {
-	var buf bytes.Buffer
-	tb := NewTable(&buf,
-		WithIndex(),
-		WithHeader([]string{"Name", "Score"}),
-		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
-	)
-	if err := tb.Render([][]table.Value{
-		{table.String("alice"), table.Int(100)},
-		{table.String("alice"), table.Int(99)},
-		{table.String("bob"), table.Int(98)},
-	}); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "table_index", buf.Bytes())
 }
 
 func TestGolden_TableNoHeaderRagged(t *testing.T) {

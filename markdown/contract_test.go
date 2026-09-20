@@ -305,7 +305,6 @@ func TestContract_TableLineCapacity(t *testing.T) {
 	}
 	o := NewTable(io.Discard,
 		WithHeader([]string{"Group", "Message", "Score", "Snippet"}),
-		WithIndex(),
 		WithRowspan(Columns(0)),
 		WithColor(ScopeBody, Columns(1), ColorFgRed),
 		WithDecoration(ScopeBody, Columns(1), DecorationBold),
@@ -402,7 +401,6 @@ func TestContract_ColumnSelectors(t *testing.T) {
 	configured := option{}
 	configured.apply(
 		WithHeader([]string{"A", "B", "C", "D", "E"}),
-		WithIndex(),
 		WithAlign(AllColumns(), AlignRight),
 		WithAlign(selector, AlignCenter),
 		WithRowspan(AllColumns()),
@@ -421,11 +419,10 @@ func TestContract_ColumnSelectors(t *testing.T) {
 		rowspan bool
 		colspan bool
 	}{
-		{name: "index", index: 0},
-		{name: "first input column", index: 1, align: AlignRight, rowspan: true},
-		{name: "explicit alignment", index: 2, align: AlignCenter, rowspan: true},
-		{name: "explicit colspan", index: 3, align: AlignRight, rowspan: true, colspan: true},
-		{name: "future input column", index: 5, align: AlignRight, rowspan: true},
+		{name: "first input column", index: 0, align: AlignRight, rowspan: true},
+		{name: "explicit alignment", index: 1, align: AlignCenter, rowspan: true},
+		{name: "explicit colspan", index: 2, align: AlignRight, rowspan: true, colspan: true},
+		{name: "future input column", index: 4, align: AlignRight, rowspan: true},
 	}
 	for _, test := range cases {
 		column := columns[test.index]
@@ -596,14 +593,6 @@ func TestContract_TransformerValue(t *testing.T) {
 
 func contractCases() []contractCase {
 	return []contractCase{
-		{
-			name: "index",
-			opts: []Option{
-				WithIndex(),
-			},
-			header: []string{"A", "B", "C"},
-			rows:   [][]table.Value{{table.String("x"), table.String("y"), table.String("z")}, {table.String("p"), table.String("q"), table.String("r")}},
-		},
 		{
 			name:   "ragged rows",
 			opts:   []Option{},

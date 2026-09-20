@@ -25,11 +25,11 @@ func Test_solver_prepare(t *testing.T) {
 			fields: fields{
 				input: compilerResult{
 					configResult: configResult{
-						option: &option{
-							indexOffset: 1,
-						},
+						option: &option{},
 						columns: []columnConfig{
-							{},
+							{
+								align: AlignRight,
+							},
 							{
 								align: AlignCenter,
 							},

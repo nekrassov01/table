@@ -10,12 +10,11 @@ var _ table.Streamer = (*Stream)(nil)
 
 // Stream renders rows incrementally as delimiter-separated records.
 type Stream struct {
-	option   option    // Options fixed at construction.
-	w        io.Writer // Output destination.
-	err      error     // Sticky output error.
-	arena    *arena    // State retained while the stream is active.
-	rendered int       // Body rows written so far; also the next index offset.
-	closed   bool      // Whether Close has been called.
+	option option    // Options fixed at construction.
+	w      io.Writer // Output destination.
+	err    error     // Sticky output error.
+	arena  *arena    // State retained while the stream is active.
+	closed bool      // Whether Close has been called.
 }
 
 // NewStream creates a [Stream] that writes to w with the given options.
@@ -38,7 +37,7 @@ func (o *Stream) Render(row []table.Value) error {
 		o.arena.resetRows()
 		config := o.arena.resumeConfig(&o.option, nil, 1)
 		compiler := o.arena.resumeCompiler(config.output)
-		compiler.compileRow(row, o.rendered)
+		compiler.compileRow(row)
 		if compiler.err != nil {
 			return compiler.err
 		}
@@ -46,7 +45,6 @@ func (o *Stream) Render(row []table.Value) error {
 		painter.prepare()
 		painter.paintBody()
 		o.err = painter.err
-		o.rendered++
 		return o.err
 	}
 	o.arena = acquireArena()
@@ -65,7 +63,7 @@ func (o *Stream) Render(row []table.Value) error {
 	compiler := o.arena.newCompiler(configured)
 	compiler.prepare()
 	compiler.compileHeader()
-	compiler.compileRow(row, 0)
+	compiler.compileRow(row)
 	if compiler.err != nil {
 		err := compiler.err
 		o.releaseArena()
@@ -76,7 +74,6 @@ func (o *Stream) Render(row []table.Value) error {
 	painter.paintHeader()
 	painter.paintBody()
 	o.err = painter.err
-	o.rendered = 1
 	return o.err
 }
 

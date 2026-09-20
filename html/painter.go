@@ -153,9 +153,6 @@ func (o *painter) paintRow(r row, section section) {
 		}
 		column := &o.input.columns[index]
 		align := column.aligns.Resolve(section.scope)
-		if index < o.input.option.indexOffset && section.scope != ScopeHeader {
-			align = AlignRight
-		}
 		o.writeIndent(3)
 		o.writeOpenCell(
 			section.cell,

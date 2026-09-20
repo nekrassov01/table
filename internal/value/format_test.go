@@ -9,45 +9,6 @@ import (
 	"github.com/nekrassov01/table/internal/testutil"
 )
 
-func TestNumber(t *testing.T) {
-	type args struct {
-		x int64
-	}
-	type want struct {
-		val string
-	}
-	tests := []struct {
-		name string
-		args args
-		want want
-	}{
-		{
-			name: "first",
-			args: args{
-				x: 1,
-			},
-			want: want{
-				val: "1",
-			},
-		},
-		{
-			name: "wide",
-			args: args{
-				x: 1000,
-			},
-			want: want{
-				val: "1000",
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			var st Store
-			testutil.AssertValue(t, Number(&st, test.args.x), test.want.val, "Number")
-		})
-	}
-}
-
 func TestFormat(t *testing.T) {
 	type args struct {
 		v any

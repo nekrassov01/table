@@ -26,7 +26,7 @@ func Test_config_prepare(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "header with index and column settings",
+			name: "header with column settings",
 			fields: fields{
 				output: func() configResult {
 					defaults := columnConfig{
@@ -46,7 +46,6 @@ func Test_config_prepare(t *testing.T) {
 								},
 								&defaults,
 							),
-							indexOffset: 1,
 						},
 						header:   [][]string{{"a", "b"}},
 						footer:   [][]string{{"a", "b", "c", "d"}},
@@ -60,7 +59,6 @@ func Test_config_prepare(t *testing.T) {
 			},
 			want: want{
 				columns: []columnConfig{
-					defaultColumn(),
 					{
 						limit: 7,
 						lPad:  4,
@@ -114,14 +112,14 @@ func Test_config_prepare(t *testing.T) {
 			name: "empty input",
 			fields: fields{
 				output: configResult{
-					option: &option{
-						indexOffset: 1,
-					},
+					option: &option{},
 				},
 				state: configState{
-					columns: []columnConfig{{
-						limit: 9,
-					}},
+					columns: []columnConfig{
+						{
+							limit: 9,
+						},
+					},
 				},
 			},
 			want: want{
@@ -161,24 +159,19 @@ func Test_option_apply(t *testing.T) {
 		footer      func() [][]string
 		caption     string
 		columns     columnSet
-		indexOffset int
-		indexWidth  int
 		captionSide CaptionSide
 		compact     bool
 		autoFit     bool
 		plain       bool
 	}
 	type args struct {
-		w             io.Writer
-		minIndexWidth int
-		opts          []Option
-		terminal      bool
+		w        io.Writer
+		opts     []Option
+		terminal bool
 	}
 	type want struct {
 		placeholder string
 		columns     columnSet
-		indexOffset int
-		indexWidth  int
 		plain       bool
 		autoFit     bool
 		borderAttr  *Attr
@@ -203,12 +196,10 @@ func Test_option_apply(t *testing.T) {
 		{
 			name: "terminal keeps attributes and auto fit",
 			args: args{
-				w:             &bytes.Buffer{},
-				minIndexWidth: 3,
+				w: &bytes.Buffer{},
 				opts: []Option{
 					WithStyle(StyleColoredLight),
 					WithPlaceholder("-"),
-					WithIndexWidth(2),
 					WithAutoFit(),
 					WithAttr(ScopeBody, AllColumns(), NewAttr(CodeUnderline)),
 				},
@@ -222,11 +213,9 @@ func Test_option_apply(t *testing.T) {
 					configured.transformer.attrs.Set(ScopeBody, attr)
 					return columnSetOf(nil, &configured)
 				}(),
-				indexOffset: 1,
-				indexWidth:  3,
-				autoFit:     true,
-				borderAttr:  StyleColoredLight.Border.Attr,
-				content:     StyleColoredLight.Content,
+				autoFit:    true,
+				borderAttr: StyleColoredLight.Border.Attr,
+				content:    StyleColoredLight.Content,
 			},
 		},
 		{
@@ -348,19 +337,15 @@ func Test_option_apply(t *testing.T) {
 				footer:      test.fields.footer,
 				caption:     test.fields.caption,
 				columns:     test.fields.columns,
-				indexOffset: test.fields.indexOffset,
-				indexWidth:  test.fields.indexWidth,
 				captionSide: test.fields.captionSide,
 				compact:     test.fields.compact,
 				autoFit:     test.fields.autoFit,
 				plain:       test.fields.plain,
 			}
-			o.apply(test.args.w, test.args.minIndexWidth, test.args.opts...)
+			o.apply(test.args.w, test.args.opts...)
 			got := want{
 				placeholder: o.placeholder,
 				columns:     o.columns,
-				indexOffset: o.indexOffset,
-				indexWidth:  o.indexWidth,
 				plain:       o.plain,
 				autoFit:     o.autoFit,
 				borderAttr:  o.style.Border.Attr,
@@ -519,7 +504,7 @@ func Test_columnSet_apply(t *testing.T) {
 			o := columnSetOf(test.fields.values, test.fields.defaults)
 			o.apply(test.args.selector, test.args.fn)
 			got := want{
-				values:   o.resolve(nil, len(test.want.values), 0),
+				values:   o.resolve(nil, len(test.want.values)),
 				defaults: (*column.Set[columnConfig])(&o).Default(),
 			}
 			testutil.AssertValue(t, got, test.want, "apply")

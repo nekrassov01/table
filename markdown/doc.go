@@ -9,13 +9,12 @@
 //
 // GitHub Flavored Markdown requires exactly one header row followed
 // immediately by a delimiter row, so callers must configure a header and
-// cannot configure a footer. Options control alignment markers, indexing,
-// value transformation, repeated-value suppression, colors, and text
-// decorations.
+// cannot configure a footer. Options control alignment markers, value
+// transformation, repeated-value suppression, colors, and text decorations.
 //
 // Column-targeting options accept a [ColumnSelector]. [Columns] selects input
 // positions explicitly, while [AllColumns] includes columns discovered after
-// options are applied. A generated index column is never selected by either.
+// options are applied.
 //
 // Markdown has no merged-cell representation. Row- and column-spanning
 // options therefore render absorbed body cells as blank cells, and do not

@@ -671,23 +671,21 @@ func Test_compiler_compileBand(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "header index and labels",
+			name: "header labels",
 			fields: fields{
 				input: func() configResult {
-					columns := make([]columnConfig, 3)
+					columns := make([]columnConfig, 2)
 					for i := range columns {
 						columns[i].transformer.attrs.Set(ScopeHeader|ScopeFooter, attr)
 					}
 					return configResult{
-						option: &option{
-							indexOffset: 1,
-						},
+						option:  &option{},
 						columns: columns,
 					}
 				}(),
 				state: compilerState{
-					cells:      make([]cell, 0, 3),
-					spanValues: make([]string, 3),
+					cells:      make([]cell, 0, 2),
+					spanValues: make([]string, 2),
 				},
 			},
 			args: args{
@@ -697,11 +695,6 @@ func Test_compiler_compileBand(t *testing.T) {
 			want: want{
 				row: row{
 					cells: []cell{
-						{
-							value: "#",
-							attr:  attr,
-							width: 1,
-						},
 						{
 							value: "la    bel",
 							attr:  attr,
@@ -714,23 +707,21 @@ func Test_compiler_compileBand(t *testing.T) {
 			},
 		},
 		{
-			name: "footer labels omit index",
+			name: "footer labels and missing values",
 			fields: fields{
 				input: func() configResult {
-					columns := make([]columnConfig, 3)
+					columns := make([]columnConfig, 2)
 					for i := range columns {
 						columns[i].transformer.attrs.Set(ScopeHeader|ScopeFooter, attr)
 					}
 					return configResult{
-						option: &option{
-							indexOffset: 1,
-						},
+						option:  &option{},
 						columns: columns,
 					}
 				}(),
 				state: compilerState{
-					cells:      make([]cell, 0, 3),
-					spanValues: make([]string, 3),
+					cells:      make([]cell, 0, 2),
+					spanValues: make([]string, 2),
 				},
 			},
 			args: args{
@@ -740,7 +731,6 @@ func Test_compiler_compileBand(t *testing.T) {
 			want: want{
 				row: row{
 					cells: []cell{
-						{},
 						{
 							value: "to    tal",
 							attr:  attr,
@@ -784,8 +774,7 @@ func Test_compiler_compileRow(t *testing.T) {
 		output    compilerResult
 	}
 	type args struct {
-		source   []table.Value
-		rowIndex int
+		source []table.Value
 	}
 	type want struct {
 		values        []string
@@ -809,7 +798,7 @@ func Test_compiler_compileRow(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "index transformed and missing values",
+			name: "transformed and missing values",
 			fields: fields{
 				input: func() configResult {
 					configuredAttr := NewAttr(CodeBold)
@@ -823,10 +812,8 @@ func Test_compiler_compileRow(t *testing.T) {
 					return configResult{
 						option: &option{
 							placeholder: "-",
-							indexOffset: 1,
 						},
 						columns: []columnConfig{
-							defaultColumn(),
 							dynamicColumn,
 							emptyColumn,
 							defaultColumn(),
@@ -852,12 +839,11 @@ func Test_compiler_compileRow(t *testing.T) {
 				},
 			},
 			args: args{
-				source:   []table.Value{table.Any(testutil.PanicStringer{}), table.String("")},
-				rowIndex: 4,
+				source: []table.Value{table.Any(testutil.PanicStringer{}), table.String("")},
 			},
 			want: want{
-				values:        []string{"5", "answer", "-", "-"},
-				attrs:         []*Attr{nil, NewAttr(CodeFgRed), nil, nil},
+				values:        []string{"answer", "-", "-"},
+				attrs:         []*Attr{NewAttr(CodeFgRed), nil, nil},
 				bars:          allBars,
 				bodyStart:     1,
 				rows:          2,
@@ -865,7 +851,7 @@ func Test_compiler_compileRow(t *testing.T) {
 				attrLen:       9,
 				lastBars:      allBars,
 				stateLastBars: allBars,
-				stringMark:    1,
+				stringMark:    0,
 			},
 		},
 		{
@@ -898,7 +884,7 @@ func Test_compiler_compileRow(t *testing.T) {
 				err:       test.fields.err,
 				output:    test.fields.output,
 			}
-			o.compileRow(test.args.source, test.args.rowIndex)
+			o.compileRow(test.args.source)
 			got := want{
 				bodyStart:     o.bodyStart,
 				rows:          len(state.rows),
@@ -933,9 +919,8 @@ func Test_compiler_compileCells(t *testing.T) {
 		output  compilerResult
 	}
 	type args struct {
-		row      row
-		source   []table.Value
-		rowIndex int
+		row    row
+		source []table.Value
 	}
 	type want struct {
 		cells      []cell
@@ -1081,15 +1066,13 @@ func Test_compiler_compileCells(t *testing.T) {
 			},
 		},
 		{
-			name: "index and missing value",
+			name: "tabs in values and placeholders",
 			fields: fields{
 				input: configResult{
 					option: &option{
 						placeholder: "\t",
-						indexOffset: 1,
 					},
 					columns: []columnConfig{
-						defaultColumn(),
 						defaultColumn(),
 						defaultColumn(),
 					},
@@ -1097,18 +1080,16 @@ func Test_compiler_compileCells(t *testing.T) {
 			},
 			args: args{
 				row: row{
-					cells: make([]cell, 3),
+					cells: make([]cell, 2),
 				},
-				source:   []table.Value{table.String("va\tlue")},
-				rowIndex: 4,
+				source: []table.Value{table.String("va\tlue")},
 			},
 			want: want{
 				cells: []cell{
-					{value: "5", width: 1},
 					{value: "va    lue", width: 9},
 					{value: "    ", width: 4},
 				},
-				stringMark: 14,
+				stringMark: 13,
 			},
 		},
 	}
@@ -1121,7 +1102,7 @@ func Test_compiler_compileCells(t *testing.T) {
 				output:  test.fields.output,
 			}
 			r := test.args.row
-			o.compileCells(r, test.args.source, test.args.rowIndex)
+			o.compileCells(r, test.args.source)
 			got := want{
 				cells:      r.cells,
 				attrLen:    o.output.attrLen,

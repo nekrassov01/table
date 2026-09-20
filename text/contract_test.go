@@ -647,8 +647,7 @@ func TestContract_ColumnSelectors(t *testing.T) {
 	selector := Columns(indexes...)
 	indexes[0] = 0
 	configured := option{}
-	configured.apply(io.Discard, 0,
-		WithIndex(),
+	configured.apply(io.Discard,
 		WithWidth(AllColumns(), 7),
 		WithWidth(selector, 3),
 		WithPadding(Columns(2), 5, 6),
@@ -664,11 +663,10 @@ func TestContract_ColumnSelectors(t *testing.T) {
 		left  int
 		right int
 	}{
-		{name: "index", index: 0, width: 0, left: 1, right: 1},
-		{name: "first data column", index: 1, width: 7, left: 1, right: 2},
-		{name: "explicit width", index: 2, width: 3, left: 1, right: 2},
-		{name: "explicit padding", index: 3, width: 7, left: 3, right: 4},
-		{name: "future data column", index: 5, width: 7, left: 1, right: 2},
+		{name: "first data column", index: 0, width: 7, left: 1, right: 2},
+		{name: "explicit width", index: 1, width: 3, left: 1, right: 2},
+		{name: "explicit padding", index: 2, width: 7, left: 3, right: 4},
+		{name: "future data column", index: 4, width: 7, left: 1, right: 2},
 	}
 	a := arena{}
 	config := a.newConfig(&configured, nil, 0, 5)
@@ -682,7 +680,7 @@ func TestContract_ColumnSelectors(t *testing.T) {
 		}
 	}
 	autoFit := option{}
-	autoFit.apply(io.Discard, 0, WithAutoFit(), WithWidth(AllColumns(), 7))
+	autoFit.apply(io.Discard, WithAutoFit(), WithWidth(AllColumns(), 7))
 	if autoFit.autoFit {
 		t.Error("all-column width did not disable automatic fitting")
 	}
@@ -718,11 +716,11 @@ func TestContract_ConcurrentInstances(t *testing.T) {
 	wg.Wait()
 }
 
-func TestContract_IndexWidthHoldsPastTheFloor(t *testing.T) {
+func TestContract_StreamFixedWidthAcrossDigitBoundaries(t *testing.T) {
 	var buf bytes.Buffer
-	s := NewStream(&buf, WithStyle(StyleLight), WithHeader([]string{"A"}), WithIndexWidth(4))
+	s := NewStream(&buf, WithStyle(StyleLight), WithHeader([]string{"Number"}), WithWidth(Columns(0), 4))
 	for i := range 1002 {
-		if err := s.Render([]table.Value{table.Any(i % 10)}); err != nil {
+		if err := s.Render([]table.Value{table.Int(i + 1)}); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -738,7 +736,7 @@ func TestContract_IndexWidthHoldsPastTheFloor(t *testing.T) {
 	}
 	last := lines[len(lines)-2]
 	if !strings.Contains(last, "1002") {
-		t.Fatalf("the last row does not carry its number whole: %s", last)
+		t.Fatalf("the last value is not displayed whole: %s", last)
 	}
 }
 
@@ -900,16 +898,6 @@ func contractCases() []contractCase {
 			rows:       [][]table.Value{nil, {}, {table.String("a"), table.String("b")}, {}, {table.String("c")}},
 		},
 		{
-			name:          "index",
-			streamDiffers: true,
-			opts: []Option{
-				WithStyle(StyleASCII),
-				WithIndex(),
-			},
-			header: []string{"A", "B", "C"},
-			rows:   [][]table.Value{{table.String("x"), table.String("y"), table.String("z")}, {table.String("p"), table.String("q"), table.String("r")}},
-		},
-		{
 			name: "placeholder",
 			opts: []Option{
 				WithStyle(StyleASCII),
@@ -960,7 +948,6 @@ func contractCases() []contractCase {
 			name: "all input columns",
 			opts: []Option{
 				WithStyle(StyleASCII),
-				WithIndexWidth(3),
 				WithWidth(AllColumns(), 1),
 				WithPadding(AllColumns(), 0, 0),
 			},

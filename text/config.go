@@ -29,10 +29,7 @@ func (o *config) prepare() {
 	if columnCount == 0 {
 		columnCount = max(o.bodyColumns, footerColumns)
 	}
-	if columnCount > 0 {
-		columnCount += option.indexOffset
-	}
-	columns := option.columns.resolve(o.state.columns, columnCount, option.indexOffset)
+	columns := option.columns.resolve(o.state.columns, columnCount)
 	o.state.columns = columns
 	result.columns = columns
 	result.footerColumns = footerColumns
@@ -56,8 +53,6 @@ type option struct {
 	footer      func() [][]string // Generates footer rows for Render or Close.
 	caption     string            // Caption text.
 	columns     columnSet         // Input columns and their defaults.
-	indexOffset int               // Synthetic leading column count: 0 or 1.
-	indexWidth  int               // Minimum index width; zero adds no explicit minimum.
 	captionSide CaptionSide       // Caption position.
 	compact     bool              // Whether body separators are omitted.
 	autoFit     bool              // Whether columns are fitted to the terminal width.
@@ -66,14 +61,11 @@ type option struct {
 
 // apply sets defaults, applies opts in order, and resolves writer-dependent
 // behavior.
-func (o *option) apply(w io.Writer, minIndexWidth int, opts ...Option) {
+func (o *option) apply(w io.Writer, opts ...Option) {
 	o.style = StyleLight
 	o.placeholder = placeholder
 	for _, opt := range opts {
 		opt(o)
-	}
-	if o.indexOffset != 0 {
-		o.indexWidth = max(o.indexWidth, minIndexWidth)
 	}
 	columns := (*column.Set[columnConfig])(&o.columns)
 	o.plain = !isTerminal(w)
@@ -110,8 +102,8 @@ func (o *columnSet) apply(selector ColumnSelector, fn func(*columnConfig)) {
 }
 
 // resolve applies input settings to logical columns.
-func (o *columnSet) resolve(columns []columnConfig, columnCount, indexOffset int) []columnConfig {
-	return (*column.Set[columnConfig])(o).Resolve(columns, columnCount, indexOffset, defaultColumn())
+func (o *columnSet) resolve(columns []columnConfig, columnCount int) []columnConfig {
+	return (*column.Set[columnConfig])(o).Resolve(columns, columnCount, defaultColumn())
 }
 
 // columnConfig holds text settings for one logical column.

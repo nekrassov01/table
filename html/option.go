@@ -6,8 +6,7 @@ import (
 )
 
 // Option configures a [Table] or [Stream] during construction. Column indexes
-// refer to positions in the input rows; a generated index column does not
-// change them.
+// refer to positions in the input rows.
 //
 // Options that set values replace earlier values for the same setting, column,
 // and scope. Enable-only options never clear previously enabled targets:
@@ -56,14 +55,6 @@ func WithTableAttr(attr TableAttr) Option {
 	attr = attr.escape()
 	return func(o *option) {
 		o.attrs = attr
-	}
-}
-
-// WithIndex prepends a column that numbers body rows from 1. Column indexes in
-// other options continue to refer to input positions.
-func WithIndex() Option {
-	return func(o *option) {
-		o.indexOffset = 1
 	}
 }
 
@@ -169,7 +160,7 @@ func Columns(indexes ...int) ColumnSelector {
 }
 
 // AllColumns selects every input column, including columns discovered after
-// options are applied. A generated index column is excluded.
+// options are applied.
 func AllColumns() ColumnSelector {
 	return ColumnSelector{
 		selector: column.All(),

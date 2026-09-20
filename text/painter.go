@@ -353,9 +353,6 @@ func (o *painter) layoutRow(r *row, sc Scope) int {
 		if layout.align == AlignDefault && sc == ScopeHeader {
 			layout.align = AlignCenter
 		}
-		if columnIndex < input.option.indexOffset && sc != ScopeHeader {
-			layout.align = AlignRight
-		}
 		state.layouts = append(state.layouts, layout)
 		height = max(height, max(1, len(layout.segments)))
 		columnIndex = end

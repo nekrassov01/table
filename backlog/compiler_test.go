@@ -386,13 +386,12 @@ func Test_compiler_compileBand(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "header index and empty label",
+			name: "header empty label",
 			fields: fields{
 				input: configResult{
-					option: &option{indexOffset: 1},
+					option: &option{},
 					header: [][]string{{"", "b"}},
 					columns: []columnConfig{
-						{},
 						{transformer: transformer{colors: func() scope.Scopes[*Color] {
 							var colors scope.Scopes[*Color]
 							colors.Set(ScopeHeader, ColorFgRed)
@@ -411,9 +410,9 @@ func Test_compiler_compileBand(t *testing.T) {
 				scope:  ScopeHeader,
 			},
 			want: want{
-				values:      []string{"#", "", "b"},
-				colors:      []*Color{nil, nil, nil},
-				decorations: []*Decoration{nil, nil, DecorationBold},
+				values:      []string{"", "b"},
+				colors:      []*Color{nil, nil},
+				decorations: []*Decoration{nil, DecorationBold},
 			},
 		},
 	}
@@ -447,8 +446,7 @@ func Test_compiler_compileRow(t *testing.T) {
 		state compilerState
 	}
 	type args struct {
-		source   []table.Value
-		rowIndex int
+		source []table.Value
 	}
 	type want struct {
 		values      []string
@@ -464,16 +462,14 @@ func Test_compiler_compileRow(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "index transformer placeholder and missing value",
+			name: "transformer placeholder and missing value",
 			fields: fields{
 				input: configResult{
 					option: &option{
 						placeholder: "-",
-						indexOffset: 1,
 					},
 					bodyRows: 1,
 					columns: []columnConfig{
-						{},
 						{},
 						{transformer: transformer{fn: func(table.Value) (string, *Color, *Decoration) {
 							return "two", ColorFgRed, DecorationBold
@@ -483,13 +479,12 @@ func Test_compiler_compileRow(t *testing.T) {
 				},
 			},
 			args: args{
-				source:   []table.Value{table.String(""), table.Any(testutil.PanicStringer{})},
-				rowIndex: 2,
+				source: []table.Value{table.String(""), table.Any(testutil.PanicStringer{})},
 			},
 			want: want{
-				values:      []string{"3", "-", "two", "-"},
-				colors:      []*Color{nil, nil, ColorFgRed, nil},
-				decorations: []*Decoration{nil, nil, DecorationBold, nil},
+				values:      []string{"-", "two", "-"},
+				colors:      []*Color{nil, ColorFgRed, nil},
+				decorations: []*Decoration{nil, DecorationBold, nil},
 			},
 		},
 		{
@@ -520,7 +515,7 @@ func Test_compiler_compileRow(t *testing.T) {
 				bodyStart: -1,
 			}
 			o.prepare()
-			o.compileRow(test.args.source, test.args.rowIndex)
+			o.compileRow(test.args.source)
 			got := want{
 				hasError:  o.err != nil,
 				isColumns: errors.Is(o.err, table.ErrColumnCount),

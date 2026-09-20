@@ -20,7 +20,7 @@ type Table struct {
 // Windows terminal files are adapted for console color output when needed.
 func NewTable(w io.Writer, opts ...Option) *Table {
 	t := &Table{w: w}
-	t.option.apply(w, 0, opts...)
+	t.option.apply(w, opts...)
 	if !t.option.plain {
 		t.w = resolveWriter(w)
 	}

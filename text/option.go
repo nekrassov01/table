@@ -6,8 +6,7 @@ import (
 )
 
 // Option configures a [Table] or [Stream] during construction. Column indexes
-// refer to positions in the input rows; a generated index column does not
-// change them.
+// refer to positions in the input rows.
 //
 // Options that set values replace earlier values for the same setting, column,
 // and scope. Enable-only options never clear previously enabled targets:
@@ -61,27 +60,6 @@ func WithStyle(style Style) Option {
 func WithCompact() Option {
 	return func(o *option) {
 		o.compact = true
-	}
-}
-
-// WithIndex prepends a column that numbers body rows from 1. Column indexes in
-// other options continue to refer to input positions.
-func WithIndex() Option {
-	return func(o *option) {
-		o.indexOffset = 1
-	}
-}
-
-// WithIndexWidth prepends an index column as [WithIndex] does and gives it a
-// minimum width of n digits. Stream reserves three digits by default; use this
-// option when the expected row count needs more. A non-positive n enables the
-// index without changing a minimum set by an earlier option.
-func WithIndexWidth(n int) Option {
-	return func(o *option) {
-		o.indexOffset = 1
-		if n > 0 {
-			o.indexWidth = n
-		}
 	}
 }
 
@@ -210,7 +188,7 @@ func Columns(indexes ...int) ColumnSelector {
 }
 
 // AllColumns selects every input column, including columns discovered after
-// options are applied. A generated index column is excluded.
+// options are applied.
 func AllColumns() ColumnSelector {
 	return ColumnSelector{
 		selector: column.All(),

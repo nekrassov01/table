@@ -11,9 +11,8 @@
 // opening '|'. The package uses those cells for configured header and footer
 // bands, so either band may contain multiple rows without a separate delimiter.
 // A footer is an API-level convention; its output uses ordinary Backlog
-// header-cell notation. Options can also add an index, transform values,
-// suppress repeated values across rows or columns, and apply Backlog color and
-// decoration markup.
+// header-cell notation. Options can also transform values, suppress repeated
+// values across rows or columns, and apply Backlog color and decoration markup.
 //
 // Values are escaped where they would otherwise change the table notation.
 // Color markup wraps ordinary decoration markup. When code decoration and

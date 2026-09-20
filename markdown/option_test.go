@@ -57,48 +57,6 @@ func TestWithHeader(t *testing.T) {
 	}
 }
 
-func TestWithIndex(t *testing.T) {
-	type fields struct {
-		indexOffset int
-	}
-	type want struct {
-		indexOffset int
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   want
-	}{
-		{
-			name: "enables index",
-			want: want{
-				indexOffset: 1,
-			},
-		},
-		{
-			name: "keeps one index",
-			fields: fields{
-				indexOffset: 1,
-			},
-			want: want{
-				indexOffset: 1,
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			o := &option{
-				indexOffset: test.fields.indexOffset,
-			}
-			WithIndex()(o)
-			got := want{
-				indexOffset: o.indexOffset,
-			}
-			testutil.AssertValue(t, got, test.want, "WithIndex")
-		})
-	}
-}
-
 func TestWithPlaceholder(t *testing.T) {
 	type fields struct {
 		placeholder string
@@ -206,7 +164,7 @@ func TestWithAlign(t *testing.T) {
 			}
 			WithAlign(test.args.columns, test.args.align)(o)
 			got := want{
-				columns: o.columns.resolve(nil, len(test.want.columns), 0),
+				columns: o.columns.resolve(nil, len(test.want.columns)),
 			}
 			testutil.AssertValue(t, got, test.want, "WithAlign")
 		})
@@ -253,7 +211,7 @@ func TestWithRowspan(t *testing.T) {
 			}
 			WithRowspan(test.args.columns)(o)
 			got := want{
-				columns: o.columns.resolve(nil, len(test.want.columns), 0),
+				columns: o.columns.resolve(nil, len(test.want.columns)),
 			}
 			testutil.AssertValue(t, got, test.want, "WithRowspan")
 		})
@@ -298,7 +256,7 @@ func TestWithColspan(t *testing.T) {
 			}
 			WithColspan(test.args.columns)(o)
 			got := want{
-				columns: o.columns.resolve(nil, len(test.want.columns), 0),
+				columns: o.columns.resolve(nil, len(test.want.columns)),
 			}
 			testutil.AssertValue(t, got, test.want, "WithColspan")
 		})

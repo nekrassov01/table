@@ -4,7 +4,6 @@ import (
 	"slices"
 
 	"github.com/nekrassov01/table"
-	"github.com/nekrassov01/table/internal/param"
 	"github.com/nekrassov01/table/internal/value"
 )
 
@@ -52,13 +51,13 @@ func (o *compiler) compileHeader() {
 	if o.err != nil || len(o.input.header) == 0 {
 		return
 	}
-	o.output.header = o.compileBand(o.input.header, true)
+	o.output.header = o.compileBand(o.input.header)
 }
 
 // compileBody compiles and retains body records in input order.
 func (o *compiler) compileBody(sources [][]table.Value) {
-	for index, source := range sources {
-		o.compileRow(source, index)
+	for _, source := range sources {
+		o.compileRow(source)
 		if o.err != nil {
 			return
 		}
@@ -71,33 +70,28 @@ func (o *compiler) compileFooter() {
 	if o.err != nil || len(footer) == 0 {
 		return
 	}
-	footerColumns := o.input.footerColumns + o.input.option.indexOffset
+	footerColumns := o.input.footerColumns
 	if footerColumns > len(o.input.columns) {
 		o.err = newColumnCountError(footerColumns, len(o.input.columns))
 		return
 	}
 	rows := o.reserveBand(len(footer))
 	for index := range footer {
-		rows[index] = o.compileBand(footer[index], false)
+		rows[index] = o.compileBand(footer[index])
 	}
 	o.output.footer = rows
 }
 
 // compileBand compiles one header or footer record from labels.
-func (o *compiler) compileBand(labels []string, header bool) row {
+func (o *compiler) compileBand(labels []string) row {
 	config := &o.input
 	state := o.state
 	r := o.newRow()
 	values := state.values[:len(config.columns)]
 	for index := range config.columns {
 		text := ""
-		if index < config.option.indexOffset && header {
-			text = param.IndexHeader
-		}
-		if index >= config.option.indexOffset {
-			if source := index - config.option.indexOffset; source < len(labels) {
-				text = labels[source]
-			}
+		if index < len(labels) {
+			text = labels[index]
 		}
 		values[index] = text
 	}
@@ -107,10 +101,10 @@ func (o *compiler) compileBand(labels []string, header bool) row {
 }
 
 // compileRow validates and compiles one body record.
-func (o *compiler) compileRow(source []table.Value, rowIndex int) {
+func (o *compiler) compileRow(source []table.Value) {
 	config := &o.input
 	state := o.state
-	rowColumns := len(source) + config.option.indexOffset
+	rowColumns := len(source)
 	columnCount := len(config.columns)
 	if rowColumns > columnCount {
 		o.err = newColumnCountError(rowColumns, columnCount)
@@ -122,16 +116,11 @@ func (o *compiler) compileRow(source []table.Value, rowIndex int) {
 	r := o.newRow()
 	values := state.values[:columnCount]
 	for index := range config.columns {
-		if index < config.option.indexOffset {
-			values[index] = value.Number(o.strings, int64(rowIndex)+1)
-			continue
-		}
-		sourceIndex := index - config.option.indexOffset
-		if sourceIndex >= len(source) {
+		if index >= len(source) {
 			values[index] = config.option.placeholder
 			continue
 		}
-		rawValue := source[sourceIndex]
+		rawValue := source[index]
 		text := ""
 		if transformer := config.columns[index].transformer; transformer != nil {
 			text = transformer(rawValue)
