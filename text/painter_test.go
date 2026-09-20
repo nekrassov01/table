@@ -1519,17 +1519,16 @@ func Test_painter_layoutRow(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "body index and configured alignment",
+			name: "body configured alignment",
 			fields: fields{
 				input: func() solverResult {
 					columns := make([]columnConfig, 2)
+					columns[0].aligns.Set(ScopeBody, AlignRight)
 					columns[1].aligns.Set(ScopeBody, AlignCenter)
 					return solverResult{
 						compilerResult: compilerResult{
 							configResult: configResult{
-								option: &option{
-									indexOffset: 1,
-								},
+								option:  &option{},
 								columns: columns,
 							},
 						},

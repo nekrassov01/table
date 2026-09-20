@@ -106,15 +106,14 @@ func Test_compiler_compileHeader(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "compiles header and index label",
+			name: "compiles header labels",
 			fields: fields{
 				input: configResult{
 					option: &option{
-						delimiter:   ',',
-						indexOffset: 1,
+						delimiter: ',',
 					},
 					header:  []string{"A,B", "C"},
-					columns: []columnConfig{{}, {}, {}},
+					columns: []columnConfig{{}, {}},
 				},
 				state: compilerState{
 					cells:  make([]cell, 0, 3),
@@ -122,7 +121,7 @@ func Test_compiler_compileHeader(t *testing.T) {
 				},
 			},
 			want: want{
-				values: []string{"#", `"A,B"`, "C"},
+				values: []string{`"A,B"`, "C"},
 			},
 		},
 		{
@@ -280,15 +279,14 @@ func Test_compiler_compileFooter(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "compiles footer rows with empty index",
+			name: "compiles footer rows",
 			fields: fields{
 				input: configResult{
 					option: &option{
-						delimiter:   ',',
-						indexOffset: 1,
+						delimiter: ',',
 					},
 					footer:        [][]string{{"sum", "1,2"}, {"end"}},
-					columns:       []columnConfig{{}, {}, {}},
+					columns:       []columnConfig{{}, {}},
 					footerColumns: 2,
 				},
 				state: compilerState{
@@ -298,7 +296,7 @@ func Test_compiler_compileFooter(t *testing.T) {
 				},
 			},
 			want: want{
-				values: [][]string{{"", "sum", `"1,2"`}, {"", "end", ""}},
+				values: [][]string{{"sum", `"1,2"`}, {"end", ""}},
 			},
 		},
 		{
@@ -371,7 +369,6 @@ func Test_compiler_compileBand(t *testing.T) {
 	}
 	type args struct {
 		labels []string
-		header bool
 	}
 	type want struct {
 		values []string
@@ -383,14 +380,13 @@ func Test_compiler_compileBand(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "header carries index marker and labels",
+			name: "labels",
 			fields: fields{
 				input: configResult{
 					option: &option{
-						delimiter:   '\t',
-						indexOffset: 1,
+						delimiter: '\t',
 					},
-					columns: []columnConfig{{}, {}, {}},
+					columns: []columnConfig{{}, {}},
 				},
 				state: compilerState{
 					cells:  make([]cell, 0, 3),
@@ -399,21 +395,19 @@ func Test_compiler_compileBand(t *testing.T) {
 			},
 			args: args{
 				labels: []string{"A", "B"},
-				header: true,
 			},
 			want: want{
-				values: []string{"#", "A", "B"},
+				values: []string{"A", "B"},
 			},
 		},
 		{
-			name: "footer leaves index and missing tail empty",
+			name: "missing tail",
 			fields: fields{
 				input: configResult{
 					option: &option{
-						delimiter:   '\t',
-						indexOffset: 1,
+						delimiter: '\t',
 					},
-					columns: []columnConfig{{}, {}, {}},
+					columns: []columnConfig{{}, {}},
 				},
 				state: compilerState{
 					cells:  make([]cell, 0, 3),
@@ -424,7 +418,7 @@ func Test_compiler_compileBand(t *testing.T) {
 				labels: []string{"sum"},
 			},
 			want: want{
-				values: []string{"", "sum", ""},
+				values: []string{"sum", ""},
 			},
 		},
 	}
@@ -437,7 +431,7 @@ func Test_compiler_compileBand(t *testing.T) {
 				state:   &state,
 				strings: &strings,
 			}
-			r := o.compileBand(test.args.labels, test.args.header)
+			r := o.compileBand(test.args.labels)
 			values := make([]string, len(r.cells))
 			for index := range r.cells {
 				values[index] = r.cells[index].value
@@ -457,8 +451,7 @@ func Test_compiler_compileRow(t *testing.T) {
 		bodyStart int
 	}
 	type args struct {
-		source   []table.Value
-		rowIndex int
+		source []table.Value
 	}
 	type want struct {
 		values      []string
@@ -473,16 +466,14 @@ func Test_compiler_compileRow(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "resolves index transformed fallback missing and quoted values",
+			name: "resolves transformed fallback missing and quoted values",
 			fields: fields{
 				input: configResult{
 					option: &option{
 						delimiter:   ',',
 						placeholder: "-",
-						indexOffset: 1,
 					},
 					columns: []columnConfig{
-						{},
 						{
 							transformer: func(table.Value) string {
 								return "new,value"
@@ -504,13 +495,12 @@ func Test_compiler_compileRow(t *testing.T) {
 				bodyStart: -1,
 			},
 			args: args{
-				source:   []table.Value{table.Any(testutil.PanicStringer{}), table.String("")},
-				rowIndex: 2,
+				source: []table.Value{table.Any(testutil.PanicStringer{}), table.String("")},
 			},
 			want: want{
-				values:      []string{"3", `"new,value"`, "-", "-"},
+				values:      []string{`"new,value"`, "-", "-"},
 				bodyStart:   0,
-				stateValues: []string{"3", "new,value", "-", "-"},
+				stateValues: []string{"new,value", "-", "-"},
 			},
 		},
 		{
@@ -566,7 +556,7 @@ func Test_compiler_compileRow(t *testing.T) {
 				strings:   &strings,
 				bodyStart: test.fields.bodyStart,
 			}
-			o.compileRow(test.args.source, test.args.rowIndex)
+			o.compileRow(test.args.source)
 			values := []string(nil)
 			if len(o.output.body) > 0 {
 				values = make([]string, len(o.output.body[0].cells))

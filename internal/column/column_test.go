@@ -775,7 +775,6 @@ func TestSet_Resolve(t *testing.T) {
 	type args struct {
 		columns     []int
 		columnCount int
-		indexOffset int
 		defaults    int
 	}
 	type want struct {
@@ -788,7 +787,7 @@ func TestSet_Resolve(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "resolves index defaults and explicit input settings",
+			name: "resolves defaults and explicit column settings",
 			fields: fields{
 				values:   []int{7},
 				defaults: new(5),
@@ -797,11 +796,10 @@ func TestSet_Resolve(t *testing.T) {
 			args: args{
 				columns:     make([]int, 1, 4),
 				columnCount: 4,
-				indexOffset: 1,
 				defaults:    3,
 			},
 			want: want{
-				columns: []int{3, 7, 5, 8},
+				columns: []int{7, 5, 8, 5},
 			},
 		},
 		{
@@ -848,7 +846,7 @@ func TestSet_Resolve(t *testing.T) {
 				state:  mergeSetState(test.fields.defaults, test.fields.sparse),
 			}
 			got := want{
-				columns: o.Resolve(test.args.columns, test.args.columnCount, test.args.indexOffset, test.args.defaults),
+				columns: o.Resolve(test.args.columns, test.args.columnCount, test.args.defaults),
 			}
 			testutil.AssertValue(t, got, test.want, "Resolve")
 		})
@@ -862,7 +860,6 @@ func TestSet_resolveValues(t *testing.T) {
 	type args struct {
 		columns     []int
 		columnCount int
-		indexOffset int
 		defaults    int
 	}
 	type want struct {
@@ -882,11 +879,10 @@ func TestSet_resolveValues(t *testing.T) {
 			args: args{
 				columns:     make([]int, 1, 3),
 				columnCount: 3,
-				indexOffset: 1,
 				defaults:    3,
 			},
 			want: want{
-				columns: []int{3, 7, 3},
+				columns: []int{7, 3, 3},
 			},
 		},
 	}
@@ -896,7 +892,7 @@ func TestSet_resolveValues(t *testing.T) {
 				Values: test.fields.values,
 			}
 			got := want{
-				columns: o.resolveValues(test.args.columns, test.args.columnCount, test.args.indexOffset, test.args.defaults),
+				columns: o.resolveValues(test.args.columns, test.args.columnCount, test.args.defaults),
 			}
 			testutil.AssertValue(t, got, test.want, "resolveValues")
 		})
@@ -911,7 +907,6 @@ func TestSet_resolveState(t *testing.T) {
 	type args struct {
 		columns     []int
 		columnCount int
-		indexOffset int
 		defaults    int
 	}
 	type want struct {
@@ -931,11 +926,10 @@ func TestSet_resolveState(t *testing.T) {
 			},
 			args: args{
 				columnCount: 4,
-				indexOffset: 1,
 				defaults:    3,
 			},
 			want: want{
-				columns: []int{3, 7, 5, 8},
+				columns: []int{7, 5, 8, 5},
 			},
 		},
 	}
@@ -946,7 +940,7 @@ func TestSet_resolveState(t *testing.T) {
 				state:  test.fields.state,
 			}
 			got := want{
-				columns: o.resolveState(test.args.columns, test.args.columnCount, test.args.indexOffset, test.args.defaults),
+				columns: o.resolveState(test.args.columns, test.args.columnCount, test.args.defaults),
 			}
 			testutil.AssertValue(t, got, test.want, "resolveState")
 		})

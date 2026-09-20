@@ -131,18 +131,16 @@ func Test_compiler_compileHeader(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "compiles index labels and markup",
+			name: "compiles labels and markup",
 			fields: fields{
 				input: func() configResult {
 					colored := columnConfig{}
 					colored.transformer.colors.Set(ScopeHeader, ColorFgRed)
 					colored.transformer.decorations.Set(ScopeHeader, DecorationBold)
 					return configResult{
-						option: &option{
-							indexOffset: 1,
-						},
+						option:  &option{},
 						header:  []string{"A", ""},
-						columns: []columnConfig{{}, colored, colored},
+						columns: []columnConfig{colored, colored},
 					}
 				}(),
 				state: compilerState{
@@ -152,7 +150,6 @@ func Test_compiler_compileHeader(t *testing.T) {
 								color:      ColorFgBlue,
 								decoration: DecorationItalic,
 							},
-							{},
 							{
 								color:      ColorFgBlue,
 								decoration: DecorationItalic,
@@ -161,17 +158,12 @@ func Test_compiler_compileHeader(t *testing.T) {
 						return cells[:0]
 					}(),
 					rows:   make([]row, 0, 1),
-					values: make([]string, 3),
+					values: make([]string, 2),
 				},
 			},
 			want: want{
 				header: row{
 					cells: []cell{
-						{
-							value: "#",
-							width: 1,
-							size:  1,
-						},
 						{
 							value:      "A",
 							width:      36,
@@ -185,11 +177,6 @@ func Test_compiler_compileHeader(t *testing.T) {
 				rows: []row{
 					{
 						cells: []cell{
-							{
-								value: "#",
-								width: 1,
-								size:  1,
-							},
 							{
 								value:      "A",
 								width:      36,
@@ -337,8 +324,7 @@ func Test_compiler_compileRow(t *testing.T) {
 		state compilerState
 	}
 	type args struct {
-		source   []table.Value
-		rowIndex int
+		source []table.Value
 	}
 	type want struct {
 		bodyStart int
@@ -352,15 +338,13 @@ func Test_compiler_compileRow(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "resolves index transformed and missing cells",
+			name: "resolves transformed and missing cells",
 			fields: fields{
 				input: configResult{
 					option: &option{
 						placeholder: "-",
-						indexOffset: 1,
 					},
 					columns: []columnConfig{
-						{},
 						{
 							transformer: transformer{
 								fn: func(table.Value) (string, *Color, *Decoration) {
@@ -378,7 +362,6 @@ func Test_compiler_compileRow(t *testing.T) {
 								color:      ColorFgBlue,
 								decoration: DecorationItalic,
 							},
-							{},
 							{
 								color:      ColorFgBlue,
 								decoration: DecorationItalic,
@@ -387,23 +370,17 @@ func Test_compiler_compileRow(t *testing.T) {
 						return cells[:0]
 					}(),
 					rows:   make([]row, 0, 1),
-					values: make([]string, 3),
+					values: make([]string, 2),
 				},
 			},
 			args: args{
-				source:   []table.Value{table.Any(testutil.PanicStringer{})},
-				rowIndex: 2,
+				source: []table.Value{table.Any(testutil.PanicStringer{})},
 			},
 			want: want{
 				bodyStart: 0,
 				body: []row{
 					{
 						cells: []cell{
-							{
-								value: "3",
-								width: 1,
-								size:  1,
-							},
 							{
 								value:      `x\|`,
 								width:      38,
@@ -456,7 +433,7 @@ func Test_compiler_compileRow(t *testing.T) {
 					configResult: test.fields.input,
 				},
 			}
-			o.compileRow(test.args.source, test.args.rowIndex)
+			o.compileRow(test.args.source)
 			got := want{
 				bodyStart: o.bodyStart,
 				body:      o.output.body,

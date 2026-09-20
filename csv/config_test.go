@@ -42,13 +42,12 @@ func Test_config_prepare(t *testing.T) {
 			},
 		},
 		{
-			name: "header fixes columns and applies index defaults and overrides",
+			name: "header fixes columns and applies defaults and overrides",
 			fields: fields{
 				bodyColumns: 5,
 				output: configResult{
 					option: &option{
-						delimiter:   ',',
-						indexOffset: 1,
+						delimiter: ',',
 						columns: columnSetOf(
 							[]columnConfig{
 								{},
@@ -73,9 +72,9 @@ func Test_config_prepare(t *testing.T) {
 				},
 			},
 			want: want{
-				columnCount:   4,
+				columnCount:   3,
 				footerColumns: 4,
-				transformed:   []string{"", "", "explicit", "default"},
+				transformed:   []string{"", "explicit", "default"},
 			},
 		},
 		{
@@ -285,7 +284,7 @@ func Test_columnSet_apply(t *testing.T) {
 					return value
 				}
 			})
-			configs := set.resolve(nil, len(test.want.values), 0)
+			configs := set.resolve(nil, len(test.want.values))
 			gotValues := make([]string, len(configs))
 			for index := range configs {
 				if fn := configs[index].transformer; fn != nil {

@@ -191,48 +191,6 @@ func TestWithCRLF(t *testing.T) {
 	}
 }
 
-func TestWithIndex(t *testing.T) {
-	type fields struct {
-		indexOffset int
-	}
-	type want struct {
-		indexOffset int
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   want
-	}{
-		{
-			name: "enables index",
-			want: want{
-				indexOffset: 1,
-			},
-		},
-		{
-			name: "normalizes enabled index",
-			fields: fields{
-				indexOffset: 2,
-			},
-			want: want{
-				indexOffset: 1,
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			o := &option{
-				indexOffset: test.fields.indexOffset,
-			}
-			WithIndex()(o)
-			got := want{
-				indexOffset: o.indexOffset,
-			}
-			testutil.AssertValue(t, got, test.want, "WithIndex")
-		})
-	}
-}
-
 func TestWithPlaceholder(t *testing.T) {
 	type args struct {
 		placeholder string

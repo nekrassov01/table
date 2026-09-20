@@ -290,119 +290,6 @@ func TestWithCompact(t *testing.T) {
 	}
 }
 
-func TestWithIndex(t *testing.T) {
-	type fields struct {
-		indexOffset int
-	}
-	type want struct {
-		indexOffset int
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   want
-	}{
-		{
-			name: "enables index",
-			want: want{
-				indexOffset: 1,
-			},
-		},
-		{
-			name: "normalizes offset",
-			fields: fields{
-				indexOffset: 2,
-			},
-			want: want{
-				indexOffset: 1,
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			o := &option{
-				indexOffset: test.fields.indexOffset,
-			}
-			WithIndex()(o)
-			got := want{
-				indexOffset: o.indexOffset,
-			}
-			testutil.AssertValue(t, got, test.want, "WithIndex")
-		})
-	}
-}
-
-func TestWithIndexWidth(t *testing.T) {
-	type fields struct {
-		indexOffset int
-		indexWidth  int
-	}
-	type args struct {
-		n int
-	}
-	type want struct {
-		indexOffset int
-		indexWidth  int
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   want
-	}{
-		{
-			name: "sets width",
-			fields: fields{
-				indexWidth: 2,
-			},
-			args: args{
-				n: 6,
-			},
-			want: want{
-				indexOffset: 1,
-				indexWidth:  6,
-			},
-		},
-		{
-			name: "zero keeps width",
-			fields: fields{
-				indexWidth: 3,
-			},
-			want: want{
-				indexOffset: 1,
-				indexWidth:  3,
-			},
-		},
-		{
-			name: "negative keeps width",
-			fields: fields{
-				indexWidth: 4,
-			},
-			args: args{
-				n: -1,
-			},
-			want: want{
-				indexOffset: 1,
-				indexWidth:  4,
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			o := &option{
-				indexOffset: test.fields.indexOffset,
-				indexWidth:  test.fields.indexWidth,
-			}
-			WithIndexWidth(test.args.n)(o)
-			got := want{
-				indexOffset: o.indexOffset,
-				indexWidth:  o.indexWidth,
-			}
-			testutil.AssertValue(t, got, test.want, "WithIndexWidth")
-		})
-	}
-}
-
 func TestWithAutoFit(t *testing.T) {
 	type fields struct {
 		autoFit bool
@@ -529,7 +416,7 @@ func TestWithAlign(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{}
 			WithAlign(test.args.scopes, test.args.columns, test.args.align)(o)
-			columns := o.columns.resolve(nil, 2, 0)
+			columns := o.columns.resolve(nil, 2)
 			column := columns[1]
 			got := want{
 				columns: len(columns),

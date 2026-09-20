@@ -675,14 +675,12 @@ func Test_solver_resolveWidths(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "resolves index placeholder and fixed widths",
+			name: "resolves placeholder and fixed widths",
 			fields: fields{
 				input: compilerResult{
 					configResult: configResult{
 						option: &option{
 							placeholder: "界",
-							indexOffset: 1,
-							indexWidth:  3,
 						},
 					},
 				},
@@ -712,8 +710,9 @@ func Test_solver_resolveWidths(t *testing.T) {
 				metrics: []columnMetric{
 					{
 						box: box{
-							width: 3,
+							width: 2,
 						},
+						overhead: 1,
 					},
 					{
 						box: box{
@@ -1200,13 +1199,12 @@ func Test_solver_fitColumns(t *testing.T) {
 			},
 		},
 		{
-			name: "index and naturally narrow column stay fixed",
+			name: "naturally narrow columns stay fixed",
 			fields: fields{
 				input: compilerResult{
 					configResult: configResult{
 						option: &option{
-							autoFit:     true,
-							indexOffset: 1,
+							autoFit: true,
 						},
 					},
 				},

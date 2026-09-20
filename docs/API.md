@@ -41,7 +41,6 @@ This document is the user guide to the public API.
   - [Dynamic footers](#dynamic-footers)
   - [Cell spans](#cell-spans)
   - [Alignment](#alignment)
-  - [Indexes](#indexes)
   - [Captions](#captions)
 
 ## Core API
@@ -82,7 +81,6 @@ Repeated calls to a successful `Close` return `nil`, and a subsequent call to `R
 | Format     | Aspect         | `Table`                                                    | `Stream`                                                                        |
 | ---------- | -------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | `text`     | Width          | Derives widths from the complete header, body, and footer. | Freezes widths when output starts, then wraps or truncates later values.        |
-| `text`     | Index          | Uses the width required by the complete body row count.    | Reserves three digits by default; `WithIndexWidth` can override the minimum.    |
 | `html`     | Vertical spans | Emits `rowspan`.                                           | Cannot know future run lengths and emits continuation positions as empty cells. |
 | `markdown` | Padding        | Pads to the greatest display width among all rows.         | Does not pad to a fixed width.                                                  |
 | `backlog`  | Padding        | Pads to the greatest display width among all rows.         | Does not pad to a fixed width.                                                  |
@@ -117,6 +115,22 @@ func StreamOf[T any](values iter.Seq2[T, error], fn func(T) []table.Value) iter.
 
 - `TableOf` converts a typed slice to `[][]table.Value`.
 - `StreamOf` converts each iterator value to `[]table.Value` and stops at the first error.
+
+Row adapters can include derived values, such as row numbers, as ordinary columns:
+
+```go
+number := 0
+rows := table.TableOf([]string{"alice", "bob"}, func(name string) []table.Value {
+    number++
+    return []table.Value{table.Int(number), table.String(name)}
+})
+err := text.NewTable(w,
+    text.WithHeader([]string{"#", "Name"}),
+    text.WithAlign(text.ScopeBody, text.Columns(0), text.AlignRight),
+).Render(rows)
+```
+
+For `text.Stream`, use `WithWidth` when later values may need more space than the first row provides. For example, `WithWidth(Columns(0), 4)` reserves four display cells for numbers up to 9999. Larger values wrap unless truncation is configured. Explicit widths disable `WithAutoFit`. Formatting such as zero padding belongs in the input adapter or a transformer.
 
 ## Value inputs and migration
 
@@ -171,7 +185,7 @@ Type and output changes:
 
 Do not modify borrowed bytes until Render returns. A Value retains borrowed data across garbage collection. For a reused scan buffer, `table.String(string(buffer))` makes a copy.
 
-`WithTransformer` now accepts `table.Value` instead of `any`; its return types and support for nil functions are unchanged. Replace primitive type assertions such as `v.(int)` with `v.AsInt()`. The compiler passes the Value directly, avoiding boxing at the callback boundary. For arbitrary or mixed types, use `v.AsAny()` explicitly; restoring primitive values this way may allocate. Typed accessors panic on a type mismatch, so the callback must match the selected columns' input types, including nil values. Headers, footers, generated indexes, and absent cells do not invoke body transformers.
+`WithTransformer` now accepts `table.Value` instead of `any`; its return types and support for nil functions are unchanged. Replace primitive type assertions such as `v.(int)` with `v.AsInt()`. The compiler passes the Value directly, avoiding boxing at the callback boundary. For arbitrary or mixed types, use `v.AsAny()` explicitly; restoring primitive values this way may allocate. Typed accessors panic on a type mismatch, so the callback must match the selected columns' input types, including nil values. Headers, footers, and absent cells do not invoke body transformers.
 
 Mapping order, footer evaluation, error handling, and default output bytes remain unchanged for equivalent input values. Existing golden outputs are unchanged.
 
@@ -219,9 +233,8 @@ Use `errors.Is` to test the following sentinels.
 Column-count errors follow these rules:
 
 - `Table` validates every row before writing the body and therefore writes nothing.
-- `Stream.Render` does not write an invalid row or advance its row index. A later row within the resolved column count can still be written.
+- `Stream.Render` does not write an invalid row. A later row within the resolved column count can still be written.
 - If a dynamic footer exceeds a stream's column count, `Close` returns an error and omits the footer. Any header and body already written remain in the destination. HTML also attempts to close an open `tbody` and `table`; if that write fails, the earlier footer error remains the returned error.
-- When indexing is enabled, `got` and `want` in the error message are logical column counts that include the generated index column.
 
 Write errors follow these rules:
 
@@ -246,7 +259,6 @@ Each output package defines its own closed set of options, while all formats fol
 | ------------------------ | ----------------------------------------------- | ----------------------------------------------- | ---------------------------------- | ----------------------------------------------- | ---------------------------------- |
 | Static header            | `WithHeader`<br/>Any number of rows             | `WithHeader`<br/>Any number of rows             | `WithHeader`<br/>Required, one row | `WithHeader`<br/>Any number of rows             | `WithHeader`<br/>Optional, one row |
 | Dynamic footer           | `WithFooter`                                    | `WithFooter`                                    | -                                  | `WithFooter`                                    | `WithFooter`                       |
-| Index column             | `WithIndex`<br/>`WithIndexWidth`                | `WithIndex`                                     | `WithIndex`                        | `WithIndex`                                     | `WithIndex`                        |
 | Placeholder              | `WithPlaceholder`                               | `WithPlaceholder`                               | `WithPlaceholder`                  | `WithPlaceholder`                               | `WithPlaceholder`                  |
 | Value transformation     | `WithTransformer`                               | `WithTransformer`                               | `WithTransformer`                  | `WithTransformer`                               | `WithTransformer`                  |
 | Alignment                | `WithAlign`                                     | `WithAlign`                                     | `WithAlign`                        | -                                               | -                                  |
@@ -276,7 +288,6 @@ A dash means that the output format has no corresponding feature.
 | Header alignment    | Center                                | CSS default                                | GFM default     | -               | -            |
 | Body alignment      | Left                                  | CSS default                                | GFM default     | -               | -            |
 | Footer alignment    | Left                                  | CSS default                                | No footer       | -               | -            |
-| Index alignment     | Center in the header, right elsewhere | CSS default in the header, right elsewhere | Right           | -               | -            |
 | Border or delimiter | `StyleLight`                          | HTML table elements                        | `\|`            | `\|`            | Tab          |
 | Line ending         | LF                                    | LF                                         | LF              | LF              | LF           |
 | Caption position    | Bottom                                | CSS default                                | -               | -               | -            |
@@ -285,9 +296,8 @@ A dash means that the output format has no corresponding feature.
 
 Options are applied in the order supplied. A later global setting replaces an earlier one. A later column setting replaces the same setting only for the selected columns and `Scope` values.
 
-- `WithIndex`, `text.WithCompact`, `text.WithAutoFit`, and `csv.WithCRLF` only enable a feature and cannot disable it.
+- `text.WithCompact`, `text.WithAutoFit`, and `csv.WithCRLF` only enable a feature and cannot disable it.
 - `text.WithTruncate`, `WithRowspan`, and `WithColspan` accumulate selected columns. Options that accept scopes also accumulate them.
-- `text.WithIndexWidth` enables indexing. A positive value replaces the width, while zero or a negative value leaves an existing width unchanged.
 
 ```go
 text.WithAlign(text.ScopeBody, text.AllColumns(), text.AlignLeft),
@@ -325,8 +335,6 @@ func WithFooter(fn func() [][]string) Option
 func WithCaption(s string, side CaptionSide) Option
 func WithStyle(style Style) Option
 func WithCompact() Option
-func WithIndex() Option
-func WithIndexWidth(n int) Option
 func WithAutoFit() Option
 func WithPlaceholder(s string) Option
 func WithAlign(scopes Scope, columns ColumnSelector, align AlignSide) Option
@@ -344,7 +352,6 @@ func WithTransformer(columns ColumnSelector, fn func(table.Value) (string, *Attr
 - A horizontally spanned cell uses the `WithTruncate` setting of its leftmost column.
 - `WithPadding` sets left and right space widths. Negative values become zero, and padding contributes to the total table width.
 - `WithAutoFit` reduces column widths to fit terminal output within the terminal width. It has no effect for a non-terminal destination or if any column uses `WithWidth` or `WithTruncate`.
-- `WithIndexWidth` sets the minimum width of the index column. A stream reserves at least three digits.
 - `WithCompact` omits horizontal borders between body rows. At a vertically spanned cell boundary, it retains the horizontal segments for cells that are not spanned.
 - Cell widths use Unicode terminal display widths. Wrapping preserves grapheme clusters; a cluster wider than the boundary remains intact and makes that physical output line wider than the column. When a stream begins rendering body rows, it reserves one display cell for a column whose initial content has zero display width.
 - Tabs in displayed cell values, including header and footer labels and placeholders, become four ASCII spaces before widths and spans are resolved. Captions are unchanged.
@@ -364,7 +371,6 @@ func WithHeader(rows ...[]string) Option
 func WithFooter(fn func() [][]string) Option
 func WithCaption(s string, side CaptionSide) Option
 func WithTableAttr(attr TableAttr) Option
-func WithIndex() Option
 func WithPlaceholder(s string) Option
 func WithAlign(scopes Scope, columns ColumnSelector, align AlignSide) Option
 func WithRowspan(scopes Scope, columns ColumnSelector) Option
@@ -390,7 +396,6 @@ func WithTransformer(columns ColumnSelector, fn func(table.Value) (string, *Colo
 
 ```go
 func WithHeader(header []string) Option
-func WithIndex() Option
 func WithPlaceholder(s string) Option
 func WithAlign(columns ColumnSelector, align AlignSide) Option
 func WithRowspan(columns ColumnSelector) Option
@@ -415,7 +420,6 @@ func WithTransformer(columns ColumnSelector, fn func(table.Value) (string, *Colo
 ```go
 func WithHeader(rows ...[]string) Option
 func WithFooter(fn func() [][]string) Option
-func WithIndex() Option
 func WithPlaceholder(s string) Option
 func WithRowspan(scopes Scope, columns ColumnSelector) Option
 func WithColspan(scopes Scope, columns ColumnSelector) Option
@@ -439,7 +443,6 @@ func WithHeader(header []string) Option
 func WithFooter(fn func() [][]string) Option
 func WithDelimiter(delimiter rune) Option
 func WithCRLF() Option
-func WithIndex() Option
 func WithPlaceholder(s string) Option
 func WithTransformer(columns ColumnSelector, fn func(table.Value) string) Option
 ```
@@ -459,7 +462,7 @@ The following rules determine the table's column count, the input columns select
 
 ### Column count
 
-The input column count, excluding an index, is determined by the format and input.
+The input column count is determined by the format and input.
 
 - `markdown` uses the width of its required header.
 - Other formats use the widest non-empty header row.
@@ -484,9 +487,7 @@ func AllColumns() ColumnSelector
 
 - `Columns` selects zero-based input column indexes and ignores negative indexes.
 - `AllColumns` selects every input column, including columns resolved later.
-- Selecting a nonexistent column does not add an output column. The generated index column is never selectable.
-
-Enabling `WithIndex` does not shift input column indexes.
+- Selecting a nonexistent column does not add an output column.
 
 ### Scopes
 
@@ -588,7 +589,7 @@ Every format except CSV provides `WithRowspan` and `WithColspan`. `Scope` select
 - `WithColspan` spans horizontally adjacent equal values when both columns are selected. A vertical continuation is not eligible.
 - Body cells compare strings after placeholder application; headers and footers compare configured strings. Escaping, color, and decoration are excluded, and spans never cross section boundaries.
 - Spanning depends only on consecutive displayed strings. Adjacent logical groups with equal displayed strings will also span. Select different columns or return distinct transformer strings when a boundary is required.
-- Spans are limited to the first 64 output columns. Columns 65 and later never span. A generated index counts as one output column.
+- Spans are limited to the first 64 output columns. Columns 65 and later never span.
 - HTML spans horizontally only across cells with equal `rowspan` values, preserving rectangles.
 - `html.Table` does not split a vertical run longer than 65,534 rows and may therefore emit a `rowspan` above the HTML Standard limit.
 
@@ -612,10 +613,6 @@ Alignment is available in `text`, `html`, and `markdown`. These packages define 
 | `text`     | Center headers; align body and footer cells left. | Padding based on display width               |
 | `html`     | Emit no `text-align`.                             | `text-align` in the cell's `style` attribute |
 | `markdown` | Emit no colons and use the GFM default.           | Colons on the GFM delimiter row              |
-
-## Indexes
-
-`WithIndex` adds a leading column containing one-based row numbers. Its header is `#`, and its footer is empty. An index column is not created when there are no input columns.
 
 ## Captions
 

@@ -27,10 +27,7 @@ func (o *config) prepare() {
 	if columnCount == 0 {
 		columnCount = max(o.bodyColumns, footerColumns)
 	}
-	if columnCount > 0 {
-		columnCount += option.indexOffset
-	}
-	columns := option.columns.resolve(o.state.columns, columnCount, option.indexOffset)
+	columns := option.columns.resolve(o.state.columns, columnCount)
 	o.state.columns = columns
 	result.columns = columns
 	result.footerColumns = footerColumns
@@ -54,7 +51,6 @@ type option struct {
 	footer      func() [][]string // Generates footer rows for Render or Close.
 	caption     string            // Caption text.
 	columns     columnSet         // Input columns and their defaults.
-	indexOffset int               // Synthetic leading column count: 0 or 1.
 	captionSide CaptionSide       // Caption position.
 }
 
@@ -75,8 +71,8 @@ func (o *columnSet) apply(selector ColumnSelector, fn func(*columnConfig)) {
 }
 
 // resolve applies input settings to logical columns.
-func (o *columnSet) resolve(columns []columnConfig, columnCount, indexOffset int) []columnConfig {
-	return (*column.Set[columnConfig])(o).Resolve(columns, columnCount, indexOffset, columnConfig{})
+func (o *columnSet) resolve(columns []columnConfig, columnCount int) []columnConfig {
+	return (*column.Set[columnConfig])(o).Resolve(columns, columnCount, columnConfig{})
 }
 
 // columnConfig holds HTML settings for one logical column.

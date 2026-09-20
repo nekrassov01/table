@@ -6,12 +6,11 @@ import (
 )
 
 // Option configures a [Table] or [Stream] during construction. Column indexes
-// refer to positions in the input rows; a generated index column does not
-// change them.
+// refer to positions in the input rows.
 //
 // Options that set values replace earlier values for the same setting or
-// column. WithIndex and WithCRLF only enable their features; repeated calls are
-// idempotent, and no option disables them.
+// column. WithCRLF enables CRLF line endings; repeated calls are idempotent,
+// and no option disables CRLF.
 type Option func(*option)
 
 // WithHeader sets the optional header row. Delimiter-separated formats cannot
@@ -55,14 +54,6 @@ func WithCRLF() Option {
 	}
 }
 
-// WithIndex prepends a column that numbers body rows from 1. Column indexes in
-// other options continue to refer to input positions.
-func WithIndex() Option {
-	return func(o *option) {
-		o.indexOffset = 1
-	}
-}
-
 // WithPlaceholder sets the value displayed for a missing or empty body cell.
 // Empty header and footer labels remain empty.
 func WithPlaceholder(s string) Option {
@@ -96,7 +87,7 @@ func Columns(indexes ...int) ColumnSelector {
 }
 
 // AllColumns selects every input column, including columns discovered after
-// options are applied. A generated index column is excluded.
+// options are applied.
 func AllColumns() ColumnSelector {
 	return ColumnSelector{
 		selector: column.All(),

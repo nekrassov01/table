@@ -515,7 +515,6 @@ func TestContract_TableLineCapacity(t *testing.T) {
 	}
 	o := NewTable(io.Discard,
 		WithHeader([]string{"Group", "Message", "Score", "Snippet"}),
-		WithIndex(),
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithColor(ScopeBody, Columns(1), ColorFgRed),
 		WithDecoration(ScopeBody, Columns(1), DecorationBold),
@@ -627,7 +626,6 @@ func TestContract_ColumnSelectors(t *testing.T) {
 	indexes[0] = 0
 	configured := option{}
 	configured.apply(
-		WithIndex(),
 		WithAlign(ScopeBody, AllColumns(), AlignRight),
 		WithAlign(ScopeBody, selector, AlignCenter),
 		WithRowspan(ScopeHeader, AllColumns()),
@@ -645,11 +643,10 @@ func TestContract_ColumnSelectors(t *testing.T) {
 		align   AlignSide
 		rowspan Scope
 	}{
-		{name: "index", index: 0, align: AlignDefault},
-		{name: "first input column", index: 1, align: AlignRight, rowspan: ScopeHeader},
-		{name: "explicit alignment", index: 2, align: AlignCenter, rowspan: ScopeHeader},
-		{name: "explicit rowspan", index: 3, align: AlignRight, rowspan: ScopeHeader | ScopeFooter},
-		{name: "future input column", index: 5, align: AlignRight, rowspan: ScopeHeader},
+		{name: "first input column", index: 0, align: AlignRight, rowspan: ScopeHeader},
+		{name: "explicit alignment", index: 1, align: AlignCenter, rowspan: ScopeHeader},
+		{name: "explicit rowspan", index: 2, align: AlignRight, rowspan: ScopeHeader | ScopeFooter},
+		{name: "future input column", index: 4, align: AlignRight, rowspan: ScopeHeader},
 	}
 	for _, test := range cases {
 		column := columns[test.index]
@@ -916,12 +913,6 @@ func contractCases() []contractCase {
 			},
 			header: []string{"A", "B", "C"},
 			rows:   [][]table.Value{{table.String("x"), table.String("x"), table.String("y")}, {table.String("p"), table.String("q"), table.String("q")}},
-		},
-		{
-			name:   "index",
-			opts:   []Option{WithIndex()},
-			header: []string{"Name", "Score"},
-			rows:   [][]table.Value{{table.String("alice"), table.Int(100)}, {table.String("bob"), table.Int(200)}},
 		},
 		{
 			name:   "color",

@@ -153,12 +153,6 @@ func (o *solver) resolveWidths() {
 	placeholderOverhead := len(placeholder) - placeholderWidth
 	for index := range metrics {
 		metric := &metrics[index]
-		if index < option.indexOffset {
-			if option.indexWidth > metric.box.width {
-				metric.box.width = option.indexWidth
-			}
-			continue
-		}
 		if placeholderOverhead > metric.overhead {
 			metric.overhead = placeholderOverhead
 		}
@@ -238,13 +232,6 @@ func (o *solver) fitColumns() {
 	}
 	remaining := budget
 	pendingColumns := columnCount
-	if option.indexOffset != 0 && columnCount > 1 {
-		metric := &metrics[0]
-		columnWidth := max(metric.box.width, 1)
-		metric.limit = columnWidth
-		remaining -= columnWidth
-		pendingColumns--
-	}
 	for {
 		share := remaining / pendingColumns
 		progressed := false

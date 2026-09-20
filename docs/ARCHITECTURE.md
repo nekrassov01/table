@@ -100,7 +100,7 @@ Text options determine terminal status once during construction. The constructor
 
 `newConfig` builds `config` from a reference to `option`, its headers, and the number of body rows. All formats except Markdown also receive footer rows returned by the footer function and the body column count. It does not retain body values.
 
-`prepare` combines this data with `configState` to determine logical columns. Markdown requires one header row and therefore uses its header width. Other formats use the widest non-empty header row when a header has at least one column. Without a header, they use the greater of the body column count and the widest footer row. The stage then adds an index column when enabled and applies `AllColumns` and `Columns` settings only to the resolved input columns. A selected index cannot expand the column count. The stage also detects configuration errors such as Markdown's `ErrHeaderRequired` and CSV's `ErrDelimiter`.
+`prepare` combines this data with `configState` to determine logical columns. Markdown requires one header row and therefore uses its header width. Other formats use the widest non-empty header row when a header has at least one column. Without a header, they use the greater of the body column count and the widest footer row. The stage applies `AllColumns` and `Columns` settings to the resolved columns. A selected index cannot expand the column count. The stage also detects configuration errors such as Markdown's `ErrHeaderRequired` and CSV's `ErrDelimiter`.
 
 `configResult` retains the `option` reference, headers, body row count, and resolved column settings. All formats except Markdown also retain the current pass's footer and `footerColumns`. `compiler` uses that count to ensure the footer does not exceed the resolved column count.
 
@@ -112,7 +112,7 @@ The root package exposes `table.Value` as an alias for the compact value represe
 
 `compileHeader` and `compileBody` convert headers and body values into logical rows and cells. `compileFooter` does the same for footers in `text`, `html`, `backlog`, and `csv`. Headers and footers use their configured labels. Formats other than CSV also select the attributes, colors, or decorations for the corresponding section. `compileBody` iterates the complete body, while `Stream` calls `compileRow` for one body row. Each row performs the following work as needed:
 
-- Generate an index value and fill missing values with the placeholder.
+- Fill missing values with the placeholder.
 - Call the transformer when configured, then use the input value's default string representation only when the transformer returns an empty string.
 - Select the body attributes, colors, or decorations.
 - In text, replace tabs in displayed values with four ASCII spaces and record printable ASCII widths.
@@ -180,7 +180,7 @@ The main owners and their lifetimes are as follows.
 
 | Owner           | Contents                                                                                      | Retained across `Stream` passes                                           |
 | --------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `value.Store`   | Bytes and string views produced by Go value conversion, index formatting, and text truncation | Internal buffer capacity                                                  |
+| `value.Store`   | Bytes and string views produced by Go value conversion and text truncation                    | Internal buffer capacity                                                  |
 | `configState`   | Expanded column settings                                                                      | Resolved column settings                                                  |
 | `compilerState` | Rows, cells, escape and quote buffers, and span-comparison values                             | Slice capacity, prior-row span values, and format-specific size estimates |
 | `solverState`   | Column measurements and scratch storage for span geometry                                     | Column measurement state in `text`, `markdown`, and `backlog`             |

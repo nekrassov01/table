@@ -87,8 +87,8 @@ func (o *compiler) compileHeader() {
 
 // compileBody compiles and retains body rows in input order.
 func (o *compiler) compileBody(sources [][]table.Value) {
-	for i, source := range sources {
-		o.compileRow(source, i)
+	for _, source := range sources {
+		o.compileRow(source)
 		if o.err != nil {
 			return
 		}
@@ -103,7 +103,7 @@ func (o *compiler) compileFooter() {
 	if o.err != nil || len(footer) == 0 {
 		return
 	}
-	footerColumns := o.input.footerColumns + o.input.option.indexOffset
+	footerColumns := o.input.footerColumns
 	if footerColumns > len(o.input.columns) {
 		o.err = newColumnCountError(footerColumns, len(o.input.columns))
 		return
@@ -129,13 +129,8 @@ func (o *compiler) compileBand(labels []string, sc Scope) row {
 	for index := range config.columns {
 		col := &config.columns[index]
 		var text string
-		if index < config.option.indexOffset && sc == ScopeHeader {
-			text = param.IndexHeader
-		}
-		if index >= config.option.indexOffset {
-			if raw := index - config.option.indexOffset; raw < len(labels) {
-				text = labels[raw]
-			}
+		if index < len(labels) {
+			text = labels[index]
 		}
 		attr := col.transformer.attrs.Resolve(sc)
 		if text == "" {
@@ -151,10 +146,10 @@ func (o *compiler) compileBand(labels []string, sc Scope) row {
 }
 
 // compileRow validates and compiles one body row.
-func (o *compiler) compileRow(source []table.Value, rowIndex int) {
+func (o *compiler) compileRow(source []table.Value) {
 	config := &o.input
 	state := o.state
-	rowColumns := len(source) + config.option.indexOffset
+	rowColumns := len(source)
 	columnCount := len(config.columns)
 	if rowColumns > columnCount {
 		o.err = newColumnCountError(rowColumns, columnCount)
@@ -164,7 +159,7 @@ func (o *compiler) compileRow(source []table.Value, rowIndex int) {
 		o.bodyStart = len(state.rows)
 	}
 	r := o.newRow()
-	o.compileCells(r, source, rowIndex)
+	o.compileCells(r, source)
 	o.setSpans(&r, ScopeBody, &state.previousBody)
 	o.setBars(&r, o.output.lastBars, ScopeBody)
 	o.output.lastBars = r.bars
@@ -174,22 +169,16 @@ func (o *compiler) compileRow(source []table.Value, rowIndex int) {
 }
 
 // compileCells formats the values and resolves the attributes of one body row.
-func (o *compiler) compileCells(r row, source []table.Value, rowIndex int) {
+func (o *compiler) compileCells(r row, source []table.Value) {
 	config := &o.input
 	for index := range config.columns {
 		compiled := &r.cells[index]
-		if index < config.option.indexOffset {
-			compiled.value = value.Number(o.strings, int64(rowIndex)+1)
-			compiled.width = len(compiled.value)
-			continue
-		}
-		sourceIndex := index - config.option.indexOffset
-		if sourceIndex >= len(source) {
+		if index >= len(source) {
 			compiled.value, compiled.width = o.compileValue(config.option.placeholder)
 			continue
 		}
 		transformer := &config.columns[index].transformer
-		rawValue := source[sourceIndex]
+		rawValue := source[index]
 		text := ""
 		attr := transformer.attrs.Resolve(ScopeBody)
 		if transformer.fn != nil {

@@ -211,37 +211,6 @@ func TestGolden_StreamCRLFQuote(t *testing.T) {
 	testutil.AssertGolden(t, "common_crlf_quote", buf.Bytes())
 }
 
-func TestGolden_TableDelimiterIndex(t *testing.T) {
-	var buf bytes.Buffer
-	tb := NewTable(&buf,
-		WithDelimiter(';'),
-		WithIndex(),
-		WithHeader([]string{"A", "B"}),
-	)
-	if err := tb.Render([][]table.Value{{table.String("x"), table.String("y")}, {table.String("p"), table.String("q")}}); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_delimiter_index", buf.Bytes())
-}
-
-func TestGolden_StreamDelimiterIndex(t *testing.T) {
-	var buf bytes.Buffer
-	s := NewStream(&buf,
-		WithDelimiter(';'),
-		WithIndex(),
-		WithHeader([]string{"A", "B"}),
-	)
-	for _, r := range [][]table.Value{{table.String("x"), table.String("y")}, {table.String("p"), table.String("q")}} {
-		if err := s.Render(r); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := s.Close(); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_delimiter_index", buf.Bytes())
-}
-
 func TestGolden_TableDelimiterUnicode(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
@@ -652,78 +621,6 @@ func TestGolden_StreamHeaderWiderThanRows(t *testing.T) {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "common_header_wider_than_rows", buf.Bytes())
-}
-
-func TestGolden_TableIndexPlaceholder(t *testing.T) {
-	var buf bytes.Buffer
-	tb := NewTable(&buf,
-		WithIndex(),
-		WithPlaceholder("-"),
-		WithHeader([]string{"A", "B"}),
-	)
-	if err := tb.Render([][]table.Value{{table.String("x"), table.Any(nil)}, {table.Any(nil), table.String("q")}}); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_index_placeholder", buf.Bytes())
-}
-
-func TestGolden_StreamIndexPlaceholder(t *testing.T) {
-	var buf bytes.Buffer
-	s := NewStream(&buf,
-		WithIndex(),
-		WithPlaceholder("-"),
-		WithHeader([]string{"A", "B"}),
-	)
-	for _, r := range [][]table.Value{{table.String("x"), table.Any(nil)}, {table.Any(nil), table.String("q")}} {
-		if err := s.Render(r); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := s.Close(); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_index_placeholder", buf.Bytes())
-}
-
-func TestGolden_TableIndexTransformer(t *testing.T) {
-	var buf bytes.Buffer
-	tb := NewTable(&buf,
-		WithIndex(),
-		WithTransformer(Columns(1), func(v table.Value) string {
-			if s, ok := v.AsAny().(string); ok && s == "raw" {
-				return "T"
-			}
-			return ""
-		}),
-		WithHeader([]string{"A", "B"}),
-	)
-	if err := tb.Render([][]table.Value{{table.String("x"), table.String("raw")}, {table.String("p"), table.String("q")}}); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_index_transformer", buf.Bytes())
-}
-
-func TestGolden_StreamIndexTransformer(t *testing.T) {
-	var buf bytes.Buffer
-	s := NewStream(&buf,
-		WithIndex(),
-		WithTransformer(Columns(1), func(v table.Value) string {
-			if s, ok := v.AsAny().(string); ok && s == "raw" {
-				return "T"
-			}
-			return ""
-		}),
-		WithHeader([]string{"A", "B"}),
-	)
-	for _, r := range [][]table.Value{{table.String("x"), table.String("raw")}, {table.String("p"), table.String("q")}} {
-		if err := s.Render(r); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := s.Close(); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "common_index_transformer", buf.Bytes())
 }
 
 func TestGolden_TableInvalidUtf8(t *testing.T) {
@@ -1589,24 +1486,6 @@ func TestGolden_StreamCSV(t *testing.T) {
 	testutil.AssertGolden(t, "stream_csv", buf.Bytes())
 }
 
-func TestGolden_StreamIndex(t *testing.T) {
-	var buf bytes.Buffer
-	s := NewStream(&buf,
-		WithIndex(),
-		WithHeader([]string{"Name", "Score"}),
-	)
-	if err := s.Render([]table.Value{table.String("alice"), table.Int(100)}); err != nil {
-		t.Fatal(err)
-	}
-	if err := s.Render([]table.Value{table.String("bob"), table.Int(99)}); err != nil {
-		t.Fatal(err)
-	}
-	if err := s.Close(); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "stream_index", buf.Bytes())
-}
-
 func TestGolden_StreamQuote(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
@@ -1716,24 +1595,6 @@ func TestGolden_TableCSV(t *testing.T) {
 		t.Fatal(err)
 	}
 	testutil.AssertGolden(t, "table_csv", buf.Bytes())
-}
-
-func TestGolden_TableIndex(t *testing.T) {
-	var buf bytes.Buffer
-	tb := NewTable(&buf,
-		WithIndex(),
-		WithHeader([]string{"Name", "Score"}),
-		WithFooter(func() [][]string {
-			return [][]string{{"Total", "199"}}
-		}),
-	)
-	if err := tb.Render([][]table.Value{
-		{table.String("alice"), table.Int(100)},
-		{table.String("bob"), table.Int(99)},
-	}); err != nil {
-		t.Fatal(err)
-	}
-	testutil.AssertGolden(t, "table_index", buf.Bytes())
 }
 
 func TestGolden_TableNoHeaderRagged(t *testing.T) {

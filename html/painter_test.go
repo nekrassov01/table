@@ -585,13 +585,12 @@ func Test_painter_paintRow(t *testing.T) {
 			fields: fields{
 				input: func() solverResult {
 					columns := make([]columnConfig, 3)
+					columns[0].aligns.Set(ScopeBody, AlignRight)
 					columns[2].aligns.Set(ScopeBody, AlignCenter)
 					return solverResult{
 						compilerResult: compilerResult{
 							configResult: configResult{
-								option: &option{
-									indexOffset: 1,
-								},
+								option:  &option{},
 								columns: columns,
 							},
 						},

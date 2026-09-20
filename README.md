@@ -41,7 +41,7 @@ See [Runnable examples](#runnable-examples) for a generated catalog of inputs, o
 - `table` reuses internal buffers to minimize steady-state allocations.
 - `TableOf` and `StreamOf` adapt typed slices and error-returning iterators.
 - `text` measures Unicode by terminal display width, including ambiguous character widths in CJK locales.
-- Format-specific options add headers, calculated footers, indexes, and placeholders. They also support transformations, alignment, decoration, and cell spans.
+- Format-specific options add headers, calculated footers, and placeholders. They also support transformations, alignment, decoration, and cell spans.
 
 ## Motivation
 
@@ -287,7 +287,7 @@ This table records whether each library exposes a direct public API for a capabi
 | Column hiding                   | -       | ✓                                                                      | ✓                                                                             | -                                                                           |
 | Header                          | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
 | Footer                          | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
-| Index column                    | ✓       | ✓                                                                      | -                                                                             | -                                                                           |
+| Index column                    | -       | ✓                                                                      | -                                                                             | -                                                                           |
 | Vertical merge                  | ✓       | ✓                                                                      | ✓                                                                             | -                                                                           |
 | Horizontal merge                | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
 | Placeholder                     | ✓       | ✓ (HTML)                                                               | -                                                                             | -                                                                           |

@@ -86,12 +86,6 @@ func format(st *Store, input Value) string {
 	}
 }
 
-// Number formats an integer directly for a synthetic index column, avoiding
-// interface conversion through Format.
-func Number(st *Store, x int64) string {
-	return st.AppendInt(x)
-}
-
 // formatReflect is the reflection-based fallback for types not covered
 // by the general type dispatch.
 func formatReflect(st *Store, rv reflect.Value) string {

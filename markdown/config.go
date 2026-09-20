@@ -21,13 +21,12 @@ type config struct {
 func (o *config) prepare() {
 	result := &o.output
 	option := result.option
-	headerColumns := len(result.header)
-	if headerColumns == 0 {
+	columnCount := len(result.header)
+	if columnCount == 0 {
 		o.err = newHeaderError()
 		return
 	}
-	columnCount := headerColumns + option.indexOffset
-	columns := option.columns.resolve(o.state.columns, columnCount, option.indexOffset)
+	columns := option.columns.resolve(o.state.columns, columnCount)
 	o.state.columns = columns
 	result.columns = columns
 }
@@ -45,7 +44,6 @@ type option struct {
 	placeholder string    // Text for a missing value.
 	header      []string  // The required header row.
 	columns     columnSet // Input columns and their defaults.
-	indexOffset int       // Synthetic leading column count: 0 or 1.
 }
 
 // apply sets defaults and applies opts in order.
@@ -65,8 +63,8 @@ func (o *columnSet) apply(selector ColumnSelector, fn func(*columnConfig)) {
 }
 
 // resolve applies input settings to logical columns.
-func (o *columnSet) resolve(columns []columnConfig, columnCount, indexOffset int) []columnConfig {
-	return (*column.Set[columnConfig])(o).Resolve(columns, columnCount, indexOffset, columnConfig{})
+func (o *columnSet) resolve(columns []columnConfig, columnCount int) []columnConfig {
+	return (*column.Set[columnConfig])(o).Resolve(columns, columnCount, columnConfig{})
 }
 
 // columnConfig holds Markdown settings for one logical column.

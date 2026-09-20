@@ -1,3 +1,0 @@
-| # | A | <span style="color:red">B</span> |
-| ---: | --- | --- |
-| 1 | x | <span style="color:red">y</span> |

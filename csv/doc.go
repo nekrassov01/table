@@ -23,8 +23,8 @@
 //
 // A header contains exactly one record. Footer rows are emitted as ordinary
 // records because delimiter-separated formats have no distinct footer
-// section. Options can also add an index and transform values. The package
-// does not apply visual styling or merge fields.
+// section. Options can transform values. The package does not apply visual
+// styling or merge fields.
 //
 // [encoding/csv.Writer]: https://pkg.go.dev/encoding/csv#Writer
 package csv

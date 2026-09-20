@@ -109,6 +109,8 @@ Missingness is retained when the value is resolved rather than inferred later by
 
 ### Separate logical columns from display geometry
 
+Body values come from the caller. Row adapters supply derived values such as row numbers; rendering applies formatting and layout to those values. Input positions and logical column positions are identical, so every column follows the same selection and display rules.
+
 The logical column count determined by `config` is distinct from display widths and span counts determined by `solver`. Short rows are extended to the established columns, but a wider later row never expands the table. Otherwise `Table` and `Stream` would derive different logical column counts. Only `Table` can inspect all rows before writing output.
 
 Column selectors are retained independently of the logical column count and applied only after `config` determines the actual input columns. Settings for nearby columns use a contiguous prefix, while settings separated by large gaps remain sparse until that point. A numeric selector therefore cannot allocate storage in proportion to its index or create a column that is absent from the input.
