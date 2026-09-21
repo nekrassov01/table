@@ -931,7 +931,7 @@ func TestGolden_StreamFooterRowspan(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
 		WithFooter(func() [][]string {
-			return [][]string{{"t", "t"}}
+			return [][]string{{"t", "t"}, {"t", "u"}}
 		}),
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithHeader([]string{"A", "B"}),
@@ -1166,13 +1166,13 @@ func TestGolden_StreamRowspanEscape(t *testing.T) {
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithHeader([]string{"A", "B"}),
 	)
-	if err := s.Render([]table.Value{table.String("<x>"), table.Int(1)}); err != nil {
+	if err := s.Render([]table.Value{table.String("a|b"), table.Int(1)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]table.Value{table.String("<x>"), table.Int(2)}); err != nil {
+	if err := s.Render([]table.Value{table.String("a|b"), table.Int(2)}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Render([]table.Value{table.String("&y&"), table.Int(3)}); err != nil {
+	if err := s.Render([]table.Value{table.String("c\\d"), table.Int(3)}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -2193,7 +2193,7 @@ func TestGolden_TableFooterRowspan(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
 		WithFooter(func() [][]string {
-			return [][]string{{"t", "t"}}
+			return [][]string{{"t", "t"}, {"t", "u"}}
 		}),
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
 		WithHeader([]string{"A", "B"}),
@@ -2396,9 +2396,9 @@ func TestGolden_TableRowspanEscape(t *testing.T) {
 		WithHeader([]string{"A", "B"}),
 	)
 	if err := tb.Render([][]table.Value{
-		{table.String("<x>"), table.Int(1)},
-		{table.String("<x>"), table.Int(2)},
-		{table.String("&y&"), table.Int(3)},
+		{table.String("a|b"), table.Int(1)},
+		{table.String("a|b"), table.Int(2)},
+		{table.String("c\\d"), table.Int(3)},
 	}); err != nil {
 		t.Fatal(err)
 	}
