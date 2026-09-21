@@ -1,2 +1,2 @@
-|~A  |~B  |
+|~A |~B |
 | {code}x{/code} | &color(red){''y''} |

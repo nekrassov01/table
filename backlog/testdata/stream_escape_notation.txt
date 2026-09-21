@@ -1,4 +1,4 @@
-|~Notation  |~Value  |
+|~Notation |~Value |
 | link | \\[\\[BLG-87\\]\\] |
 | bold | \\'\\'bold\\'\\' |
 | italic | \\'\\'\\'italic\\'\\'\\' |

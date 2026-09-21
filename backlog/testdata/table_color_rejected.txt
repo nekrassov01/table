@@ -1,2 +1,2 @@
-|~A  |~B              |
-| x  | &color(red){y} |
+|~A |~B              |
+| x | &color(red){y} |

@@ -1,4 +1,4 @@
-|~Group  |~Item  |
+|~Group |~Item |
 | A | x |
 |  | y |
 | B | z |

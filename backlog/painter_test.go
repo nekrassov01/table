@@ -74,8 +74,7 @@ func Test_painter_lineSize(t *testing.T) {
 		input solverResult
 	}
 	type args struct {
-		row  row
-		band bool
+		row row
 	}
 	type want struct {
 		size int
@@ -103,7 +102,7 @@ func Test_painter_lineSize(t *testing.T) {
 			},
 		},
 		{
-			name: "band marker",
+			name: "empty cell padding",
 			fields: fields{
 				input: solverResult{
 					metrics: []columnMetric{{box: box{width: 3}}},
@@ -113,7 +112,6 @@ func Test_painter_lineSize(t *testing.T) {
 				row: row{
 					cells: []cell{{}},
 				},
-				band: true,
 			},
 			want: want{
 				size: 8,
@@ -126,7 +124,7 @@ func Test_painter_lineSize(t *testing.T) {
 				input: test.fields.input,
 			}
 			got := want{
-				size: o.lineSize(&test.args.row, test.args.band),
+				size: o.lineSize(&test.args.row),
 			}
 			testutil.AssertValue(t, got, test.want, "lineSize")
 		})
@@ -157,7 +155,7 @@ func Test_painter_paintHeader(t *testing.T) {
 				},
 			},
 			want: want{
-				output: "|~H  |\n",
+				output: "|~H |\n",
 			},
 		},
 	}
@@ -266,7 +264,7 @@ func Test_painter_paintFooter(t *testing.T) {
 				},
 			},
 			want: want{
-				output: "|~F  |\n",
+				output: "|~F |\n",
 			},
 		},
 	}
@@ -320,7 +318,7 @@ func Test_painter_paintBand(t *testing.T) {
 				},
 			},
 			want: want{
-				output: "|~a  |\n|~b  |\n",
+				output: "|~a |\n|~b |\n",
 			},
 		},
 		{
@@ -432,7 +430,6 @@ func Test_painter_paintCell(t *testing.T) {
 	type args struct {
 		cell cell
 		box  box
-		band bool
 	}
 	type want struct {
 		line string
@@ -454,13 +451,12 @@ func Test_painter_paintCell(t *testing.T) {
 			},
 		},
 		{
-			name: "empty band cell",
+			name: "empty cell padding",
 			args: args{
-				box:  box{width: 2},
-				band: true,
+				box: box{width: 2},
 			},
 			want: want{
-				line: "~ ",
+				line: "  ",
 			},
 		},
 	}
@@ -470,7 +466,7 @@ func Test_painter_paintCell(t *testing.T) {
 			o := &painter{
 				state: &state,
 			}
-			o.paintCell(&test.args.cell, &test.args.box, test.args.band)
+			o.paintCell(&test.args.cell, &test.args.box)
 			got := want{
 				line: string(state.line),
 			}

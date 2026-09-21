@@ -1,2 +1,2 @@
-|~Stringer  |~Error  |
-| <nil>     | <nil>  |
+|~Stringer |~Error |
+| <nil>    | <nil> |

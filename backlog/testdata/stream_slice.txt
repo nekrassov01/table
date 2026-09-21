@@ -1,4 +1,4 @@
-|~Type  |~Value  |
+|~Type |~Value |
 | []int | [1 2 3] |
 | []string | [a b] |
 | []bool | [true false] |

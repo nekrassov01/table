@@ -1,2 +1,2 @@
-|~Stringer  |~Error  |
-| x         | boom   |
+|~Stringer |~Error |
+| x        | boom  |

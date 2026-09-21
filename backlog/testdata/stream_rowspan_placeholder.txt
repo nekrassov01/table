@@ -1,4 +1,4 @@
-|~Group  |~Value  |
+|~Group |~Value |
 | A | N/A |
 |  | y |
 | B | N/A |

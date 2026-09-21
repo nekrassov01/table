@@ -430,7 +430,7 @@ func WithTransformer(columns ColumnSelector, fn func(table.Value) (string, *Colo
 
 - Header and footer cells use header-cell notation beginning with `~`. A footer is a library-level section; Backlog itself does not distinguish it.
 - Displayed values literalize bracketed links and text markup: bold, italic, strikethrough, and colors. They also literalize line breaks and quote and code macros. Attachment, image, revision, and contents macros are literalized too. Backslashes and vertical bars are also escaped. Actual CR and LF become `&br;`, while a caller-supplied `&br;` remains text. Invalid UTF-8 bytes are preserved rather than replaced.
-- The header-cell `~` immediately follows the opening vertical bar, and padding follows the value.
+- Each cell starts with a space or the header-cell `~` immediately after the opening vertical bar and ends with one space before the closing vertical bar. `Table` adds right padding to align column widths; `Stream` does not.
 - When color is combined with any decoration other than `DecorationCode`, the color notation surrounds the decoration.
 - Backlog notation cannot represent `DecorationCode` and color simultaneously, so code decoration is retained and color is omitted.
 - `NewColor` combines foreground and background into Backlog color notation. It returns `nil` for empty values, reserved characters, or line breaks.
