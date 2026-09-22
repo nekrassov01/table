@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.2.2](https://github.com/nekrassov01/table/compare/v0.2.1...v0.2.2) - 2026-09-22
+
+- Reduce struct padding and refine field layout by @nekrassov01 in https://github.com/nekrassov01/table/pull/45
+
 ## [v0.2.1](https://github.com/nekrassov01/table/compare/v0.2.0...v0.2.1) - 2026-09-22
 
 - Correct backlog header and footer padding by @nekrassov01 in https://github.com/nekrassov01/table/pull/43
