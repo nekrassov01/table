@@ -118,7 +118,7 @@ func Test_solver_solve(t *testing.T) {
 			want: want{
 				metrics: []columnMetric{
 					{box: box{width: 4}},
-					{box: box{width: 6}},
+					{box: box{width: 5}},
 				},
 			},
 		},
@@ -145,7 +145,6 @@ func Test_solver_measureRows(t *testing.T) {
 	}
 	type args struct {
 		rows []row
-		band bool
 	}
 	type want struct {
 		metrics []columnMetric
@@ -174,7 +173,7 @@ func Test_solver_measureRows(t *testing.T) {
 			},
 		},
 		{
-			name: "band rows include marker",
+			name: "single row",
 			fields: fields{
 				state: solverState{
 					columnMetrics: []columnMetric{{}},
@@ -182,10 +181,9 @@ func Test_solver_measureRows(t *testing.T) {
 			},
 			args: args{
 				rows: []row{{cells: []cell{{width: 2}}}},
-				band: true,
 			},
 			want: want{
-				metrics: []columnMetric{{box: box{width: 3}}},
+				metrics: []columnMetric{{box: box{width: 2}}},
 			},
 		},
 	}
@@ -195,7 +193,7 @@ func Test_solver_measureRows(t *testing.T) {
 			o := &solver{
 				state: &state,
 			}
-			o.measureRows(test.args.rows, test.args.band)
+			o.measureRows(test.args.rows)
 			got := want{
 				metrics: state.columnMetrics,
 			}
@@ -209,8 +207,7 @@ func Test_solver_measureRow(t *testing.T) {
 		state solverState
 	}
 	type args struct {
-		row  row
-		band bool
+		row row
 	}
 	type want struct {
 		metrics []columnMetric
@@ -238,7 +235,7 @@ func Test_solver_measureRow(t *testing.T) {
 			},
 		},
 		{
-			name: "measures empty band marker",
+			name: "empty cell",
 			fields: fields{
 				state: solverState{
 					columnMetrics: []columnMetric{{}},
@@ -248,10 +245,9 @@ func Test_solver_measureRow(t *testing.T) {
 				row: row{
 					cells: []cell{{}},
 				},
-				band: true,
 			},
 			want: want{
-				metrics: []columnMetric{{box: box{width: 1}}},
+				metrics: []columnMetric{{}},
 			},
 		},
 	}
@@ -261,7 +257,7 @@ func Test_solver_measureRow(t *testing.T) {
 			o := &solver{
 				state: &state,
 			}
-			o.measureRow(&test.args.row, test.args.band)
+			o.measureRow(&test.args.row)
 			got := want{
 				metrics: state.columnMetrics,
 			}

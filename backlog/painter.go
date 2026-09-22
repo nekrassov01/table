@@ -26,13 +26,13 @@ func (o *painter) prepare() {
 	}
 	size := 2
 	for index := range o.input.header {
-		size = max(size, o.lineSize(&o.input.header[index], true))
+		size = max(size, o.lineSize(&o.input.header[index]))
 	}
 	for index := range o.input.body {
-		size = max(size, o.lineSize(&o.input.body[index], false))
+		size = max(size, o.lineSize(&o.input.body[index]))
 	}
 	for index := range o.input.footer {
-		size = max(size, o.lineSize(&o.input.footer[index], true))
+		size = max(size, o.lineSize(&o.input.footer[index]))
 	}
 	if cap(state.lineBacking) < size {
 		state.lineBacking = make([]byte, size)
@@ -41,21 +41,14 @@ func (o *painter) prepare() {
 }
 
 // lineSize returns the number of bytes required to paint a row.
-func (o *painter) lineSize(r *row, band bool) int {
+func (o *painter) lineSize(r *row) int {
 	// Leading pipe and trailing newline.
 	size := 2
 	for index := range r.cells {
 		cell := &r.cells[index]
-		width := cell.width
-		cellSize := cell.size
-		if band {
-			width += len(bandMarker)
-			cellSize += len(bandMarker)
-		}
-		padding := max(o.input.metrics[index].box.width-width, 0)
-		// Two spaces and the trailing pipe frame each cell. Band rows keep both
-		// spaces after the value so the marker stays adjacent to the leading pipe.
-		size += cellSize + padding + 3
+		padding := max(o.input.metrics[index].box.width-cell.width, 0)
+		// A leading space or header marker, a trailing space, and a pipe.
+		size += cell.size + padding + 3
 	}
 	return size
 }
@@ -95,14 +88,13 @@ func (o *painter) paintRow(r row, band bool) {
 	o.resetLine()
 	o.state.line = append(o.state.line, '|')
 	for index := range r.cells {
-		if !band {
-			o.state.line = append(o.state.line, ' ')
-		}
-		o.paintCell(&r.cells[index], &o.input.metrics[index].box, band)
-		o.state.line = append(o.state.line, ' ')
 		if band {
+			o.state.line = append(o.state.line, bandMarker...)
+		} else {
 			o.state.line = append(o.state.line, ' ')
 		}
+		o.paintCell(&r.cells[index], &o.input.metrics[index].box)
+		o.state.line = append(o.state.line, ' ')
 		o.state.line = append(o.state.line, '|')
 	}
 	o.writeNewline()
@@ -110,14 +102,9 @@ func (o *painter) paintRow(r row, band bool) {
 }
 
 // paintCell writes one value and its right padding.
-func (o *painter) paintCell(cell *cell, box *box, band bool) {
-	width := cell.width
-	if band {
-		o.state.line = append(o.state.line, bandMarker...)
-		width += len(bandMarker)
-	}
+func (o *painter) paintCell(cell *cell, box *box) {
 	o.writeValue(cell)
-	o.writeSpaces(box.width - width)
+	o.writeSpaces(box.width - cell.width)
 }
 
 // resetLine resets the current output line.

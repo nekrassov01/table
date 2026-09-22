@@ -330,19 +330,19 @@ make example target=backlog mode=stream data=simple
 `Table` output:
 
 ````text
-|~INSTANCE ID         |~INSTANCE NAME  |~INSTANCE STATE  |
-| i-00000000000000000 | server-1       | running         |
-| i-00000000000000001 | server-2       | stopped         |
-| i-00000000000000002 | server-3       | pending         |
-| i-00000000000000003 | server-4       | terminated      |
-| i-00000000000000004 | server-5       | stopping        |
-| i-00000000000000005 | server-6       | shutting-down   |
+|~INSTANCE ID         |~INSTANCE NAME |~INSTANCE STATE |
+| i-00000000000000000 | server-1      | running        |
+| i-00000000000000001 | server-2      | stopped        |
+| i-00000000000000002 | server-3      | pending        |
+| i-00000000000000003 | server-4      | terminated     |
+| i-00000000000000004 | server-5      | stopping       |
+| i-00000000000000005 | server-6      | shutting-down  |
 ````
 
 `Stream` output:
 
 ````text
-|~INSTANCE ID  |~INSTANCE NAME  |~INSTANCE STATE  |
+|~INSTANCE ID |~INSTANCE NAME |~INSTANCE STATE |
 | i-00000000000000000 | server-1 | running |
 | i-00000000000000001 | server-2 | stopped |
 | i-00000000000000002 | server-3 | pending |
@@ -982,22 +982,22 @@ make example target=backlog mode=stream data=rowspan
 `Table` output:
 
 ````text
-|~INSTANCE            |~SECURITY GROUP       |~DIRECTION  |~PROTOCOL  |~FROM PORT  |~TO PORT  |~ADDRESS TYPE  |~CIDR BLOCK                                  |
-| i-00000000000000000 | sg-10000000000000000 | Ingress    | tcp       | 22         | 22       | SecurityGroup | sg-20000000000000000                        |
-|                     |                      | Egress     | -1        | 0          | 0        | Ipv4          | 0.0.0.0/0                                   |
-|                     | sg-10000000000000001 | Ingress    | tcp       | 443        | 443      | Ipv4          | 0.0.0.0/0                                   |
-|                     |                      | Egress     | -1        | 0          | 0        | Ipv4          | 0.0.0.0/0                                   |
-| i-00000000000000001 | sg-10000000000000002 | Ingress    | tcp       | 3389       | 3389     | Ipv4          | 10.1.0.0/16                                 |
-|                     |                      |            | tcp       | 0          | 65535    | PrefixList    | pl-00000000/com.amazonaws.ap-northeast-1.s3 |
-|                     |                      | Egress     | -1        | 0          | 0        | Ipv4          | 0.0.0.0/0                                   |
-| i-00000000000000002 | sg-10000000000000003 | Ingress    | tcp       | 443        | 443      | Ipv4          | 0.0.0.0/0                                   |
-|                     |                      | Egress     | -1        | 0          | 0        | Ipv4          | 0.0.0.0/0                                   |
+|~INSTANCE            |~SECURITY GROUP       |~DIRECTION |~PROTOCOL |~FROM PORT |~TO PORT |~ADDRESS TYPE  |~CIDR BLOCK                                  |
+| i-00000000000000000 | sg-10000000000000000 | Ingress   | tcp      | 22        | 22      | SecurityGroup | sg-20000000000000000                        |
+|                     |                      | Egress    | -1       | 0         | 0       | Ipv4          | 0.0.0.0/0                                   |
+|                     | sg-10000000000000001 | Ingress   | tcp      | 443       | 443     | Ipv4          | 0.0.0.0/0                                   |
+|                     |                      | Egress    | -1       | 0         | 0       | Ipv4          | 0.0.0.0/0                                   |
+| i-00000000000000001 | sg-10000000000000002 | Ingress   | tcp      | 3389      | 3389    | Ipv4          | 10.1.0.0/16                                 |
+|                     |                      |           | tcp      | 0         | 65535   | PrefixList    | pl-00000000/com.amazonaws.ap-northeast-1.s3 |
+|                     |                      | Egress    | -1       | 0         | 0       | Ipv4          | 0.0.0.0/0                                   |
+| i-00000000000000002 | sg-10000000000000003 | Ingress   | tcp      | 443       | 443     | Ipv4          | 0.0.0.0/0                                   |
+|                     |                      | Egress    | -1       | 0         | 0       | Ipv4          | 0.0.0.0/0                                   |
 ````
 
 `Stream` output:
 
 ````text
-|~INSTANCE  |~SECURITY GROUP  |~DIRECTION  |~PROTOCOL  |~FROM PORT  |~TO PORT  |~ADDRESS TYPE  |~CIDR BLOCK  |
+|~INSTANCE |~SECURITY GROUP |~DIRECTION |~PROTOCOL |~FROM PORT |~TO PORT |~ADDRESS TYPE |~CIDR BLOCK |
 | i-00000000000000000 | sg-10000000000000000 | Ingress | tcp | 22 | 22 | SecurityGroup | sg-20000000000000000 |
 |  |  | Egress | -1 | 0 | 0 | Ipv4 | 0.0.0.0/0 |
 |  | sg-10000000000000001 | Ingress | tcp | 443 | 443 | Ipv4 | 0.0.0.0/0 |
@@ -1210,17 +1210,17 @@ make example target=backlog mode=stream data=colspan
 `Table` output:
 
 ````text
-|~FIRST NAME  |~LAST NAME  |~AGE     |~BIRTH (PREFORMATTED)          |
-| John        | Doe        | 30      | 1994-05-01 00:00:00 +0000 UTC |
-| Jane        | Smith      | 25      | 1999-05-01 00:00:00 +0000 UTC |
-| Anonymous   |            | Unknown |                               |
-| Alice       | Johnson    | 28      | 1996-05-01 00:00:00 +0000 UTC |
+|~FIRST NAME |~LAST NAME |~AGE     |~BIRTH (PREFORMATTED)          |
+| John       | Doe       | 30      | 1994-05-01 00:00:00 +0000 UTC |
+| Jane       | Smith     | 25      | 1999-05-01 00:00:00 +0000 UTC |
+| Anonymous  |           | Unknown |                               |
+| Alice      | Johnson   | 28      | 1996-05-01 00:00:00 +0000 UTC |
 ````
 
 `Stream` output:
 
 ````text
-|~FIRST NAME  |~LAST NAME  |~AGE  |~BIRTH (PREFORMATTED)  |
+|~FIRST NAME |~LAST NAME |~AGE |~BIRTH (PREFORMATTED) |
 | John | Doe | 30 | 1994-05-01 00:00:00 +0000 UTC |
 | Jane | Smith | 25 | 1999-05-01 00:00:00 +0000 UTC |
 | Anonymous |  | Unknown |  |
@@ -1683,23 +1683,23 @@ make example target=backlog mode=stream data=footer
 `Table` output:
 
 ````text
-|~TEAM  |~CLASS  |~NAME        |~BIRTH  |~ATB GAUGE  |~HIT POINT  |~SKILL POINT  |~SPELL POINT  |~LIFE POINT  |~STRENGTH  |~STAMINA  |~DEXTERITY  |~MAGIC  |~SPEED  |
-| 蜀    | 君主   | 劉備 玄徳   | 161    | 45         | 2800       | 350          | 280          | 5           | 62        | 68       | 55         | 58     | 50     |
-|       | 軍神   | 関羽 雲長   | 160    | 38         | 3500       | 420          | 150          | 4           | 95        | 88       | 72         | 35     | 55     |
-|       | 猛将   | 張飛 翼徳   | 167    | 52         | 3200       | 380          | 80           | 3           | 97        | 82       | 40         | 18     | 62     |
-|       | 軍師   | 諸葛亮 孔明 | 181    | 30         | 1800       | 280          | 580          | 3           | 25        | 38       | 65         | 99     | 45     |
-|~平均  |~       |~            |~       |~41.25      |~2825       |~357.5        |~272.5        |~3.75        |~69.75     |~69       |~58         |~52.5   |~53     |
+|~TEAM |~CLASS |~NAME        |~BIRTH |~ATB GAUGE |~HIT POINT |~SKILL POINT |~SPELL POINT |~LIFE POINT |~STRENGTH |~STAMINA |~DEXTERITY |~MAGIC |~SPEED |
+| 蜀   | 君主  | 劉備 玄徳   | 161   | 45        | 2800      | 350         | 280         | 5          | 62       | 68      | 55        | 58    | 50    |
+|      | 軍神  | 関羽 雲長   | 160   | 38        | 3500      | 420         | 150         | 4          | 95       | 88      | 72        | 35    | 55    |
+|      | 猛将  | 張飛 翼徳   | 167   | 52        | 3200      | 380         | 80          | 3          | 97       | 82      | 40        | 18    | 62    |
+|      | 軍師  | 諸葛亮 孔明 | 181   | 30        | 1800      | 280         | 580         | 3          | 25       | 38      | 65        | 99    | 45    |
+|~平均 |~      |~            |~      |~41.25     |~2825      |~357.5       |~272.5       |~3.75       |~69.75    |~69      |~58        |~52.5  |~53    |
 ````
 
 `Stream` output:
 
 ````text
-|~TEAM  |~CLASS  |~NAME  |~BIRTH  |~ATB GAUGE  |~HIT POINT  |~SKILL POINT  |~SPELL POINT  |~LIFE POINT  |~STRENGTH  |~STAMINA  |~DEXTERITY  |~MAGIC  |~SPEED  |
+|~TEAM |~CLASS |~NAME |~BIRTH |~ATB GAUGE |~HIT POINT |~SKILL POINT |~SPELL POINT |~LIFE POINT |~STRENGTH |~STAMINA |~DEXTERITY |~MAGIC |~SPEED |
 | 蜀 | 君主 | 劉備 玄徳 | 161 | 45 | 2800 | 350 | 280 | 5 | 62 | 68 | 55 | 58 | 50 |
 |  | 軍神 | 関羽 雲長 | 160 | 38 | 3500 | 420 | 150 | 4 | 95 | 88 | 72 | 35 | 55 |
 |  | 猛将 | 張飛 翼徳 | 167 | 52 | 3200 | 380 | 80 | 3 | 97 | 82 | 40 | 18 | 62 |
 |  | 軍師 | 諸葛亮 孔明 | 181 | 30 | 1800 | 280 | 580 | 3 | 25 | 38 | 65 | 99 | 45 |
-|~平均  |~  |~  |~  |~41.25  |~2825  |~357.5  |~272.5  |~3.75  |~69.75  |~69  |~58  |~52.5  |~53  |
+|~平均 |~ |~ |~ |~41.25 |~2825 |~357.5 |~272.5 |~3.75 |~69.75 |~69 |~58 |~52.5 |~53 |
 ````
 
 #### csv
@@ -2307,23 +2307,23 @@ make example target=backlog mode=stream data=transformer
 `Table` output:
 
 ````text
-|~TEAM  |~CLASS  |~NAME        |~BIRTH  |~ATB GAUGE  |~HIT POINT              |~SKILL POINT  |~SPELL POINT  |~LIFE POINT  |~STRENGTH                |~STAMINA  |~DEXTERITY  |~MAGIC  |~SPEED                  |
-| 蜀    | 君主   | 劉備 玄徳   | 161    | 45         | 2800                   | 350          | 280          | 5           | 62                      | 68       | 55         | 58     | 50                     |
-|       | 軍神   | 関羽 雲長   | 160    | 38         | &color(red){''*3500''} | 420          | 150          | 4           | &color(yellow){''*95''} | 88       | 72         | 35     | 55                     |
-|       | 猛将   | 張飛 翼徳   | 167    | 52         | &color(red){''*3200''} | 380          | 80           | 3           | &color(yellow){''*97''} | 82       | 40         | 18     | &color(green){''*62''} |
-|       | 軍師   | 諸葛亮 孔明 | 181    | 30         | 1800                   | 280          | 580          | 3           | 25                      | 38       | 65         | 99     | 45                     |
-|~平均  |~       |~            |~       |~41.25      |~2825                   |~357.5        |~272.5        |~3.75        |~69.75                   |~69       |~58         |~52.5   |~53                     |
+|~TEAM |~CLASS |~NAME        |~BIRTH |~ATB GAUGE |~HIT POINT              |~SKILL POINT |~SPELL POINT |~LIFE POINT |~STRENGTH                |~STAMINA |~DEXTERITY |~MAGIC |~SPEED                  |
+| 蜀   | 君主  | 劉備 玄徳   | 161   | 45        | 2800                   | 350         | 280         | 5          | 62                      | 68      | 55        | 58    | 50                     |
+|      | 軍神  | 関羽 雲長   | 160   | 38        | &color(red){''*3500''} | 420         | 150         | 4          | &color(yellow){''*95''} | 88      | 72        | 35    | 55                     |
+|      | 猛将  | 張飛 翼徳   | 167   | 52        | &color(red){''*3200''} | 380         | 80          | 3          | &color(yellow){''*97''} | 82      | 40        | 18    | &color(green){''*62''} |
+|      | 軍師  | 諸葛亮 孔明 | 181   | 30        | 1800                   | 280         | 580         | 3          | 25                      | 38      | 65        | 99    | 45                     |
+|~平均 |~      |~            |~      |~41.25     |~2825                   |~357.5       |~272.5       |~3.75       |~69.75                   |~69      |~58        |~52.5  |~53                     |
 ````
 
 `Stream` output:
 
 ````text
-|~TEAM  |~CLASS  |~NAME  |~BIRTH  |~ATB GAUGE  |~HIT POINT  |~SKILL POINT  |~SPELL POINT  |~LIFE POINT  |~STRENGTH  |~STAMINA  |~DEXTERITY  |~MAGIC  |~SPEED  |
+|~TEAM |~CLASS |~NAME |~BIRTH |~ATB GAUGE |~HIT POINT |~SKILL POINT |~SPELL POINT |~LIFE POINT |~STRENGTH |~STAMINA |~DEXTERITY |~MAGIC |~SPEED |
 | 蜀 | 君主 | 劉備 玄徳 | 161 | 45 | 2800 | 350 | 280 | 5 | 62 | 68 | 55 | 58 | 50 |
 |  | 軍神 | 関羽 雲長 | 160 | 38 | &color(red){''*3500''} | 420 | 150 | 4 | &color(yellow){''*95''} | 88 | 72 | 35 | 55 |
 |  | 猛将 | 張飛 翼徳 | 167 | 52 | &color(red){''*3200''} | 380 | 80 | 3 | &color(yellow){''*97''} | 82 | 40 | 18 | &color(green){''*62''} |
 |  | 軍師 | 諸葛亮 孔明 | 181 | 30 | 1800 | 280 | 580 | 3 | 25 | 38 | 65 | 99 | 45 |
-|~平均  |~  |~  |~  |~41.25  |~2825  |~357.5  |~272.5  |~3.75  |~69.75  |~69  |~58  |~52.5  |~53  |
+|~平均 |~ |~ |~ |~41.25 |~2825 |~357.5 |~272.5 |~3.75 |~69.75 |~69 |~58 |~52.5 |~53 |
 ````
 
 #### csv
@@ -2820,15 +2820,15 @@ make example target=backlog mode=stream data=complex
 `Table` output:
 
 ````text
-|~STRING  |~NUMBER  |~FLOAT  |~TIME.TIME - STRING()          |~TIME.DURATION - STRING()  |~STRING SLICE                                      |~STRING ARRAY                                         |~INT SLICE                |~STRUCT                                                            |~MAP                                                                             |~NESTED SLICE                                                     |~WRAPPED CONTENT                                                                                                                                                             |
-| entry 1 | 123     | 3.14   | 2026-05-01 12:34:56 +0000 UTC | 2h30m0s                   | &color("", green){''1/3: a&br;2/3: b&br;3/3: c''} | &color("", yellow){'''1/3: x&br;2/3: y&br;3/3: z'''} | &color(blue){%%sum=6%%}  | &color(black){{value1 256}}                                       | &color(black){map[key1:value1 key2:value2]}                                     | &color(black){[{Line1 Line2 Line3}]}                             | ''Line1&br;Line2&br;Line3''                                                                                                                                                 |
-| entry 2 | 0       | 1e-41  | 2026-05-01 12:34:56 +0000 UTC | 1ns                       | &color("", green){''1/3: a&br;2/3: &br;3/3: c''}  | &color("", yellow){'''1/3:  &br;2/3: y&br;3/3: '''}  | &color(blue){%%sum=15%%} | &color(black){{value1 256 2026-05-01 12:34:56 +0000 UTC 2h30m0s}} | &color(black){map[key1:value1 key2:value2 key3:value3 key4:value4 key5:value5]} | &color(black){\\[\\[Line1 Line2 Line3] [Line4 Line5 Line6\\]\\]} | ''[&br;  [&br;    "i-00000000000000000",&br;    "server-1",&br;    "running"&br;  ],&br;  [&br;    "i-00000000000000001",&br;    "server-2",&br;    "stopped"&br;  ]&br;]'' |
+|~STRING  |~NUMBER |~FLOAT |~TIME.TIME - STRING()          |~TIME.DURATION - STRING() |~STRING SLICE                                      |~STRING ARRAY                                         |~INT SLICE                |~STRUCT                                                            |~MAP                                                                             |~NESTED SLICE                                                     |~WRAPPED CONTENT                                                                                                                                                             |
+| entry 1 | 123    | 3.14  | 2026-05-01 12:34:56 +0000 UTC | 2h30m0s                  | &color("", green){''1/3: a&br;2/3: b&br;3/3: c''} | &color("", yellow){'''1/3: x&br;2/3: y&br;3/3: z'''} | &color(blue){%%sum=6%%}  | &color(black){{value1 256}}                                       | &color(black){map[key1:value1 key2:value2]}                                     | &color(black){[{Line1 Line2 Line3}]}                             | ''Line1&br;Line2&br;Line3''                                                                                                                                                 |
+| entry 2 | 0      | 1e-41 | 2026-05-01 12:34:56 +0000 UTC | 1ns                      | &color("", green){''1/3: a&br;2/3: &br;3/3: c''}  | &color("", yellow){'''1/3:  &br;2/3: y&br;3/3: '''}  | &color(blue){%%sum=15%%} | &color(black){{value1 256 2026-05-01 12:34:56 +0000 UTC 2h30m0s}} | &color(black){map[key1:value1 key2:value2 key3:value3 key4:value4 key5:value5]} | &color(black){\\[\\[Line1 Line2 Line3] [Line4 Line5 Line6\\]\\]} | ''[&br;  [&br;    "i-00000000000000000",&br;    "server-1",&br;    "running"&br;  ],&br;  [&br;    "i-00000000000000001",&br;    "server-2",&br;    "stopped"&br;  ]&br;]'' |
 ````
 
 `Stream` output:
 
 ````text
-|~STRING  |~NUMBER  |~FLOAT  |~TIME.TIME - STRING()  |~TIME.DURATION - STRING()  |~STRING SLICE  |~STRING ARRAY  |~INT SLICE  |~STRUCT  |~MAP  |~NESTED SLICE  |~WRAPPED CONTENT  |
+|~STRING |~NUMBER |~FLOAT |~TIME.TIME - STRING() |~TIME.DURATION - STRING() |~STRING SLICE |~STRING ARRAY |~INT SLICE |~STRUCT |~MAP |~NESTED SLICE |~WRAPPED CONTENT |
 | entry 1 | 123 | 3.14 | 2026-05-01 12:34:56 +0000 UTC | 2h30m0s | &color("", green){''1/3: a&br;2/3: b&br;3/3: c''} | &color("", yellow){'''1/3: x&br;2/3: y&br;3/3: z'''} | &color(blue){%%sum=6%%} | &color(black){{value1 256}} | &color(black){map[key1:value1 key2:value2]} | &color(black){[{Line1 Line2 Line3}]} | ''Line1&br;Line2&br;Line3'' |
 | entry 2 | 0 | 1e-41 | 2026-05-01 12:34:56 +0000 UTC | 1ns | &color("", green){''1/3: a&br;2/3: &br;3/3: c''} | &color("", yellow){'''1/3:  &br;2/3: y&br;3/3: '''} | &color(blue){%%sum=15%%} | &color(black){{value1 256 2026-05-01 12:34:56 +0000 UTC 2h30m0s}} | &color(black){map[key1:value1 key2:value2 key3:value3 key4:value4 key5:value5]} | &color(black){\\[\\[Line1 Line2 Line3] [Line4 Line5 Line6\\]\\]} | ''[&br;  [&br;    "i-00000000000000000",&br;    "server-1",&br;    "running"&br;  ],&br;  [&br;    "i-00000000000000001",&br;    "server-2",&br;    "stopped"&br;  ]&br;]'' |
 ````
@@ -3083,19 +3083,19 @@ make example target=backlog mode=stream data=stacked-header
 `Table` output:
 
 ````text
-|~AWS RESOURCE  |~        |~          |~       |~      |
-|~NETWORK       |~        |~SECURITY  |~       |~      |
-|~VPC           |~SUBNET  |~SG        |~NACL   |~ID    |
-| vpc-1         | sub-1   | sg-1      | nacl-1 | i-001 |
-| vpc-2         | sub-2   | sg-2      | nacl-2 | i-002 |
+|~AWS RESOURCE |~       |~         |~       |~      |
+|~NETWORK      |~       |~SECURITY |~       |~      |
+|~VPC          |~SUBNET |~SG       |~NACL   |~ID    |
+| vpc-1        | sub-1  | sg-1     | nacl-1 | i-001 |
+| vpc-2        | sub-2  | sg-2     | nacl-2 | i-002 |
 ````
 
 `Stream` output:
 
 ````text
-|~AWS RESOURCE  |~  |~  |~  |~  |
-|~NETWORK  |~  |~SECURITY  |~  |~  |
-|~VPC  |~SUBNET  |~SG  |~NACL  |~ID  |
+|~AWS RESOURCE |~ |~ |~ |~ |
+|~NETWORK |~ |~SECURITY |~ |~ |
+|~VPC |~SUBNET |~SG |~NACL |~ID |
 | vpc-1 | sub-1 | sg-1 | nacl-1 | i-001 |
 | vpc-2 | sub-2 | sg-2 | nacl-2 | i-002 |
 ````

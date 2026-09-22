@@ -1,2 +1,2 @@
-|~Name  |~Value  |
+|~Name |~Value |
 | foo | 1 |

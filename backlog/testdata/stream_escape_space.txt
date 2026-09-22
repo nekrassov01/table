@@ -1,4 +1,4 @@
-|~Key  |~Value  |
+|~Key |~Value |
 | interior | a b |
 | run | a  b |
 | lead |   a |

@@ -1,4 +1,4 @@
-|~日本語  |~ASCII  |
+|~日本語 |~ASCII |
 | あいう | abc |
 | 日本 | longer-text |
 | テスト | x |

@@ -1,4 +1,4 @@
-|~Label  |~Value  |
+|~Label |~Value |
 | text | hello |
 | number | 42 |
 | nil |   |

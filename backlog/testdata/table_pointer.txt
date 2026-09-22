@@ -1,2 +1,2 @@
-|~a     |~b  |
-| alive | y  |
+|~a     |~b |
+| alive | y |

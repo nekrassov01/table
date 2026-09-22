@@ -1,5 +1,5 @@
-|~Kind  |~Value  |
-| nil   |        |
-| empty |        |
-| space |        |
-| text  | hello  |
+|~Kind  |~Value |
+| nil   |       |
+| empty |       |
+| space |       |
+| text  | hello |

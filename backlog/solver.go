@@ -24,26 +24,23 @@ func (o *solver) prepare() {
 // solve measures compiled rows and resolves final column geometry. Only Table
 // calls it because a Stream cannot look ahead to future rows.
 func (o *solver) solve() {
-	o.measureRows(o.input.header, true)
-	o.measureRows(o.input.body, false)
-	o.measureRows(o.input.footer, true)
+	o.measureRows(o.input.header)
+	o.measureRows(o.input.body)
+	o.measureRows(o.input.footer)
 }
 
 // measureRows accumulates metrics from rows in input order.
-func (o *solver) measureRows(rows []row, band bool) {
+func (o *solver) measureRows(rows []row) {
 	for index := range rows {
-		o.measureRow(&rows[index], band)
+		o.measureRow(&rows[index])
 	}
 }
 
 // measureRow accumulates the maximum cell width in every column.
-func (o *solver) measureRow(r *row, band bool) {
+func (o *solver) measureRow(r *row) {
 	metrics := o.state.columnMetrics
 	for index := range metrics {
 		cellWidth := r.cells[index].width
-		if band {
-			cellWidth += len(bandMarker)
-		}
 		metric := &metrics[index]
 		metric.box.width = max(metric.box.width, cellWidth)
 	}

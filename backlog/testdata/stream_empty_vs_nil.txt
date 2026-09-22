@@ -1,4 +1,4 @@
-|~Kind  |~Value  |
+|~Kind |~Value |
 | nil |   |
 | empty |   |
 | space |   |
