@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.2.1](https://github.com/nekrassov01/table/compare/v0.2.0...v0.2.1) - 2026-09-22
+
+- Correct backlog header and footer padding by @nekrassov01 in https://github.com/nekrassov01/table/pull/43
+
 ## [v0.2.0](https://github.com/nekrassov01/table/compare/v0.1.4...v0.2.0) - 2026-09-20
 
 - Use table.Value for row inputs and transformers by @nekrassov01 in https://github.com/nekrassov01/table/pull/40
