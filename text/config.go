@@ -109,10 +109,10 @@ func (o *columnSet) resolve(columns []columnConfig, columnCount int) []columnCon
 // columnConfig holds text settings for one logical column.
 type columnConfig struct {
 	transformer transformer             // Value transformation and attributes.
-	aligns      scope.Scopes[AlignSide] // Alignment by table part.
 	limit       int                     // Configured display width; zero is unconstrained.
 	lPad        int                     // Left padding width.
 	rPad        int                     // Right padding width.
+	aligns      scope.Scopes[AlignSide] // Alignment by table part.
 	rowspan     Scope                   // Parts that span equal values vertically.
 	colspan     Scope                   // Parts that span equal values horizontally.
 	truncate    bool                    // Whether overflow is truncated instead of wrapped.

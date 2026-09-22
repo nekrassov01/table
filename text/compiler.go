@@ -319,11 +319,11 @@ type compilerResult struct {
 	header          []row  // Compiled header rows in top-to-bottom order.
 	body            []row  // Compiled body rows in top-to-bottom order.
 	footer          []row  // Compiled footer rows in top-to-bottom order.
+	placeholder     string // Placeholder after displayed-value normalization.
 	rowspanMask     uint64 // Columns configured for body rowspans.
 	previousBars    uint64 // Boundaries inherited from the preceding body row.
 	lastBars        uint64 // Final body row boundaries, or inherited boundaries without a body.
 	attrLen         uint32 // Greatest dynamic attribute byte length used for capacity estimation.
-	placeholder     string // Placeholder after displayed-value normalization.
 	hasPreviousBody bool   // Whether a body row precedes this result.
 }
 
