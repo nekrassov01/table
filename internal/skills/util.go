@@ -10,11 +10,11 @@ import (
 )
 
 type command struct {
-	name      string
-	args      []string
-	directory string
 	stdout    io.Writer
 	stderr    io.Writer
+	name      string
+	directory string
+	args      []string
 }
 
 type commandExecutor func(context.Context, command) error

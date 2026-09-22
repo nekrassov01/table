@@ -6,7 +6,7 @@ import (
 
 	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/internal/scope"
-	spans "github.com/nekrassov01/table/internal/span"
+	"github.com/nekrassov01/table/internal/span"
 	"github.com/nekrassov01/table/internal/testutil"
 	"github.com/nekrassov01/table/internal/value"
 )
@@ -92,7 +92,7 @@ func Test_compiler_prepare(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			state := test.fields.state
-			spans.Rowspans(1, []string{"same"}, &state.previousBody)
+			span.Rowspans(1, []string{"same"}, &state.previousBody)
 			strings := test.fields.strings
 			o := &compiler{
 				input:   test.fields.input,
@@ -100,7 +100,7 @@ func Test_compiler_prepare(t *testing.T) {
 				strings: &strings,
 			}
 			o.prepare()
-			previousSpan := spans.Rowspans(1, []string{"same"}, &state.previousBody)
+			previousSpan := span.Rowspans(1, []string{"same"}, &state.previousBody)
 			got := want{
 				rowsLen:       len(state.rows),
 				rowsCap:       cap(state.rows),
@@ -818,7 +818,7 @@ func Test_compiler_setSpans(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			state := test.fields.state
-			spans.Rowspans(state.rowspans.Resolve(test.args.scope), test.args.previous, &state.previousBody)
+			span.Rowspans(state.rowspans.Resolve(test.args.scope), test.args.previous, &state.previousBody)
 			o := &compiler{
 				state: &state,
 			}

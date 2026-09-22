@@ -74,8 +74,8 @@ func (o Selector) denseEnd(columnCount int) (int, bool) {
 
 // Set holds explicit column settings and the default applied to every column.
 type Set[T any] struct {
-	Values []T // Explicit settings for the contiguous input-column prefix.
 	state  *setState[T]
+	Values []T // Explicit settings for the contiguous input-column prefix.
 }
 
 // Default returns settings inherited by every input column, or nil when unset.
@@ -260,15 +260,15 @@ func (o *Set[T]) resolveState(columns []T, columnCount int, defaults T) []T {
 
 // setState holds settings that are absent from the common dense representation.
 type setState[T any] struct {
-	values      []value[T]
 	defaults    T
+	values      []value[T]
 	hasDefaults bool
 }
 
 // value pairs an input column index with its explicit settings.
 type value[T any] struct {
-	index  int
 	config T
+	index  int
 }
 
 // findValue returns the sorted position of index in values.

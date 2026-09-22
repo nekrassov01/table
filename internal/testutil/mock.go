@@ -2,8 +2,8 @@ package testutil
 
 // Tabular records rows passed to Render and returns Err.
 type Tabular[T any] struct {
-	Rows [][]T
 	Err  error
+	Rows [][]T
 }
 
 // Render records rows and returns Err.
@@ -14,9 +14,9 @@ func (o *Tabular[T]) Render(rows [][]T) error {
 
 // Streamer records rows passed to Render and returns configured errors.
 type Streamer[T any] struct {
-	Rows      [][]T
 	RenderErr error
 	CloseErr  error
+	Rows      [][]T
 }
 
 // Render records row and returns RenderErr.
@@ -103,8 +103,8 @@ func (o *ErrorWriter) Write([]byte) (int, error) {
 
 // MatchErrorWriter returns Err when a write exactly matches Value.
 type MatchErrorWriter struct {
-	Value string
 	Err   error
+	Value string
 }
 
 // Write consumes input other than Value.

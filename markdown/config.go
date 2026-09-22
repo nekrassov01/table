@@ -35,15 +35,15 @@ func (o *config) prepare() {
 type configResult struct {
 	option   *option        // Options fixed at construction.
 	header   []string       // The required header row.
-	bodyRows int            // Number of body rows in this pass.
 	columns  []columnConfig // Resolved column settings in logical order.
+	bodyRows int            // Number of body rows in this pass.
 }
 
 // option holds settings fixed when a Table or Stream is constructed.
 type option struct {
+	columns     columnSet // Input columns and their defaults.
 	placeholder string    // Text for a missing value.
 	header      []string  // The required header row.
-	columns     columnSet // Input columns and their defaults.
 }
 
 // apply sets defaults and applies opts in order.

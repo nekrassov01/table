@@ -9,10 +9,10 @@ import (
 // solver measures logical rows and derives the column metrics required by the
 // painter.
 type solver struct {
-	input      compilerResult // Logical table currently being solved.
 	state      *solverState   // Reusable column-metric state.
-	widthLimit int            // Terminal width limit for automatic fitting.
+	input      compilerResult // Logical table currently being solved.
 	output     solverResult   // Logical table paired with solved column metrics.
+	widthLimit int            // Terminal width limit for automatic fitting.
 }
 
 // prepare initializes column metrics from compiler output.

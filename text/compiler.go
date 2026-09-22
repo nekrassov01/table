@@ -20,12 +20,12 @@ const allBars = ^uint64(0)
 // compiler formats input values and resolves spans and visible boundaries into
 // the logical rows consumed by a solver.
 type compiler struct {
-	input     configResult   // Resolved columns and input being compiled.
-	state     *compilerState // Reusable compilation state.
-	strings   *value.Store   // Storage for formatted and derived values.
-	bodyStart int            // First body row in compilerState.rows; -1 before the body.
 	err       error          // Structural input error from the current compilation.
+	strings   *value.Store   // Storage for formatted and derived values.
+	state     *compilerState // Reusable compilation state.
+	input     configResult   // Resolved columns and input being compiled.
 	output    compilerResult // Logical table accumulated by this compiler.
+	bodyStart int            // First body row in compilerState.rows; -1 before the body.
 }
 
 // prepare sizes reusable storage and initializes span state from the resolved
@@ -316,6 +316,7 @@ func (o *compiler) setBars(r *row, previousBars uint64, sc Scope) {
 type compilerResult struct {
 	configResult
 
+	placeholder     string // Placeholder after displayed-value normalization.
 	header          []row  // Compiled header rows in top-to-bottom order.
 	body            []row  // Compiled body rows in top-to-bottom order.
 	footer          []row  // Compiled footer rows in top-to-bottom order.
@@ -323,7 +324,6 @@ type compilerResult struct {
 	previousBars    uint64 // Boundaries inherited from the preceding body row.
 	lastBars        uint64 // Final body row boundaries, or inherited boundaries without a body.
 	attrLen         uint32 // Greatest dynamic attribute byte length used for capacity estimation.
-	placeholder     string // Placeholder after displayed-value normalization.
 	hasPreviousBody bool   // Whether a body row precedes this result.
 }
 
@@ -338,8 +338,8 @@ type row struct {
 // cell holds the resolved value, attribute, and solved measurements of one
 // logical cell.
 type cell struct {
-	value    string // Resolved display value.
 	attr     *Attr  // Optional display attribute.
+	value    string // Resolved display value.
 	width    int    // Known display width of the widest physical line; zero if unresolved.
 	hasBreak bool   // Whether value contains a line break.
 }

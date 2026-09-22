@@ -10,8 +10,8 @@ var _ table.Tabular = (*Table)(nil)
 
 // Table renders a complete set of rows as a GFM table.
 type Table struct {
-	option option    // Options fixed at construction.
 	w      io.Writer // Output destination.
+	option option    // Options fixed at construction.
 }
 
 // NewTable creates a [Table] that writes to w with the given options.

@@ -13,10 +13,10 @@ const placeholder = ""
 // config validates construction options and resolves pass data into logical
 // columns.
 type config struct {
-	bodyColumns int          // Body width used to resolve logical columns.
-	state       *configState // Reusable config state.
 	err         error        // Invalid delimiter configuration.
+	state       *configState // Reusable config state.
 	output      configResult // Pass data paired with resolved columns.
+	bodyColumns int          // Body width used to resolve logical columns.
 }
 
 // prepare validates the delimiter and resolves logical columns. A non-empty
@@ -45,17 +45,17 @@ type configResult struct {
 	option        *option        // Options fixed at construction.
 	header        []string       // Header fields in input order.
 	footer        [][]string     // Footer rows in top-to-bottom order.
-	bodyRows      int            // Number of body rows in this pass.
 	columns       []columnConfig // Resolved column settings in logical order.
+	bodyRows      int            // Number of body rows in this pass.
 	footerColumns int            // Footer width resolved for the current config pass.
 }
 
 // option holds settings fixed when a Table or Stream is constructed.
 type option struct {
+	columns     columnSet         // Input columns and their defaults.
+	footer      func() [][]string // Generates footer rows for Render or Close.
 	placeholder string            // Text for a missing value.
 	header      []string          // The optional header row.
-	footer      func() [][]string // Generates footer rows for Render or Close.
-	columns     columnSet         // Input columns and their defaults.
 	delimiter   rune              // Field delimiter.
 	crlf        bool              // Whether records use CRLF line endings.
 }

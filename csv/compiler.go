@@ -10,12 +10,12 @@ import (
 // compiler formats and quotes input values into the logical rows consumed by
 // a painter.
 type compiler struct {
-	input     configResult   // Resolved columns and input being compiled.
-	state     *compilerState // Reusable compilation state.
-	strings   *value.Store   // Storage for formatted values.
-	bodyStart int            // First body row in compilerState.rows; -1 before the body.
 	err       error          // Structural input error from the current compilation.
+	strings   *value.Store   // Storage for formatted values.
+	state     *compilerState // Reusable compilation state.
+	input     configResult   // Resolved columns and input being compiled.
 	output    compilerResult // Compiled records accumulated by this compiler.
+	bodyStart int            // First body row in compilerState.rows; -1 before the body.
 }
 
 // prepare sizes reusable storage for the current pass.

@@ -163,10 +163,10 @@ type compilerState struct {
 	rows         []row            // Backing for compiled logical rows.
 	escapes      []byte           // Backing for escaped values.
 	values       []string         // Resolved values for the current row.
-	rowspans     scope.Masks      // Rowspan masks by table part.
-	colspans     scope.Masks      // Colspan masks by table part.
 	previousBody span.PreviousRow // Previous body row retained across stream renders.
 	previousBand span.PreviousRow // Previous header or footer row within its current band.
+	rowspans     scope.Masks      // Rowspan masks by table part.
+	colspans     scope.Masks      // Colspan masks by table part.
 }
 
 // solverState owns reusable column-metric storage retained by streams.

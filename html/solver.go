@@ -2,8 +2,8 @@ package html
 
 // solver resolves row and column span geometry in compiled HTML rows.
 type solver struct {
-	input  compilerResult // Compiled table being solved.
 	state  *solverState   // Reusable span-geometry state.
+	input  compilerResult // Compiled table being solved.
 	output solverResult   // Compiled table with span geometry resolved in place.
 }
 

@@ -11,12 +11,12 @@ import (
 // compiler formats and escapes input values, then resolves them into the
 // logical rows consumed by a solver.
 type compiler struct {
-	input     configResult   // Resolved columns and input being compiled.
-	state     *compilerState // Reusable compilation state.
-	strings   *value.Store   // Storage for formatted and derived values.
-	bodyStart int            // First body row in compilerState.rows; -1 before the body.
 	err       error          // Structural input error from the current compilation.
+	strings   *value.Store   // Storage for formatted and derived values.
+	state     *compilerState // Reusable compilation state.
+	input     configResult   // Resolved columns and input being compiled.
 	output    compilerResult // Compiled table accumulated by this compiler.
+	bodyStart int            // First body row in compilerState.rows; -1 before the body.
 }
 
 // prepare sizes reusable storage and initializes body span state from the
@@ -238,10 +238,10 @@ type row struct {
 
 // cell holds an escaped value and the markup written around it.
 type cell struct {
+	color      *Color      // Optional HTML color span around value or code markup.
+	decoration *Decoration // Optional non-code Markdown decoration.
 	value      string      // Escaped display value.
 	width      int         // Display width including visible markup bytes.
 	size       int         // Bytes written for the value and its markup.
-	color      *Color      // Optional HTML color span around value or code markup.
-	decoration *Decoration // Optional non-code Markdown decoration.
 	ticks      int         // Code-fence length; zero outside code spans.
 }

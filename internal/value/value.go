@@ -10,9 +10,7 @@
 // or convert the value before passing it to a Table or Stream.
 package value
 
-import (
-	"math"
-)
+import "math"
 
 type tagString *byte
 type tagBytes *byte
@@ -37,8 +35,8 @@ type tagBool uint8
 // Pointer-shaped string and byte tags keep borrowed data reachable by the GC.
 type Value struct {
 	_   [0]func()
-	num uint64
 	any any
+	num uint64
 }
 
 // String retains a string value without boxing.

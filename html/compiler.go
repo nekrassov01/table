@@ -13,12 +13,12 @@ import (
 // compiler formats and escapes input values, then resolves them into the
 // logical rows consumed by a solver.
 type compiler struct {
-	input     configResult   // Resolved columns and input being compiled.
-	state     *compilerState // Reusable compilation state.
-	strings   *value.Store   // Storage for formatted values.
-	bodyStart int            // First body row in compilerState.rows; -1 before the body.
 	err       error          // Structural input error from the current compilation.
+	strings   *value.Store   // Storage for formatted values.
+	state     *compilerState // Reusable compilation state.
+	input     configResult   // Resolved columns and input being compiled.
 	output    compilerResult // Compiled table accumulated by this compiler.
+	bodyStart int            // First body row in compilerState.rows; -1 before the body.
 }
 
 // prepare sizes reusable storage, initializes span state, and escapes the
@@ -281,11 +281,11 @@ func (o *compiler) setSpans(r *row, sc Scope, previous *span.PreviousRow) {
 type compilerResult struct {
 	configResult
 
+	caption         string // Escaped caption text.
 	header          []row  // Compiled header rows in top-to-bottom order.
 	body            []row  // Compiled body rows in top-to-bottom order.
 	footer          []row  // Compiled footer rows in top-to-bottom order.
 	columnSizes     []int  // Greatest value and inner-markup byte size by column.
-	caption         string // Escaped caption text.
 	hasPreviousBody bool   // Whether a body row precedes this result.
 }
 
@@ -298,10 +298,10 @@ type row struct {
 
 // cell holds an escaped display value and its span state.
 type cell struct {
-	value      string      // Escaped display value.
-	size       int         // Bytes written for the value and its inner markup.
 	color      *Color      // Optional color markup inside decoration markup.
 	decoration *Decoration // Optional outer decoration markup.
+	value      string      // Escaped display value.
+	size       int         // Bytes written for the value and its inner markup.
 	rowspan    int         // Resolved rowspan count; zero or one needs no attribute.
 	colspan    int         // Resolved colspan count; zero when another cell emits this cell.
 }

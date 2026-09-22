@@ -156,10 +156,10 @@ type compilerState struct {
 	escapes      []byte           // Backing for escaped values.
 	values       []string         // Resolved values for the current row.
 	columnSizes  []int            // Greatest compiled byte size by column.
-	rowspans     scope.Masks      // Rowspan masks by table part.
-	colspans     scope.Masks      // Colspan masks by table part.
 	previousBody span.PreviousRow // Previous body row retained across stream renders.
 	previousBand span.PreviousRow // Previous row within the current header or footer.
+	rowspans     scope.Masks      // Rowspan masks by table part.
+	colspans     scope.Masks      // Colspan masks by table part.
 }
 
 // solverState owns reusable span-geometry storage.
