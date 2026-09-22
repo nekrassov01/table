@@ -10,10 +10,10 @@ var _ table.Streamer = (*Stream)(nil)
 
 // Stream renders rows incrementally as delimiter-separated records.
 type Stream struct {
-	option option    // Options fixed at construction.
 	w      io.Writer // Output destination.
 	err    error     // Sticky output error.
 	arena  *arena    // State retained while the stream is active.
+	option option    // Options fixed at construction.
 	closed bool      // Whether Close has been called.
 }
 

@@ -7,10 +7,10 @@ import (
 
 // painter writes compiled logical rows as delimiter-separated records.
 type painter struct {
-	input compilerResult // Compiled records to paint.
-	state *painterState  // Reusable painting state.
 	w     io.Writer      // Output destination.
 	err   error          // Sticky output error.
+	state *painterState  // Reusable painting state.
+	input compilerResult // Compiled records to paint.
 }
 
 // prepare sizes the reusable output buffer for the largest record in the

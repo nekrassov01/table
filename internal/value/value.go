@@ -35,8 +35,8 @@ type tagBool uint8
 // Pointer-shaped string and byte tags keep borrowed data reachable by the GC.
 type Value struct {
 	_   [0]func()
-	num uint64
 	any any
+	num uint64
 }
 
 // String retains a string value without boxing.

@@ -3,8 +3,8 @@ package backlog
 // solver measures compiled rows and derives the column metrics required by
 // the painter.
 type solver struct {
-	input  compilerResult // Compiled table currently being solved.
 	state  *solverState   // Reusable column-metric state.
+	input  compilerResult // Compiled table currently being solved.
 	output solverResult   // Compiled table paired with column geometry.
 }
 

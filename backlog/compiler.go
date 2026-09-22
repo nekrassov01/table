@@ -14,12 +14,12 @@ import (
 // compiler formats and escapes input values, then resolves them into the
 // logical rows consumed by a solver.
 type compiler struct {
-	input     configResult   // Resolved columns and input being compiled.
-	state     *compilerState // Reusable compilation state.
-	strings   *value.Store   // Storage for formatted and derived values.
-	bodyStart int            // First body row in compilerState.rows; -1 before the body.
 	err       error          // Structural input error from the current compilation.
+	strings   *value.Store   // Storage for formatted and derived values.
+	state     *compilerState // Reusable compilation state.
+	input     configResult   // Resolved columns and input being compiled.
 	output    compilerResult // Compiled table accumulated by this compiler.
+	bodyStart int            // First body row in compilerState.rows; -1 before the body.
 }
 
 // prepare sizes reusable storage and initializes span state from the resolved
@@ -287,9 +287,9 @@ type row struct {
 
 // cell holds an escaped value and the markup written around it.
 type cell struct {
+	color      *Color      // Optional outer Backlog color notation.
+	decoration *Decoration // Optional decoration inside color notation.
 	value      string      // Escaped display value.
 	width      int         // Display width including visible markup bytes.
 	size       int         // Bytes written for the value and its markup.
-	color      *Color      // Optional outer Backlog color notation.
-	decoration *Decoration // Optional decoration inside color notation.
 }

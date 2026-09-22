@@ -11,10 +11,10 @@ const bandMarker = "~"
 
 // painter writes solved logical rows as a Backlog table.
 type painter struct {
-	input solverResult  // Compiled rows and column geometry.
-	state *painterState // Reusable painting state.
 	w     io.Writer     // Output destination.
 	err   error         // Sticky output error.
+	state *painterState // Reusable painting state.
+	input solverResult  // Compiled rows and column geometry.
 }
 
 // prepare sizes the reusable output buffer for the maximum line size in the

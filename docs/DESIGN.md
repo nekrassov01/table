@@ -61,6 +61,8 @@ Capacity estimation applies across the pipeline and does not belong exclusively 
 
 Do not add helper types without measured justification or wrappers that merely delegate work. Do not replace a short name with a longer one solely to avoid brevity.
 
+Field layout optimization preserves semantic order. Stage fields retain the relative order `state` -> `result` -> `input` -> `output`, omitting fields that are absent. Arena state follows pipeline order, and row sections follow header, body, footer order. Embedded fields remain first. Reduce padding and the leading region containing pointers only within these constraints; field alignment diagnostics do not override them.
+
 ## Design decisions
 
 ### Separate Table and Stream control flow

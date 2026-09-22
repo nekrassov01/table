@@ -156,9 +156,9 @@ type compilerState struct {
 	rows         []row            // Backing for compiled logical rows.
 	escapes      []byte           // Backing for escaped values.
 	values       []string         // Resolved values for the current row.
+	previousBody span.PreviousRow // Previous body row retained across stream renders.
 	rowspans     uint64           // Body columns that span equal values vertically.
 	colspans     uint64           // Body columns that span equal values horizontally.
-	previousBody span.PreviousRow // Previous body row retained across stream renders.
 }
 
 // solverState owns reusable column-metric storage retained by streams.

@@ -178,10 +178,10 @@ type compilerState struct {
 	cells        []cell           // Backing for compiled logical cells.
 	rows         []row            // Backing for compiled logical rows.
 	spanValues   []string         // Scratch for values passed to span detection.
-	rowspans     scope.Masks      // Rowspan masks by table part.
-	colspans     scope.Masks      // Colspan masks by table part.
 	previousBody span.PreviousRow // Previous body row retained across stream renders.
 	previousBand span.PreviousRow // Previous header or footer row within its current band.
+	rowspans     scope.Masks      // Rowspan masks by table part.
+	colspans     scope.Masks      // Colspan masks by table part.
 	lastBars     uint64           // Boundaries produced by the latest body row.
 }
 

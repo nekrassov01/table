@@ -291,9 +291,9 @@ func (o runner) runCSV(rows [][]table.Value) error {
 }
 
 type example struct {
-	rows     [][]table.Value
 	tabular  table.Tabular
 	streamer table.Streamer
+	rows     [][]table.Value
 }
 
 func newExample(rows [][]table.Value) example {

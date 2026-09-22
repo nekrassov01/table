@@ -9,10 +9,10 @@ import (
 
 // painter writes solved logical rows as HTML elements.
 type painter struct {
-	input solverResult  // Solved table to paint.
-	state *painterState // Reusable painting state.
 	w     io.Writer     // Output destination.
 	err   error         // Sticky output error.
+	state *painterState // Reusable painting state.
+	input solverResult  // Solved table to paint.
 }
 
 // prepare sizes the reusable output buffer for the largest block written at

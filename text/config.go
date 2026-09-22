@@ -13,9 +13,9 @@ const placeholder = " "
 
 // config resolves construction options and pass data into logical columns.
 type config struct {
-	bodyColumns int          // Body width used to resolve logical columns.
 	state       *configState // Reusable config state.
 	output      configResult // Pass data paired with resolved columns.
+	bodyColumns int          // Body width used to resolve logical columns.
 }
 
 // prepare resolves logical columns. A non-empty header fixes their count;
@@ -40,19 +40,19 @@ type configResult struct {
 	option        *option        // Options fixed at construction.
 	header        [][]string     // Header rows in top-to-bottom order.
 	footer        [][]string     // Footer rows in top-to-bottom order.
-	bodyRows      int            // Number of body rows in this pass.
 	columns       []columnConfig // Resolved column settings in logical order.
+	bodyRows      int            // Number of body rows in this pass.
 	footerColumns int            // Footer width resolved for the current config pass.
 }
 
 // option holds settings fixed when a Table or Stream is constructed.
 type option struct {
 	style       Style             // Border and content style.
-	placeholder string            // Text for a missing value.
-	header      [][]string        // Header rows in top-to-bottom order.
-	footer      func() [][]string // Generates footer rows for Render or Close.
-	caption     string            // Caption text.
 	columns     columnSet         // Input columns and their defaults.
+	footer      func() [][]string // Generates footer rows for Render or Close.
+	placeholder string            // Text for a missing value.
+	caption     string            // Caption text.
+	header      [][]string        // Header rows in top-to-bottom order.
 	captionSide CaptionSide       // Caption position.
 	compact     bool              // Whether body separators are omitted.
 	autoFit     bool              // Whether columns are fitted to the terminal width.

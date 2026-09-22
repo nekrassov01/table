@@ -277,9 +277,9 @@ func newFooterData() Data {
 		valueColumns = 10
 	)
 	type footerState struct {
-		bodyRows int
-		totals   [valueColumns]int
 		rows     [][]string
+		totals   [valueColumns]int
+		bodyRows int
 	}
 	data := Data{
 		Header: [][]string{

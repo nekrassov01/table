@@ -14,11 +14,11 @@ const ellipsis = "..."
 // painter arranges solved logical rows into physical lines and writes bordered
 // text.
 type painter struct {
-	input   solverResult  // Logical rows and solved column metrics to paint.
-	state   *painterState // Reusable painting state.
-	strings *value.Store  // Storage for truncated values.
 	w       io.Writer     // Output destination.
 	err     error         // Sticky output error.
+	state   *painterState // Reusable painting state.
+	strings *value.Store  // Storage for truncated values.
+	input   solverResult  // Logical rows and solved column metrics to paint.
 }
 
 // prepare sizes reusable painting buffers and resets cached horizon state.
