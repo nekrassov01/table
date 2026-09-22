@@ -10,9 +10,7 @@
 // or convert the value before passing it to a Table or Stream.
 package value
 
-import (
-	"math"
-)
+import "math"
 
 type tagString *byte
 type tagBytes *byte
