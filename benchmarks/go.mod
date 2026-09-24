@@ -8,7 +8,7 @@ require (
 	github.com/alexeyco/simpletable v1.0.0
 	github.com/jedib0t/go-pretty/v6 v6.8.3
 	github.com/nekrassov01/table v0.0.0
-	github.com/olekukonko/tablewriter v1.1.4
+	github.com/olekukonko/tablewriter v1.1.5
 )
 
 require (
