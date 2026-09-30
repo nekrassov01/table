@@ -263,7 +263,7 @@ The following tables compare the public APIs in the versions pinned by the [benc
 
 This table records the output implementations documented by each library. `✓` means the library provides a dedicated output mode for the format, and `-` means it does not. `table` targets the GFM table extension; the other Markdown entries indicate generic Markdown table output.
 
-| Output format    | `table` | [`go-pretty` v6.8.3](https://github.com/jedib0t/go-pretty/tree/v6.8.3) | [`tablewriter` v1.1.4](https://github.com/olekukonko/tablewriter/tree/v1.1.4) | [`simpletable` v1.0.0](https://github.com/alexeyco/simpletable/tree/v1.0.0) |
+| Output format    | `table` | [`go-pretty` v6.8.3](https://github.com/jedib0t/go-pretty/tree/v6.8.3) | [`tablewriter` v1.1.5](https://github.com/olekukonko/tablewriter/tree/v1.1.5) | [`simpletable` v1.0.0](https://github.com/alexeyco/simpletable/tree/v1.0.0) |
 | ---------------- | ------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | Text             | ✓       | ✓                                                                      | ✓                                                                             | ✓                                                                           |
 | HTML             | ✓       | ✓                                                                      | ✓                                                                             | -                                                                           |
@@ -276,7 +276,7 @@ This table records the output implementations documented by each library. `✓` 
 
 This table records whether each library exposes a direct public API for a capability in at least one output implementation. It does not imply that every format can express the capability.
 
-| Feature                         | `table` | [`go-pretty` v6.8.3](https://github.com/jedib0t/go-pretty/tree/v6.8.3) | [`tablewriter` v1.1.4](https://github.com/olekukonko/tablewriter/tree/v1.1.4) | [`simpletable` v1.0.0](https://github.com/alexeyco/simpletable/tree/v1.0.0) |
+| Feature                         | `table` | [`go-pretty` v6.8.3](https://github.com/jedib0t/go-pretty/tree/v6.8.3) | [`tablewriter` v1.1.5](https://github.com/olekukonko/tablewriter/tree/v1.1.5) | [`simpletable` v1.0.0](https://github.com/alexeyco/simpletable/tree/v1.0.0) |
 | ------------------------------- | ------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | Typed value input               | ✓       | -                                                                      | -                                                                             | -                                                                           |
 | Caller-defined row adapter      | ✓       | -                                                                      | ✓                                                                             | -                                                                           |
@@ -303,7 +303,7 @@ Typed value input means constructors such as `table.String()` and `table.Int()` 
 The compared versions use these input APIs:
 
 - [`go-pretty`](https://github.com/jedib0t/go-pretty/blob/v6.8.3/table/row.go) defines `Row` as `[]interface{}`.
-- [`tablewriter`](https://github.com/olekukonko/tablewriter/blob/v1.1.4/tablewriter.go) accepts `Append(...interface{})` and `Bulk(interface{})`.
+- [`tablewriter`](https://github.com/olekukonko/tablewriter/blob/v1.1.5/tablewriter.go) accepts `Append(...interface{})` and `Bulk(interface{})`.
 - [`simpletable`](https://github.com/alexeyco/simpletable/blob/v1.0.0/cell.go) accepts strings through `Cell.Text`. Callers must format numeric values before assigning them.
 
 For `table`, the feature matrix has the following qualifications:
