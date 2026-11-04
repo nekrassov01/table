@@ -30,7 +30,6 @@ func Test_solver_prepare(t *testing.T) {
 					return compilerResult{
 						configResult: configResult{
 							option: &option{
-								placeholder: "-",
 								style: Style{
 									Border: BorderStyle{
 										Vertical: &Vertical{
@@ -41,12 +40,14 @@ func Test_solver_prepare(t *testing.T) {
 							},
 							columns: []columnConfig{
 								{
-									lPad: 1,
-									rPad: 2,
+									lPad:        1,
+									rPad:        2,
+									placeholder: "-",
 								},
 								{
-									limit: 4,
-									rPad:  1,
+									limit:       4,
+									rPad:        1,
+									placeholder: "-",
 								},
 							},
 						},
@@ -188,7 +189,6 @@ func Test_solver_solve(t *testing.T) {
 					return compilerResult{
 						configResult: configResult{
 							option: &option{
-								placeholder: "-",
 								style: Style{
 									Border: BorderStyle{
 										Vertical: &Vertical{
@@ -197,6 +197,7 @@ func Test_solver_solve(t *testing.T) {
 									},
 								},
 							},
+							columns: []columnConfig{{placeholder: "-"}, {placeholder: "-"}},
 						},
 						header: []row{
 							{
@@ -320,7 +321,8 @@ func Test_solver_freeze(t *testing.T) {
 			fields: fields{
 				input: compilerResult{
 					configResult: configResult{
-						option: &option{},
+						option:  &option{},
+						columns: []columnConfig{{placeholder: ""}, {placeholder: ""}},
 					},
 				},
 				state: solverState{
@@ -675,13 +677,12 @@ func Test_solver_resolveWidths(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "resolves placeholder and fixed widths",
+			name: "resolves per-column placeholders and fixed widths",
 			fields: fields{
 				input: compilerResult{
 					configResult: configResult{
-						option: &option{
-							placeholder: "界",
-						},
+						option:  &option{},
+						columns: []columnConfig{{placeholder: "界"}, {placeholder: ""}, {placeholder: "界"}},
 					},
 				},
 				state: solverState{
@@ -716,9 +717,8 @@ func Test_solver_resolveWidths(t *testing.T) {
 					},
 					{
 						box: box{
-							width: 2,
+							width: 1,
 						},
-						overhead: 1,
 					},
 					{
 						box: box{
@@ -735,11 +735,9 @@ func Test_solver_resolveWidths(t *testing.T) {
 			fields: fields{
 				input: compilerResult{
 					configResult: configResult{
-						option: &option{
-							placeholder: "\t",
-						},
+						option:  &option{},
+						columns: []columnConfig{{placeholder: "    "}},
 					},
-					placeholder: "    ",
 				},
 				state: solverState{
 					columnMetrics: []columnMetric{
@@ -775,6 +773,7 @@ func Test_solver_resolveWidths(t *testing.T) {
 								},
 							},
 						},
+						columns: []columnConfig{{placeholder: ""}, {placeholder: ""}},
 					},
 				},
 				state: solverState{
@@ -827,7 +826,8 @@ func Test_solver_resolveWidths(t *testing.T) {
 			fields: fields{
 				input: compilerResult{
 					configResult: configResult{
-						option: &option{},
+						option:  &option{},
+						columns: []columnConfig{{placeholder: ""}, {placeholder: ""}},
 					},
 				},
 				state: solverState{
@@ -885,6 +885,7 @@ func Test_solver_resolveWidths(t *testing.T) {
 								},
 							},
 						},
+						columns: []columnConfig{{placeholder: ""}, {placeholder: ""}, {placeholder: ""}},
 					},
 				},
 				state: solverState{
@@ -987,7 +988,8 @@ func Test_solver_fitColumns(t *testing.T) {
 			fields: fields{
 				input: compilerResult{
 					configResult: configResult{
-						option: &option{},
+						option:  &option{},
+						columns: []columnConfig{{placeholder: ""}},
 					},
 				},
 				state: solverState{
@@ -1019,6 +1021,7 @@ func Test_solver_fitColumns(t *testing.T) {
 						option: &option{
 							autoFit: true,
 						},
+						columns: []columnConfig{{placeholder: ""}},
 					},
 				},
 				state: solverState{
@@ -1063,6 +1066,7 @@ func Test_solver_fitColumns(t *testing.T) {
 						option: &option{
 							autoFit: true,
 						},
+						columns: []columnConfig{{placeholder: ""}, {placeholder: ""}},
 					},
 				},
 				state: solverState{
@@ -1112,6 +1116,7 @@ func Test_solver_fitColumns(t *testing.T) {
 								},
 							},
 						},
+						columns: []columnConfig{{placeholder: ""}, {placeholder: ""}},
 					},
 				},
 				state: solverState{
@@ -1163,6 +1168,7 @@ func Test_solver_fitColumns(t *testing.T) {
 								},
 							},
 						},
+						columns: []columnConfig{{placeholder: ""}, {placeholder: ""}},
 					},
 				},
 				state: solverState{
@@ -1206,6 +1212,7 @@ func Test_solver_fitColumns(t *testing.T) {
 						option: &option{
 							autoFit: true,
 						},
+						columns: []columnConfig{{placeholder: ""}, {placeholder: ""}, {placeholder: ""}},
 					},
 				},
 				state: solverState{
@@ -1291,7 +1298,8 @@ func Test_solver_offsetColumns(t *testing.T) {
 			fields: fields{
 				input: compilerResult{
 					configResult: configResult{
-						option: &option{},
+						option:  &option{},
+						columns: []columnConfig{{placeholder: ""}, {placeholder: ""}},
 					},
 				},
 				state: solverState{
@@ -1330,6 +1338,7 @@ func Test_solver_offsetColumns(t *testing.T) {
 								},
 							},
 						},
+						columns: []columnConfig{{placeholder: ""}, {placeholder: ""}},
 					},
 				},
 				state: solverState{

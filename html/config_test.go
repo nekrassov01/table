@@ -137,7 +137,8 @@ func Test_option_apply(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "defaults",
+			name:   "defaults",
+			fields: fields{placeholder: placeholder},
 		},
 		{
 			name: "applies in order",
@@ -146,8 +147,8 @@ func Test_option_apply(t *testing.T) {
 			},
 			args: args{
 				opts: []Option{
-					WithPlaceholder("first"),
-					WithPlaceholder("last"),
+					WithPlaceholder(AllColumns(), "first"),
+					WithPlaceholder(AllColumns(), "last"),
 				},
 			},
 			want: want{
@@ -157,12 +158,11 @@ func Test_option_apply(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			o := &option{
-				placeholder: test.fields.placeholder,
-			}
+			o := &option{}
+			WithPlaceholder(AllColumns(), test.fields.placeholder)(o)
 			o.apply(test.args.opts...)
 			got := want{
-				placeholder: o.placeholder,
+				placeholder: o.columns.resolve(nil, 1)[0].placeholder,
 			}
 			testutil.AssertValue(t, got, test.want, "apply")
 		})

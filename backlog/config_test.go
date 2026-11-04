@@ -28,10 +28,12 @@ func Test_config_prepare(t *testing.T) {
 			fields: fields{
 				output: func() configResult {
 					configured := columnConfig{
-						rowspan: ScopeBody,
+						rowspan:     ScopeBody,
+						placeholder: placeholder,
 					}
 					defaults := columnConfig{
-						colspan: ScopeFooter,
+						colspan:     ScopeFooter,
+						placeholder: placeholder,
 					}
 					return configResult{
 						option: &option{
@@ -47,10 +49,12 @@ func Test_config_prepare(t *testing.T) {
 			want: want{
 				columns: func() []columnConfig {
 					configured := columnConfig{
-						rowspan: ScopeBody,
+						rowspan:     ScopeBody,
+						placeholder: placeholder,
 					}
 					defaults := columnConfig{
-						colspan: ScopeFooter,
+						colspan:     ScopeFooter,
+						placeholder: placeholder,
 					}
 					return []columnConfig{
 						configured,
@@ -73,7 +77,7 @@ func Test_config_prepare(t *testing.T) {
 				},
 			},
 			want: want{
-				columns:       make([]columnConfig, 3),
+				columns:       []columnConfig{defaultColumn(), defaultColumn(), defaultColumn()},
 				footerColumns: 3,
 			},
 		},
@@ -85,7 +89,8 @@ func Test_config_prepare(t *testing.T) {
 				},
 				state: func() configState {
 					configured := columnConfig{
-						rowspan: ScopeBody,
+						rowspan:     ScopeBody,
+						placeholder: placeholder,
 					}
 					return configState{
 						columns: []columnConfig{configured},
@@ -137,7 +142,8 @@ func Test_option_apply(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "defaults",
+			name:   "defaults",
+			fields: fields{placeholder: placeholder},
 			want: want{
 				placeholder: placeholder,
 			},
@@ -149,8 +155,8 @@ func Test_option_apply(t *testing.T) {
 			},
 			args: args{
 				opts: []Option{
-					WithPlaceholder("first"),
-					WithPlaceholder("last"),
+					WithPlaceholder(AllColumns(), "first"),
+					WithPlaceholder(AllColumns(), "last"),
 				},
 			},
 			want: want{
@@ -160,12 +166,11 @@ func Test_option_apply(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			o := &option{
-				placeholder: test.fields.placeholder,
-			}
+			o := &option{}
+			WithPlaceholder(AllColumns(), test.fields.placeholder)(o)
 			o.apply(test.args.opts...)
 			got := want{
-				placeholder: o.placeholder,
+				placeholder: o.columns.resolve(nil, 1)[0].placeholder,
 			}
 			testutil.AssertValue(t, got, test.want, "apply")
 		})
@@ -198,7 +203,8 @@ func Test_columnSet_apply(t *testing.T) {
 			name: "all columns creates defaults",
 			fields: fields{
 				values: []columnConfig{{
-					rowspan: ScopeHeader,
+					rowspan:     ScopeHeader,
+					placeholder: placeholder,
 				}},
 			},
 			args: args{
@@ -207,19 +213,22 @@ func Test_columnSet_apply(t *testing.T) {
 			},
 			want: want{
 				values: []columnConfig{{
-					rowspan: ScopeHeader | ScopeBody,
+					rowspan:     ScopeHeader | ScopeBody,
+					placeholder: placeholder,
 				}},
 				defaults: &columnConfig{
-					rowspan: ScopeBody,
+					rowspan:     ScopeBody,
+					placeholder: placeholder,
 				},
 			},
 		},
 		{
 			name: "all columns updates defaults",
 			fields: fields{
-				values: []columnConfig{{}},
+				values: []columnConfig{{placeholder: placeholder}},
 				defaults: &columnConfig{
-					rowspan: ScopeHeader,
+					rowspan:     ScopeHeader,
+					placeholder: placeholder,
 				},
 			},
 			args: args{
@@ -228,10 +237,12 @@ func Test_columnSet_apply(t *testing.T) {
 			},
 			want: want{
 				values: []columnConfig{{
-					rowspan: ScopeBody,
+					rowspan:     ScopeBody,
+					placeholder: placeholder,
 				}},
 				defaults: &columnConfig{
-					rowspan: ScopeHeader | ScopeBody,
+					rowspan:     ScopeHeader | ScopeBody,
+					placeholder: placeholder,
 				},
 			},
 		},
@@ -239,7 +250,8 @@ func Test_columnSet_apply(t *testing.T) {
 			name: "indexes extend default columns",
 			fields: fields{
 				values: []columnConfig{{
-					rowspan: ScopeHeader,
+					rowspan:     ScopeHeader,
+					placeholder: placeholder,
 				}},
 			},
 			args: args{
@@ -249,11 +261,13 @@ func Test_columnSet_apply(t *testing.T) {
 			want: want{
 				values: []columnConfig{
 					{
-						rowspan: ScopeHeader | ScopeBody,
+						rowspan:     ScopeHeader | ScopeBody,
+						placeholder: placeholder,
 					},
-					{},
+					{placeholder: placeholder},
 					{
-						rowspan: ScopeBody,
+						rowspan:     ScopeBody,
+						placeholder: placeholder,
 					},
 				},
 			},
@@ -262,7 +276,8 @@ func Test_columnSet_apply(t *testing.T) {
 			name: "indexes inherit configured defaults",
 			fields: fields{
 				defaults: &columnConfig{
-					colspan: ScopeFooter,
+					colspan:     ScopeFooter,
+					placeholder: placeholder,
 				},
 			},
 			args: args{
@@ -272,15 +287,18 @@ func Test_columnSet_apply(t *testing.T) {
 			want: want{
 				values: []columnConfig{
 					{
-						colspan: ScopeFooter,
+						colspan:     ScopeFooter,
+						placeholder: placeholder,
 					},
 					{
-						rowspan: ScopeBody,
-						colspan: ScopeFooter,
+						rowspan:     ScopeBody,
+						colspan:     ScopeFooter,
+						placeholder: placeholder,
 					},
 				},
 				defaults: &columnConfig{
-					colspan: ScopeFooter,
+					colspan:     ScopeFooter,
+					placeholder: placeholder,
 				},
 			},
 		},

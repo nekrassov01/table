@@ -153,7 +153,7 @@ func (o *compiler) compileRow(source []table.Value) {
 		column := &config.columns[index]
 		transformer := &column.transformer
 		if index >= len(source) {
-			values[index] = config.option.placeholder
+			values[index] = config.columns[index].placeholder
 			r.cells[index] = cell{}
 			continue
 		}
@@ -177,7 +177,7 @@ func (o *compiler) compileRow(source []table.Value) {
 			text = value.Format(o.strings, rawValue)
 		}
 		if text == "" {
-			text = config.option.placeholder
+			text = config.columns[index].placeholder
 			color = nil
 			decoration = nil
 		}

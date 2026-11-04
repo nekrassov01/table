@@ -30,18 +30,20 @@ func Test_config_prepare(t *testing.T) {
 			fields: fields{
 				output: func() configResult {
 					defaults := columnConfig{
-						limit: 9,
-						lPad:  2,
-						rPad:  3,
+						limit:       9,
+						lPad:        2,
+						rPad:        3,
+						placeholder: placeholder,
 					}
 					return configResult{
 						option: &option{
 							columns: columnSetOf(
 								[]columnConfig{
 									{
-										limit: 7,
-										lPad:  4,
-										rPad:  5,
+										limit:       7,
+										lPad:        4,
+										rPad:        5,
+										placeholder: placeholder,
 									},
 								},
 								&defaults,
@@ -60,14 +62,16 @@ func Test_config_prepare(t *testing.T) {
 			want: want{
 				columns: []columnConfig{
 					{
-						limit: 7,
-						lPad:  4,
-						rPad:  5,
+						limit:       7,
+						lPad:        4,
+						rPad:        5,
+						placeholder: placeholder,
 					},
 					{
-						limit: 9,
-						lPad:  2,
-						rPad:  3,
+						limit:       9,
+						lPad:        2,
+						rPad:        3,
+						placeholder: placeholder,
 					},
 				},
 				footerColumns: 4,
@@ -154,7 +158,6 @@ func Test_config_prepare(t *testing.T) {
 func Test_option_apply(t *testing.T) {
 	type fields struct {
 		style       Style
-		placeholder string
 		header      [][]string
 		footer      func() [][]string
 		caption     string
@@ -199,7 +202,7 @@ func Test_option_apply(t *testing.T) {
 				w: &bytes.Buffer{},
 				opts: []Option{
 					WithStyle(StyleColoredLight),
-					WithPlaceholder("-"),
+					WithPlaceholder(AllColumns(), "-"),
 					WithAutoFit(),
 					WithAttr(ScopeBody, AllColumns(), NewAttr(CodeUnderline)),
 				},
@@ -210,6 +213,7 @@ func Test_option_apply(t *testing.T) {
 				columns: func() columnSet {
 					attr := NewAttr(CodeUnderline)
 					configured := defaultColumn()
+					configured.placeholder = "-"
 					configured.transformer.attrs.Set(ScopeBody, attr)
 					return columnSetOf(nil, &configured)
 				}(),
@@ -331,8 +335,8 @@ func Test_option_apply(t *testing.T) {
 				return test.args.terminal
 			}
 			o := &option{
-				style:       test.fields.style,
-				placeholder: test.fields.placeholder,
+				style: test.fields.style,
+
 				header:      test.fields.header,
 				footer:      test.fields.footer,
 				caption:     test.fields.caption,
@@ -344,7 +348,7 @@ func Test_option_apply(t *testing.T) {
 			}
 			o.apply(test.args.w, test.args.opts...)
 			got := want{
-				placeholder: o.placeholder,
+				placeholder: o.columns.resolve(nil, 1)[0].placeholder,
 				columns:     o.columns,
 				plain:       o.plain,
 				autoFit:     o.autoFit,
@@ -394,9 +398,10 @@ func Test_columnSet_apply(t *testing.T) {
 					limit: 2,
 				}},
 				defaults: &columnConfig{
-					limit: 1,
-					lPad:  1,
-					rPad:  1,
+					limit:       1,
+					lPad:        1,
+					rPad:        1,
+					placeholder: placeholder,
 				},
 			},
 		},
@@ -405,9 +410,10 @@ func Test_columnSet_apply(t *testing.T) {
 			fields: fields{
 				values: []columnConfig{{}},
 				defaults: &columnConfig{
-					limit: 2,
-					lPad:  1,
-					rPad:  1,
+					limit:       2,
+					lPad:        1,
+					rPad:        1,
+					placeholder: placeholder,
 				},
 			},
 			args: args{
@@ -419,9 +425,10 @@ func Test_columnSet_apply(t *testing.T) {
 					limit: 1,
 				}},
 				defaults: &columnConfig{
-					limit: 3,
-					lPad:  1,
-					rPad:  1,
+					limit:       3,
+					lPad:        1,
+					rPad:        1,
+					placeholder: placeholder,
 				},
 			},
 		},
@@ -443,9 +450,10 @@ func Test_columnSet_apply(t *testing.T) {
 					},
 					defaultColumn(),
 					{
-						limit: 1,
-						lPad:  1,
-						rPad:  1,
+						limit:       1,
+						lPad:        1,
+						rPad:        1,
+						placeholder: placeholder,
 					},
 				},
 			},
@@ -454,9 +462,10 @@ func Test_columnSet_apply(t *testing.T) {
 			name: "indexes inherit configured defaults",
 			fields: fields{
 				defaults: &columnConfig{
-					limit: 5,
-					lPad:  2,
-					rPad:  3,
+					limit:       5,
+					lPad:        2,
+					rPad:        3,
+					placeholder: placeholder,
 				},
 			},
 			args: args{
@@ -466,20 +475,23 @@ func Test_columnSet_apply(t *testing.T) {
 			want: want{
 				values: []columnConfig{
 					{
-						limit: 5,
-						lPad:  2,
-						rPad:  3,
+						limit:       5,
+						lPad:        2,
+						rPad:        3,
+						placeholder: placeholder,
 					},
 					{
-						limit: 6,
-						lPad:  2,
-						rPad:  3,
+						limit:       6,
+						lPad:        2,
+						rPad:        3,
+						placeholder: placeholder,
 					},
 				},
 				defaults: &columnConfig{
-					limit: 5,
-					lPad:  2,
-					rPad:  3,
+					limit:       5,
+					lPad:        2,
+					rPad:        3,
+					placeholder: placeholder,
 				},
 			},
 		},
@@ -524,8 +536,9 @@ func Test_defaultColumn(t *testing.T) {
 			name: "default padding",
 			want: want{
 				val: columnConfig{
-					lPad: 1,
-					rPad: 1,
+					lPad:        1,
+					rPad:        1,
+					placeholder: placeholder,
 				},
 			},
 		},

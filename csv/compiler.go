@@ -117,7 +117,7 @@ func (o *compiler) compileRow(source []table.Value) {
 	values := state.values[:columnCount]
 	for index := range config.columns {
 		if index >= len(source) {
-			values[index] = config.option.placeholder
+			values[index] = config.columns[index].placeholder
 			continue
 		}
 		rawValue := source[index]
@@ -129,7 +129,7 @@ func (o *compiler) compileRow(source []table.Value) {
 			text = value.Format(o.strings, rawValue)
 		}
 		if text == "" {
-			text = config.option.placeholder
+			text = config.columns[index].placeholder
 		}
 		values[index] = text
 	}

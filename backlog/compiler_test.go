@@ -465,16 +465,16 @@ func Test_compiler_compileRow(t *testing.T) {
 			name: "transformer placeholder and missing value",
 			fields: fields{
 				input: configResult{
-					option: &option{
-						placeholder: "-",
-					},
+					option:   &option{},
 					bodyRows: 1,
 					columns: []columnConfig{
-						{},
+						{placeholder: "-"},
 						{transformer: transformer{fn: func(table.Value) (string, *Color, *Decoration) {
 							return "two", ColorFgRed, DecorationBold
-						}}},
-						{},
+						}},
+							placeholder: "-",
+						},
+						{placeholder: "-"},
 					},
 				},
 			},

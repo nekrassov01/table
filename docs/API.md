@@ -343,7 +343,7 @@ func WithPadding(columns ColumnSelector, left, right int) Option
 func WithRowspan(scopes Scope, columns ColumnSelector) Option
 func WithColspan(scopes Scope, columns ColumnSelector) Option
 func WithAttr(scopes Scope, columns ColumnSelector, attr *Attr) Option
-func WithPlaceholder(s string) Option
+func WithPlaceholder(columns ColumnSelector, s string) Option
 func WithTransformer(columns ColumnSelector, fn func(table.Value) (string, *Attr)) Option
 ```
 
@@ -377,7 +377,7 @@ func WithColspan(scopes Scope, columns ColumnSelector) Option
 func WithColor(scopes Scope, columns ColumnSelector, color *Color) Option
 func WithDecoration(scopes Scope, columns ColumnSelector, decoration *Decoration) Option
 func WithCellAttr(scopes Scope, columns ColumnSelector, attr Attr) Option
-func WithPlaceholder(s string) Option
+func WithPlaceholder(columns ColumnSelector, s string) Option
 func WithTransformer(columns ColumnSelector, fn func(table.Value) (string, *Color, *Decoration)) Option
 ```
 
@@ -401,7 +401,7 @@ func WithRowspan(columns ColumnSelector) Option
 func WithColspan(columns ColumnSelector) Option
 func WithColor(scopes Scope, columns ColumnSelector, color *Color) Option
 func WithDecoration(scopes Scope, columns ColumnSelector, decoration *Decoration) Option
-func WithPlaceholder(s string) Option
+func WithPlaceholder(columns ColumnSelector, s string) Option
 func WithTransformer(columns ColumnSelector, fn func(table.Value) (string, *Color, *Decoration)) Option
 ```
 
@@ -424,7 +424,7 @@ func WithRowspan(scopes Scope, columns ColumnSelector) Option
 func WithColspan(scopes Scope, columns ColumnSelector) Option
 func WithColor(scopes Scope, columns ColumnSelector, color *Color) Option
 func WithDecoration(scopes Scope, columns ColumnSelector, decoration *Decoration) Option
-func WithPlaceholder(s string) Option
+func WithPlaceholder(columns ColumnSelector, s string) Option
 func WithTransformer(columns ColumnSelector, fn func(table.Value) (string, *Color, *Decoration)) Option
 ```
 
@@ -443,7 +443,7 @@ func WithHeader(header []string) Option
 func WithFooter(fn func() [][]string) Option
 func WithDelimiter(delimiter rune) Option
 func WithCRLF() Option
-func WithPlaceholder(s string) Option
+func WithPlaceholder(columns ColumnSelector, s string) Option
 func WithTransformer(columns ColumnSelector, fn func(table.Value) string) Option
 ```
 
@@ -539,7 +539,7 @@ html.WithTransformer(html.Columns(2), func(v table.Value) (string, *html.Color, 
 
 ### Placeholders
 
-`WithPlaceholder` sets the displayed value for a missing body cell. The following values are missing:
+`WithPlaceholder` sets the displayed value for missing body cells in the selected columns. Use `AllColumns()` to set every column, including columns resolved later. Later options override earlier settings for the same columns. An explicit empty string is a valid placeholder. The following values are missing:
 
 - A `nil` interface.
 - A typed `nil`, including a pointer, slice, or map.

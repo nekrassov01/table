@@ -98,8 +98,8 @@ func Test_arena_newConfig(t *testing.T) {
 			name: "binds arena state",
 			args: args{
 				option: &option{
-					placeholder: "-",
-					header:      [][]string{{"header"}},
+					header:  [][]string{{"header"}},
+					columns: columnSetOf(nil, &columnConfig{placeholder: "-"}),
 				},
 				footer:      [][]string{{"footer"}},
 				bodyRows:    2,
@@ -108,8 +108,8 @@ func Test_arena_newConfig(t *testing.T) {
 			want: want{
 				output: configResult{
 					option: &option{
-						placeholder: "-",
-						header:      [][]string{{"header"}},
+						header:  [][]string{{"header"}},
+						columns: columnSetOf(nil, &columnConfig{placeholder: "-"}),
 					},
 					header:   [][]string{{"header"}},
 					footer:   [][]string{{"footer"}},
@@ -168,8 +168,8 @@ func Test_arena_resumeConfig(t *testing.T) {
 			},
 			args: args{
 				option: &option{
-					placeholder: "-",
-					header:      [][]string{{"header"}},
+					header:  [][]string{{"header"}},
+					columns: columnSetOf(nil, &columnConfig{placeholder: "-"}),
 				},
 				footer:   [][]string{{"sum", "total"}},
 				bodyRows: 2,
@@ -177,8 +177,8 @@ func Test_arena_resumeConfig(t *testing.T) {
 			want: want{
 				output: configResult{
 					option: &option{
-						placeholder: "-",
-						header:      [][]string{{"header"}},
+						header:  [][]string{{"header"}},
+						columns: columnSetOf(nil, &columnConfig{placeholder: "-"}),
 					},
 					header:   [][]string{{"header"}},
 					footer:   [][]string{{"sum", "total"}},

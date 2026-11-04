@@ -94,6 +94,8 @@ flowchart TD
 
 `apply` sets defaults and then applies each `Option` in the order supplied, producing an `option` that later stages treat as read-only. Headers are part of `option`. Formats with footers also retain a function that produces footer rows.
 
+Text placeholder options expand tabs once when the option is created. Column settings retain these normalized strings for both cell compilation and width calculation.
+
 Text options determine terminal status once during construction. The constructors adapt a terminal file for Windows color output when needed. If adaptation changes the writer, the adapted writer retains the original file so automatic fitting can continue to read its terminal width.
 
 ### Config
@@ -112,14 +114,14 @@ The root package exposes `table.Value` as an alias for the compact value represe
 
 `compileHeader` and `compileBody` convert headers and body values into logical rows and cells. `compileFooter` does the same for footers in `text`, `html`, `backlog`, and `csv`. Headers and footers use their configured labels. Formats other than CSV also select the attributes, colors, or decorations for the corresponding section. `compileBody` iterates the complete body, while `Stream` calls `compileRow` for one body row. Each row performs the following work as needed:
 
-- Fill missing values with the placeholder.
+- Fill missing values with the placeholder configured for each column.
 - Call the transformer when configured, then use the input value's default string representation only when the transformer returns an empty string.
 - Select the body attributes, colors, or decorations.
 - In text, replace tabs in displayed values with four ASCII spaces and record printable ASCII widths.
 
 Formats with spans compare these resolved strings and record where equal values continue. Escaped strings and markup are not used for comparison. Each value is then escaped or quoted according to its format, and the selected attributes, colors, and decorations are retained in the cell. Formats that need byte sizes or display widths for later capacity or geometry calculations record them here. A body row or footer wider than the resolved column count produces `ErrColumnCount` at this stage.
 
-`compilerResult` retains `configResult` and the compiled header and body. All formats except Markdown also retain the footer. Text additionally retains the normalized placeholder so its solver measures the value that later rows may display. Cell strings and span continuation positions or candidates are resolved at this point. Column widths and the `rowspan` and `colspan` counts written by HTML remain unresolved.
+`compilerResult` retains `configResult` and the compiled header and body. All formats except Markdown also retain the footer. Cell strings and span continuation positions or candidates are resolved at this point. Column widths and the `rowspan` and `colspan` counts written by HTML remain unresolved.
 
 ### Solver
 

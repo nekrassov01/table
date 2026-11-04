@@ -45,15 +45,13 @@ type configResult struct {
 
 // option holds settings fixed when a Table or Stream is constructed.
 type option struct {
-	columns     columnSet         // Input columns and their defaults.
-	footer      func() [][]string // Generates footer rows for Render or Close.
-	placeholder string            // Text for a missing value.
-	header      [][]string        // Header rows in top-to-bottom order.
+	columns columnSet         // Input columns and their defaults.
+	footer  func() [][]string // Generates footer rows for Render or Close.
+	header  [][]string        // Header rows in top-to-bottom order.
 }
 
 // apply sets defaults and applies opts in order.
 func (o *option) apply(opts ...Option) {
-	o.placeholder = placeholder
 	for _, opt := range opts {
 		opt(o)
 	}
@@ -64,19 +62,27 @@ type columnSet column.Set[columnConfig]
 
 // apply updates every input column selected by selector.
 func (o *columnSet) apply(selector ColumnSelector, fn func(*columnConfig)) {
-	(*column.Set[columnConfig])(o).Apply(selector.selector, nil, fn)
+	(*column.Set[columnConfig])(o).Apply(selector.selector, defaultColumn, fn)
 }
 
 // resolve applies input settings to logical columns.
 func (o *columnSet) resolve(columns []columnConfig, columnCount int) []columnConfig {
-	return (*column.Set[columnConfig])(o).Resolve(columns, columnCount, columnConfig{})
+	return (*column.Set[columnConfig])(o).Resolve(columns, columnCount, defaultColumn())
 }
 
 // columnConfig holds Backlog settings for one logical column.
 type columnConfig struct {
+	placeholder string      // Text for a missing value.
 	transformer transformer // Value transformation and inner markup.
 	rowspan     Scope       // Parts that span equal values vertically.
 	colspan     Scope       // Parts that span equal values horizontally.
+}
+
+// defaultColumn returns an unconfigured input column.
+func defaultColumn() columnConfig {
+	return columnConfig{
+		placeholder: placeholder,
+	}
 }
 
 // transformer holds body-value transformation and inner markup for a column.

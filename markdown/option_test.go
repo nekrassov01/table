@@ -82,9 +82,10 @@ func TestWithAlign(t *testing.T) {
 			},
 			want: want{
 				columns: []columnConfig{
-					{},
+					{placeholder: placeholder},
 					{
-						align: AlignRight,
+						align:       AlignRight,
+						placeholder: placeholder,
 					},
 				},
 			},
@@ -95,7 +96,8 @@ func TestWithAlign(t *testing.T) {
 				columns: columnSet{
 					Values: []columnConfig{
 						{
-							align: AlignRight,
+							align:       AlignRight,
+							placeholder: placeholder,
 						},
 					},
 				},
@@ -104,7 +106,7 @@ func TestWithAlign(t *testing.T) {
 				columns: Columns(0),
 			},
 			want: want{
-				columns: []columnConfig{{}},
+				columns: []columnConfig{{placeholder: placeholder}},
 			},
 		},
 	}
@@ -146,10 +148,12 @@ func TestWithRowspan(t *testing.T) {
 			want: want{
 				columns: []columnConfig{
 					{
-						rowspan: true,
+						rowspan:     true,
+						placeholder: placeholder,
 					},
 					{
-						rowspan: true,
+						rowspan:     true,
+						placeholder: placeholder,
 					},
 				},
 			},
@@ -192,9 +196,10 @@ func TestWithColspan(t *testing.T) {
 			},
 			want: want{
 				columns: []columnConfig{
-					{},
+					{placeholder: placeholder},
 					{
-						colspan: true,
+						colspan:     true,
+						placeholder: placeholder,
 					},
 				},
 			},
@@ -249,7 +254,7 @@ func TestWithColor(t *testing.T) {
 			fields: fields{
 				columns: columnSet{
 					Values: func() []columnConfig {
-						configured := columnConfig{}
+						configured := columnConfig{placeholder: placeholder}
 						configured.transformer.colors.Set(ScopeHeader|ScopeBody, ColorFgBlue)
 						return []columnConfig{configured}
 					}(),
@@ -324,13 +329,14 @@ func TestWithDecoration(t *testing.T) {
 
 func TestWithPlaceholder(t *testing.T) {
 	type fields struct {
-		placeholder string
+		columns columnSet
 	}
 	type args struct {
-		placeholder string
+		columns ColumnSelector
+		s       string
 	}
 	type want struct {
-		placeholder string
+		placeholders []string
 	}
 	tests := []struct {
 		name   string
@@ -339,32 +345,86 @@ func TestWithPlaceholder(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "sets placeholder",
-			fields: fields{
-				placeholder: "old",
-			},
+			name: "selected column",
 			args: args{
-				placeholder: "-",
+				columns: Columns(1),
+				s:       "-",
 			},
 			want: want{
-				placeholder: "-",
+				placeholders: []string{placeholder, "-", placeholder},
 			},
 		},
 		{
-			name: "clears placeholder",
+			name: "all columns",
+			args: args{
+				columns: AllColumns(),
+				s:       "-",
+			},
+			want: want{
+				placeholders: []string{"-", "-", "-"},
+			},
+		},
+		{
+			name: "explicit empty",
 			fields: fields{
-				placeholder: "old",
+				columns: columnSetOf(nil, &columnConfig{placeholder: "-"}),
+			},
+			args: args{
+				columns: Columns(1),
+				s:       "",
+			},
+			want: want{
+				placeholders: []string{"-", "", "-"},
+			},
+		},
+		{
+			name: "all overrides selected",
+			fields: fields{
+				columns: columnSet{
+					Values: []columnConfig{{}, {placeholder: "old"}},
+				},
+			},
+			args: args{
+				columns: AllColumns(),
+				s:       "new",
+			},
+			want: want{
+				placeholders: []string{"new", "new", "new"},
+			},
+		},
+		{
+			name: "empty selector",
+			args: args{
+				columns: Columns(),
+				s:       "-",
+			},
+			want: want{
+				placeholders: []string{placeholder, placeholder, placeholder},
+			},
+		},
+		{
+			name: "outside resolved columns",
+			args: args{
+				columns: Columns(1000000),
+				s:       "-",
+			},
+			want: want{
+				placeholders: []string{placeholder, placeholder, placeholder},
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{
-				placeholder: test.fields.placeholder,
+				columns: test.fields.columns,
 			}
-			WithPlaceholder(test.args.placeholder)(o)
+			WithPlaceholder(test.args.columns, test.args.s)(o)
+			columns := o.columns.resolve(nil, 3)
 			got := want{
-				placeholder: o.placeholder,
+				placeholders: make([]string, len(columns)),
+			}
+			for index := range columns {
+				got.placeholders[index] = columns[index].placeholder
 			}
 			testutil.AssertValue(t, got, test.want, "WithPlaceholder")
 		})

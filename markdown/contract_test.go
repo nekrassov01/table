@@ -394,6 +394,37 @@ func TestContract_OptionIsShareable(t *testing.T) {
 	wg.Wait()
 }
 
+func TestContract_ColumnPlaceholders(t *testing.T) {
+	opts := []Option{
+		WithPlaceholder(AllColumns(), "fallback"),
+		WithPlaceholder(Columns(0), "<未登録>"),
+		WithPlaceholder(Columns(1), ""),
+		WithPlaceholder(Columns(2), "x|y"),
+		WithPlaceholder(Columns(1000000), "unused"),
+	}
+	input := contractCase{
+		header: []string{"NAME", "EMPTY", "VALUE"},
+		opts:   opts,
+		rows: [][]table.Value{
+			{table.String("first"), table.String("value"), table.String("row")},
+			{table.String(""), table.Any(nil)},
+			{table.Any((*int)(nil))},
+		},
+	}
+	expected := input
+	expected.rows = [][]table.Value{
+		{table.String("first"), table.String("value"), table.String("row")},
+		{table.String("<未登録>"), table.String(""), table.String("x|y")},
+		{table.String("<未登録>"), table.String(""), table.String("x|y")},
+	}
+	t.Run("Table", func(t *testing.T) {
+		testutil.AssertBytes(t, renderContractTable(input), renderContractTable(expected), "column placeholders")
+	})
+	t.Run("Stream", func(t *testing.T) {
+		testutil.AssertBytes(t, renderContractStream(input), renderContractStream(expected), "column placeholders")
+	})
+}
+
 func TestContract_ColumnSelectors(t *testing.T) {
 	indexes := []int{1}
 	selector := Columns(indexes...)
@@ -688,7 +719,7 @@ func contractCases() []contractCase {
 		},
 		{
 			name:   "placeholder",
-			opts:   []Option{WithPlaceholder("N/A")},
+			opts:   []Option{WithPlaceholder(AllColumns(), "N/A")},
 			header: []string{"A", "B"},
 			rows:   [][]table.Value{{table.String("x"), table.Any(nil)}, {table.Any(nil), table.String("y")}},
 		},

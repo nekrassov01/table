@@ -40,14 +40,16 @@ func Test_config_prepare(t *testing.T) {
 			fields: fields{
 				output: func() configResult {
 					defaults := columnConfig{
-						align: AlignLeft,
+						align:       AlignLeft,
+						placeholder: placeholder,
 					}
 					return configResult{
 						option: &option{
 							columns: columnSetOf(
 								[]columnConfig{
 									{
-										align: AlignRight,
+										align:       AlignRight,
+										placeholder: placeholder,
 									},
 								},
 								&defaults,
@@ -64,10 +66,12 @@ func Test_config_prepare(t *testing.T) {
 			want: want{
 				columns: []columnConfig{
 					{
-						align: AlignRight,
+						align:       AlignRight,
+						placeholder: placeholder,
 					},
 					{
-						align: AlignLeft,
+						align:       AlignLeft,
+						placeholder: placeholder,
 					},
 				},
 			},
@@ -113,7 +117,8 @@ func Test_option_apply(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "defaults",
+			name:   "defaults",
+			fields: fields{placeholder: placeholder},
 			want: want{
 				placeholder: placeholder,
 			},
@@ -125,8 +130,8 @@ func Test_option_apply(t *testing.T) {
 			},
 			args: args{
 				opts: []Option{
-					WithPlaceholder("first"),
-					WithPlaceholder("last"),
+					WithPlaceholder(AllColumns(), "first"),
+					WithPlaceholder(AllColumns(), "last"),
 				},
 			},
 			want: want{
@@ -136,12 +141,11 @@ func Test_option_apply(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			o := &option{
-				placeholder: test.fields.placeholder,
-			}
+			o := &option{}
+			WithPlaceholder(AllColumns(), test.fields.placeholder)(o)
 			o.apply(test.args.opts...)
 			got := want{
-				placeholder: o.placeholder,
+				placeholder: o.columns.resolve(nil, 1)[0].placeholder,
 			}
 			testutil.AssertValue(t, got, test.want, "apply")
 		})
@@ -175,7 +179,8 @@ func Test_columnSet_apply(t *testing.T) {
 			fields: fields{
 				values: []columnConfig{
 					{
-						colspan: true,
+						colspan:     true,
+						placeholder: placeholder,
 					},
 				},
 			},
@@ -186,12 +191,14 @@ func Test_columnSet_apply(t *testing.T) {
 			want: want{
 				values: []columnConfig{
 					{
-						rowspan: true,
-						colspan: true,
+						rowspan:     true,
+						colspan:     true,
+						placeholder: placeholder,
 					},
 				},
 				defaults: &columnConfig{
-					rowspan: true,
+					rowspan:     true,
+					placeholder: placeholder,
 				},
 			},
 		},
@@ -200,11 +207,13 @@ func Test_columnSet_apply(t *testing.T) {
 			fields: fields{
 				values: []columnConfig{
 					{
-						align: AlignRight,
+						align:       AlignRight,
+						placeholder: placeholder,
 					},
 				},
 				defaults: &columnConfig{
-					colspan: true,
+					colspan:     true,
+					placeholder: placeholder,
 				},
 			},
 			args: args{
@@ -214,18 +223,22 @@ func Test_columnSet_apply(t *testing.T) {
 			want: want{
 				values: []columnConfig{
 					{
-						align: AlignRight,
+						align:       AlignRight,
+						placeholder: placeholder,
 					},
 					{
-						colspan: true,
+						colspan:     true,
+						placeholder: placeholder,
 					},
 					{
-						rowspan: true,
-						colspan: true,
+						rowspan:     true,
+						colspan:     true,
+						placeholder: placeholder,
 					},
 				},
 				defaults: &columnConfig{
-					colspan: true,
+					colspan:     true,
+					placeholder: placeholder,
 				},
 			},
 		},

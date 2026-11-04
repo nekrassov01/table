@@ -1,6 +1,8 @@
 package text
 
 import (
+	"strings"
+
 	"github.com/nekrassov01/table"
 	"github.com/nekrassov01/table/internal/column"
 )
@@ -154,11 +156,15 @@ func WithAttr(scopes Scope, columns ColumnSelector, attr *Attr) Option {
 	}
 }
 
-// WithPlaceholder sets the value displayed for a missing or empty body cell.
+// WithPlaceholder sets the value displayed for missing or empty body cells
+// in the selected columns.
 // Empty header and footer labels remain empty.
-func WithPlaceholder(s string) Option {
+func WithPlaceholder(columns ColumnSelector, s string) Option {
+	s = strings.ReplaceAll(s, "\t", "    ")
 	return func(o *option) {
-		o.placeholder = s
+		o.columns.apply(columns, func(c *columnConfig) {
+			c.placeholder = s
+		})
 	}
 }
 

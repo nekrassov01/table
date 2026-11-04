@@ -556,8 +556,9 @@ func TestWithPadding(t *testing.T) {
 				columns: columnSet{
 					Values: []columnConfig{
 						{
-							lPad: test.fields.lPad,
-							rPad: test.fields.rPad,
+							lPad:        test.fields.lPad,
+							rPad:        test.fields.rPad,
+							placeholder: placeholder,
 						},
 					},
 				},
@@ -748,13 +749,14 @@ func TestWithAttr(t *testing.T) {
 
 func TestWithPlaceholder(t *testing.T) {
 	type fields struct {
-		placeholder string
+		columns columnSet
 	}
 	type args struct {
-		s string
+		columns ColumnSelector
+		s       string
 	}
 	type want struct {
-		placeholder string
+		placeholders []string
 	}
 	tests := []struct {
 		name   string
@@ -763,32 +765,96 @@ func TestWithPlaceholder(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "sets placeholder",
-			fields: fields{
-				placeholder: "old",
-			},
+			name: "selected column",
 			args: args{
-				s: "-",
+				columns: Columns(1),
+				s:       "-",
 			},
 			want: want{
-				placeholder: "-",
+				placeholders: []string{placeholder, "-", placeholder},
 			},
 		},
 		{
-			name: "clears placeholder",
+			name: "all columns",
+			args: args{
+				columns: AllColumns(),
+				s:       "-",
+			},
+			want: want{
+				placeholders: []string{"-", "-", "-"},
+			},
+		},
+		{
+			name: "explicit empty",
 			fields: fields{
-				placeholder: "old",
+				columns: columnSetOf(nil, &columnConfig{placeholder: "-"}),
+			},
+			args: args{
+				columns: Columns(1),
+				s:       "",
+			},
+			want: want{
+				placeholders: []string{"-", "", "-"},
+			},
+		},
+		{
+			name: "all overrides selected",
+			fields: fields{
+				columns: columnSet{
+					Values: []columnConfig{{}, {placeholder: "old"}},
+				},
+			},
+			args: args{
+				columns: AllColumns(),
+				s:       "new",
+			},
+			want: want{
+				placeholders: []string{"new", "new", "new"},
+			},
+		},
+		{
+			name: "empty selector",
+			args: args{
+				columns: Columns(),
+				s:       "-",
+			},
+			want: want{
+				placeholders: []string{placeholder, placeholder, placeholder},
+			},
+		},
+		{
+			name: "outside resolved columns",
+			args: args{
+				columns: Columns(1000000),
+				s:       "-",
+			},
+			want: want{
+				placeholders: []string{placeholder, placeholder, placeholder},
+			},
+		},
+		{
+			name: "normalizes tabs",
+			args: args{
+				columns: Columns(1),
+				s:       "a\tb",
+			},
+			want: want{
+				placeholders: []string{placeholder, "a    b", placeholder},
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			o := &option{
-				placeholder: test.fields.placeholder,
+				columns: test.fields.columns,
 			}
-			WithPlaceholder(test.args.s)(o)
+			WithPlaceholder(test.args.columns, test.args.s)(o)
+			columns := o.columns.resolve(nil, 3)
 			got := want{
-				placeholder: o.placeholder,
+				placeholders: make([]string, len(columns)),
+			}
+			for index := range columns {
+				got.placeholders[index] = columns[index].placeholder
 			}
 			testutil.AssertValue(t, got, test.want, "WithPlaceholder")
 		})

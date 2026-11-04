@@ -161,8 +161,8 @@ func Test_option_apply(t *testing.T) {
 			args: args{
 				opts: []Option{
 					WithDelimiter(','),
-					WithPlaceholder("old"),
-					WithPlaceholder("-"),
+					WithPlaceholder(AllColumns(), "old"),
+					WithPlaceholder(AllColumns(), "-"),
 					WithHeader([]string{"A"}),
 					WithCRLF(),
 				},
@@ -181,7 +181,7 @@ func Test_option_apply(t *testing.T) {
 			o.apply(test.args.opts...)
 			got := want{
 				delimiter:   o.delimiter,
-				placeholder: o.placeholder,
+				placeholder: o.columns.resolve(nil, 1)[0].placeholder,
 				header:      o.header,
 				crlf:        o.crlf,
 			}

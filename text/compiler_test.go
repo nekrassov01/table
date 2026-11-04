@@ -34,7 +34,6 @@ func Test_compiler_prepare(t *testing.T) {
 		colspanBody    uint64
 		colspanFooter  uint64
 		outputRowspans uint64
-		placeholder    string
 		previousSpan   uint64
 		lastBars       uint64
 		stringMark     int
@@ -48,20 +47,20 @@ func Test_compiler_prepare(t *testing.T) {
 			name: "allocates storage and span masks",
 			fields: fields{
 				input: configResult{
-					option: &option{
-						placeholder: "\t",
-					},
+					option:   &option{},
 					header:   [][]string{{"header"}},
 					footer:   [][]string{{"footer"}},
 					bodyRows: 2,
 					columns: []columnConfig{
 						{
-							rowspan: ScopeHeader | ScopeBody,
-							colspan: ScopeFooter,
+							rowspan:     ScopeHeader | ScopeBody,
+							colspan:     ScopeFooter,
+							placeholder: "    ",
 						},
 						{
-							rowspan: ScopeBody | ScopeFooter,
-							colspan: ScopeHeader | ScopeBody,
+							rowspan:     ScopeBody | ScopeFooter,
+							colspan:     ScopeHeader | ScopeBody,
+							placeholder: "    ",
 						},
 					},
 				},
@@ -80,9 +79,7 @@ func Test_compiler_prepare(t *testing.T) {
 				colspanBody:    0b10,
 				colspanFooter:  0b01,
 				outputRowspans: 0b11,
-				placeholder:    "    ",
 				lastBars:       allBars,
-				stringMark:     4,
 			},
 		},
 		{
@@ -155,7 +152,6 @@ func Test_compiler_prepare(t *testing.T) {
 				colspanBody:    state.colspans.Resolve(ScopeBody),
 				colspanFooter:  state.colspans.Resolve(ScopeFooter),
 				outputRowspans: o.output.rowspanMask,
-				placeholder:    o.output.placeholder,
 				previousSpan:   previousSpan,
 				lastBars:       state.lastBars,
 				stringMark:     strings.Mark(),
@@ -332,10 +328,8 @@ func Test_compiler_compileBody(t *testing.T) {
 			name: "compiles all rows",
 			fields: fields{
 				input: configResult{
-					option: &option{
-						placeholder: "-",
-					},
-					columns: []columnConfig{{}},
+					option:  &option{},
+					columns: []columnConfig{{placeholder: "-"}},
 				},
 				state: compilerState{
 					cells:      make([]cell, 0, 2),
@@ -397,10 +391,8 @@ func Test_compiler_compileBody(t *testing.T) {
 			name: "stops after structural error",
 			fields: fields{
 				input: configResult{
-					option: &option{
-						placeholder: "-",
-					},
-					columns: []columnConfig{{}},
+					option:  &option{},
+					columns: []columnConfig{{placeholder: "-"}},
 				},
 				state: compilerState{
 					cells:      make([]cell, 0, 3),
@@ -808,15 +800,14 @@ func Test_compiler_compileRow(t *testing.T) {
 						return "answer", dynamicAttr
 					}
 					emptyColumn := defaultColumn()
+					emptyColumn.placeholder = "-"
 					emptyColumn.transformer.attrs.Set(ScopeBody, configuredAttr)
 					return configResult{
-						option: &option{
-							placeholder: "-",
-						},
+						option: &option{},
 						columns: []columnConfig{
 							dynamicColumn,
 							emptyColumn,
-							defaultColumn(),
+							{placeholder: "-"},
 						},
 					}
 				}(),
@@ -1037,13 +1028,12 @@ func Test_compiler_compileCells(t *testing.T) {
 				input: func() configResult {
 					attr := NewAttr(CodeFgRed)
 					configured := defaultColumn()
+					configured.placeholder = "    "
 					configured.transformer.fn = func(table.Value) (string, *Attr) {
 						return "", attr
 					}
 					return configResult{
-						option: &option{
-							placeholder: "\t",
-						},
+						option:  &option{},
 						columns: []columnConfig{configured},
 					}
 				}(),
@@ -1062,19 +1052,17 @@ func Test_compiler_compileCells(t *testing.T) {
 					},
 				},
 				attrLen:    9,
-				stringMark: 4,
+				stringMark: 0,
 			},
 		},
 		{
 			name: "tabs in values and placeholders",
 			fields: fields{
 				input: configResult{
-					option: &option{
-						placeholder: "\t",
-					},
+					option: &option{},
 					columns: []columnConfig{
-						defaultColumn(),
-						defaultColumn(),
+						columnConfig{placeholder: "    "},
+						columnConfig{placeholder: "    "},
 					},
 				},
 			},
@@ -1089,7 +1077,7 @@ func Test_compiler_compileCells(t *testing.T) {
 					{value: "va    lue", width: 9},
 					{value: "    ", width: 4},
 				},
-				stringMark: 13,
+				stringMark: 9,
 			},
 		},
 	}
