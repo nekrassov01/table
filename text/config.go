@@ -118,18 +118,18 @@ type columnConfig struct {
 	truncate    bool                    // Whether overflow is truncated instead of wrapped.
 }
 
-// transformer holds value transformation and attributes for a column.
-type transformer struct {
-	// Attributes applied in each table part.
-	attrs scope.Scopes[*Attr]
-	// Per-cell transformer for body values.
-	fn func(table.Value) (string, *Attr)
-}
-
 // defaultColumn returns an unconfigured input column.
 func defaultColumn() columnConfig {
 	return columnConfig{
 		lPad: 1,
 		rPad: 1,
 	}
+}
+
+// transformer holds value transformation and attributes for a column.
+type transformer struct {
+	// Attributes applied in each table part.
+	attrs scope.Scopes[*Attr]
+	// Per-cell transformer for body values.
+	fn func(table.Value) (string, *Attr)
 }

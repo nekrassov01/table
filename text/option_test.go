@@ -332,55 +332,6 @@ func TestWithAutoFit(t *testing.T) {
 	}
 }
 
-func TestWithPlaceholder(t *testing.T) {
-	type fields struct {
-		placeholder string
-	}
-	type args struct {
-		s string
-	}
-	type want struct {
-		placeholder string
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   want
-	}{
-		{
-			name: "sets placeholder",
-			fields: fields{
-				placeholder: "old",
-			},
-			args: args{
-				s: "-",
-			},
-			want: want{
-				placeholder: "-",
-			},
-		},
-		{
-			name: "clears placeholder",
-			fields: fields{
-				placeholder: "old",
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			o := &option{
-				placeholder: test.fields.placeholder,
-			}
-			WithPlaceholder(test.args.s)(o)
-			got := want{
-				placeholder: o.placeholder,
-			}
-			testutil.AssertValue(t, got, test.want, "WithPlaceholder")
-		})
-	}
-}
-
 func TestWithAlign(t *testing.T) {
 	type args struct {
 		scopes  Scope
@@ -791,6 +742,55 @@ func TestWithAttr(t *testing.T) {
 				footer: attrs.Resolve(ScopeFooter),
 			}
 			testutil.AssertValue(t, got, test.want, "WithAttr")
+		})
+	}
+}
+
+func TestWithPlaceholder(t *testing.T) {
+	type fields struct {
+		placeholder string
+	}
+	type args struct {
+		s string
+	}
+	type want struct {
+		placeholder string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   want
+	}{
+		{
+			name: "sets placeholder",
+			fields: fields{
+				placeholder: "old",
+			},
+			args: args{
+				s: "-",
+			},
+			want: want{
+				placeholder: "-",
+			},
+		},
+		{
+			name: "clears placeholder",
+			fields: fields{
+				placeholder: "old",
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			o := &option{
+				placeholder: test.fields.placeholder,
+			}
+			WithPlaceholder(test.args.s)(o)
+			got := want{
+				placeholder: o.placeholder,
+			}
+			testutil.AssertValue(t, got, test.want, "WithPlaceholder")
 		})
 	}
 }

@@ -22,14 +22,6 @@ func WithHeader(header []string) Option {
 	}
 }
 
-// WithPlaceholder sets the value displayed for a missing or empty body cell.
-// Empty header labels remain empty.
-func WithPlaceholder(s string) Option {
-	return func(o *option) {
-		o.placeholder = s
-	}
-}
-
 // WithAlign sets the alignment of the selected columns. GFM stores one
 // alignment in the delimiter row, so it applies to both header and body cells.
 func WithAlign(columns ColumnSelector, align AlignSide) Option {
@@ -80,6 +72,14 @@ func WithDecoration(scopes Scope, columns ColumnSelector, decoration *Decoration
 		o.columns.apply(columns, func(c *columnConfig) {
 			c.transformer.decorations.Set(scopes, decoration)
 		})
+	}
+}
+
+// WithPlaceholder sets the value displayed for a missing or empty body cell.
+// Empty header labels remain empty.
+func WithPlaceholder(s string) Option {
+	return func(o *option) {
+		o.placeholder = s
 	}
 }
 

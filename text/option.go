@@ -72,14 +72,6 @@ func WithAutoFit() Option {
 	}
 }
 
-// WithPlaceholder sets the value displayed for a missing or empty body cell.
-// Empty header and footer labels remain empty.
-func WithPlaceholder(s string) Option {
-	return func(o *option) {
-		o.placeholder = s
-	}
-}
-
 // WithAlign sets the alignment of the selected columns in the table parts
 // selected by scopes. [AlignDefault] restores the default for each part.
 func WithAlign(scopes Scope, columns ColumnSelector, align AlignSide) Option {
@@ -159,6 +151,14 @@ func WithAttr(scopes Scope, columns ColumnSelector, attr *Attr) Option {
 		o.columns.apply(columns, func(c *columnConfig) {
 			c.transformer.attrs.Set(scopes, attr)
 		})
+	}
+}
+
+// WithPlaceholder sets the value displayed for a missing or empty body cell.
+// Empty header and footer labels remain empty.
+func WithPlaceholder(s string) Option {
+	return func(o *option) {
+		o.placeholder = s
 	}
 }
 

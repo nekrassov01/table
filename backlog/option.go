@@ -38,14 +38,6 @@ func WithFooter(fn func() [][]string) Option {
 	}
 }
 
-// WithPlaceholder sets the value displayed for a missing or empty body cell.
-// Empty header and footer labels remain empty.
-func WithPlaceholder(s string) Option {
-	return func(o *option) {
-		o.placeholder = s
-	}
-}
-
 // WithRowspan blanks consecutive equal values vertically in the selected
 // columns and table parts. A change in a selected column also ends spans in
 // selected columns to its right. Backlog has no merged-cell syntax. Spans never
@@ -86,6 +78,14 @@ func WithDecoration(scopes Scope, columns ColumnSelector, decoration *Decoration
 		o.columns.apply(columns, func(c *columnConfig) {
 			c.transformer.decorations.Set(scopes, decoration)
 		})
+	}
+}
+
+// WithPlaceholder sets the value displayed for a missing or empty body cell.
+// Empty header and footer labels remain empty.
+func WithPlaceholder(s string) Option {
+	return func(o *option) {
+		o.placeholder = s
 	}
 }
 
