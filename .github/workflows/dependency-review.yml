@@ -1,0 +1,19 @@
+name: Dependency review
+on:
+  pull_request:
+
+jobs:
+  dependency-review:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Review dependencies
+        uses: actions/dependency-review-action@v5.0.0
