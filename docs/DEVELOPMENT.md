@@ -11,6 +11,7 @@ This document is the command reference for maintainers.
   - [Coverage](#coverage)
   - [Benchmarks](#benchmarks)
   - [Validation](#validation)
+  - [Workflow dependencies](#workflow-dependencies)
 
 ## Examples
 
@@ -109,3 +110,32 @@ Static analysis and vulnerability checks can be run separately or as part of the
 `make lint` and `make vuln` install their required tools when they are not already available.
 
 CI also vets the Go command packages under `.agents/skills`, which are not included in the `./...` package pattern.
+
+## Workflow dependencies
+
+GitHub Actions dependencies are pinned in `.github/workflows/actions.lock`. Workflow files use full version tags.
+The lockfile covers direct and transitive actions. It does not pin tools downloaded by actions or shell commands.
+
+Install the official GitHub CLI extension after authenticating with `gh auth login`:
+
+```sh
+gh extension install github/gh-actions-lock --pin v0.4.1
+```
+
+After adding a workflow or changing an action reference, regenerate and verify the lockfile:
+
+```sh
+gh actions-lock
+gh actions-lock --verify
+```
+
+Review and commit the workflow changes together with the generated lockfile. Do not edit the lockfile by hand.
+Use `gh actions-lock --verify-local` for an offline coverage check; it does not verify upstream commits.
+
+The Verify lockfile workflow runs the full verification when workflow files change.
+Dependabot updates the lockfile together with action references through the existing `github-actions` configuration.
+
+The Dependency review workflow checks dependency changes in every pull request and fails when they introduce known vulnerabilities.
+It uses the default settings of `actions/dependency-review-action` without additional license restrictions.
+
+See GitHub's [workflow lockfile guide](https://docs.github.com/en/actions/how-tos/secure-your-work/lock-workflow-dependencies) for details.
