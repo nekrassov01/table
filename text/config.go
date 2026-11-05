@@ -50,7 +50,6 @@ type option struct {
 	style       Style             // Border and content style.
 	columns     columnSet         // Input columns and their defaults.
 	footer      func() [][]string // Generates footer rows for Render or Close.
-	placeholder string            // Text for a missing value.
 	caption     string            // Caption text.
 	header      [][]string        // Header rows in top-to-bottom order.
 	captionSide CaptionSide       // Caption position.
@@ -63,7 +62,6 @@ type option struct {
 // behavior.
 func (o *option) apply(w io.Writer, opts ...Option) {
 	o.style = StyleLight
-	o.placeholder = placeholder
 	for _, opt := range opts {
 		opt(o)
 	}
@@ -108,6 +106,7 @@ func (o *columnSet) resolve(columns []columnConfig, columnCount int) []columnCon
 
 // columnConfig holds text settings for one logical column.
 type columnConfig struct {
+	placeholder string                  // Text for a missing value.
 	transformer transformer             // Value transformation and attributes.
 	limit       int                     // Configured display width; zero is unconstrained.
 	lPad        int                     // Left padding width.
@@ -118,18 +117,19 @@ type columnConfig struct {
 	truncate    bool                    // Whether overflow is truncated instead of wrapped.
 }
 
+// defaultColumn returns an unconfigured input column.
+func defaultColumn() columnConfig {
+	return columnConfig{
+		placeholder: placeholder,
+		lPad:        1,
+		rPad:        1,
+	}
+}
+
 // transformer holds value transformation and attributes for a column.
 type transformer struct {
 	// Attributes applied in each table part.
 	attrs scope.Scopes[*Attr]
 	// Per-cell transformer for body values.
 	fn func(table.Value) (string, *Attr)
-}
-
-// defaultColumn returns an unconfigured input column.
-func defaultColumn() columnConfig {
-	return columnConfig{
-		lPad: 1,
-		rPad: 1,
-	}
 }

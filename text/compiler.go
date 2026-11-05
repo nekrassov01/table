@@ -59,7 +59,6 @@ func (o *compiler) prepare() {
 		state.colspans.Mark(col.colspan, index)
 	}
 	o.output.rowspanMask = state.rowspans.Resolve(ScopeBody)
-	o.output.placeholder, _ = o.compileValue(o.input.option.placeholder)
 	state.previousBody.Reset()
 	state.lastBars = allBars
 }
@@ -174,7 +173,7 @@ func (o *compiler) compileCells(r row, source []table.Value) {
 	for index := range config.columns {
 		compiled := &r.cells[index]
 		if index >= len(source) {
-			compiled.value, compiled.width = o.compileValue(config.option.placeholder)
+			compiled.value, compiled.width = o.compileValue(config.columns[index].placeholder)
 			continue
 		}
 		transformer := &config.columns[index].transformer
@@ -198,7 +197,7 @@ func (o *compiler) compileCells(r row, source []table.Value) {
 			text = value.Format(o.strings, rawValue)
 		}
 		if text == "" {
-			text = config.option.placeholder
+			text = config.columns[index].placeholder
 			attr = nil
 		}
 		compiled.value, compiled.width = o.compileValue(text)
@@ -316,7 +315,6 @@ func (o *compiler) setBars(r *row, previousBars uint64, sc Scope) {
 type compilerResult struct {
 	configResult
 
-	placeholder     string // Placeholder after displayed-value normalization.
 	header          []row  // Compiled header rows in top-to-bottom order.
 	body            []row  // Compiled body rows in top-to-bottom order.
 	footer          []row  // Compiled footer rows in top-to-bottom order.

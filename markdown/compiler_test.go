@@ -232,18 +232,18 @@ func Test_compiler_compileBody(t *testing.T) {
 			name: "retains rows and span masks",
 			fields: fields{
 				input: configResult{
-					option: &option{
-						placeholder: "-",
-					},
+					option:   &option{},
 					bodyRows: 2,
 					columns: []columnConfig{
 						{
-							rowspan: true,
-							colspan: true,
+							rowspan:     true,
+							colspan:     true,
+							placeholder: "-",
 						},
 						{
-							rowspan: true,
-							colspan: true,
+							rowspan:     true,
+							colspan:     true,
+							placeholder: "-",
 						},
 					},
 				},
@@ -341,9 +341,7 @@ func Test_compiler_compileRow(t *testing.T) {
 			name: "resolves transformed and missing cells",
 			fields: fields{
 				input: configResult{
-					option: &option{
-						placeholder: "-",
-					},
+					option: &option{},
 					columns: []columnConfig{
 						{
 							transformer: transformer{
@@ -351,8 +349,9 @@ func Test_compiler_compileRow(t *testing.T) {
 									return "x|", ColorFgRed, DecorationBold
 								},
 							},
+							placeholder: "-",
 						},
-						{},
+						{placeholder: "-"},
 					},
 				},
 				state: compilerState{

@@ -145,14 +145,11 @@ func (o *solver) measureRow(r *row) {
 func (o *solver) resolveWidths() {
 	option := o.input.option
 	metrics := o.state.columnMetrics
-	placeholder := o.input.placeholder
-	if placeholder == "" {
-		placeholder = option.placeholder
-	}
-	placeholderWidth := display.StringWidth(placeholder)
-	placeholderOverhead := len(placeholder) - placeholderWidth
 	for index := range metrics {
 		metric := &metrics[index]
+		placeholder := o.input.columns[index].placeholder
+		placeholderWidth := display.StringWidth(placeholder)
+		placeholderOverhead := len(placeholder) - placeholderWidth
 		if placeholderOverhead > metric.overhead {
 			metric.overhead = placeholderOverhead
 		}

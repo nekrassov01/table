@@ -501,10 +501,8 @@ func Test_compiler_compileRow(t *testing.T) {
 			name: "placeholder for missing value",
 			fields: fields{
 				input: configResult{
-					option: &option{
-						placeholder: "-",
-					},
-					columns: make([]columnConfig, 2),
+					option:  &option{},
+					columns: []columnConfig{{placeholder: "-"}, {placeholder: "-"}},
 				},
 				state: compilerState{
 					cells:       make([]cell, 0, 2),
@@ -539,11 +537,9 @@ func Test_compiler_compileRow(t *testing.T) {
 			name: "applies transformer and formatting fallbacks",
 			fields: fields{
 				input: configResult{
-					option: &option{
-						placeholder: "-",
-					},
+					option: &option{},
 					columns: func() []columnConfig {
-						columns := make([]columnConfig, 3)
+						columns := []columnConfig{{placeholder: "-"}, {placeholder: "-"}, {placeholder: "-"}}
 						columns[0].transformer.fn = func(table.Value) (string, *Color, *Decoration) {
 							return "new", ColorFgRed, DecorationBold
 						}

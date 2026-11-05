@@ -151,7 +151,7 @@ func TestGolden_StreamNoHeader(t *testing.T) {
 func TestGolden_TablePlaceholderTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
-		WithPlaceholder("-"),
+		WithPlaceholder(AllColumns(), "-"),
 		WithTransformer(Columns(1), func(v table.Value) (string, *Color, *Decoration) {
 			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil, nil
@@ -169,7 +169,7 @@ func TestGolden_TablePlaceholderTransformer(t *testing.T) {
 func TestGolden_StreamPlaceholderTransformer(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
-		WithPlaceholder("-"),
+		WithPlaceholder(AllColumns(), "-"),
 		WithTransformer(Columns(1), func(v table.Value) (string, *Color, *Decoration) {
 			if s, ok := v.AsAny().(string); ok && s == "raw" {
 				return "T", nil, nil
@@ -231,7 +231,7 @@ func TestGolden_StreamBandBlank(t *testing.T) {
 		WithFooter(func() [][]string {
 			return [][]string{{"Total", ""}}
 		}),
-		WithPlaceholder("-"),
+		WithPlaceholder(AllColumns(), "-"),
 	)
 	for _, row := range [][]table.Value{{table.String("x"), table.Int(1), table.Int(2), table.Int(3)}, {table.String("y"), table.Any(nil), table.Int(5)}} {
 		if err := s.Render(row); err != nil {
@@ -429,7 +429,7 @@ func TestGolden_StreamColorNil(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
 		WithColor(ScopeBody, Columns(1), NewColor("red", "")),
-		WithPlaceholder("N/A"),
+		WithPlaceholder(AllColumns(), "N/A"),
 		WithHeader([]string{"Key", "Value"}),
 	)
 	if err := s.Render([]table.Value{table.String("a"), table.Any(nil)}); err != nil {
@@ -451,7 +451,7 @@ func TestGolden_StreamColorPlaceholder(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
 		WithColor(ScopeBody, Columns(1), ColorFgRed),
-		WithPlaceholder("N/A"),
+		WithPlaceholder(AllColumns(), "N/A"),
 		WithHeader([]string{"A", "B", "C"}),
 	)
 	if err := s.Render([]table.Value{table.String("x"), table.String(""), table.Int(1)}); err != nil {
@@ -685,7 +685,7 @@ func TestGolden_StreamDecoNil(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
 		WithDecoration(ScopeBody, Columns(1), DecorationBold),
-		WithPlaceholder("-"),
+		WithPlaceholder(AllColumns(), "-"),
 		WithHeader([]string{"Key", "Value"}),
 	)
 	if err := s.Render([]table.Value{table.String("a"), table.Any(nil)}); err != nil {
@@ -726,7 +726,7 @@ func TestGolden_StreamDecoShortRow(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
 		WithDecoration(ScopeBody, Columns(1), DecorationCode),
-		WithPlaceholder("-"),
+		WithPlaceholder(AllColumns(), "-"),
 		WithHeader([]string{"Key", "Value"}),
 	)
 	if err := s.Render([]table.Value{table.String("full"), table.String("ok")}); err != nil {
@@ -1047,7 +1047,7 @@ func TestGolden_StreamLongValue(t *testing.T) {
 func TestGolden_StreamNilInNumeric(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
-		WithPlaceholder("N/A"),
+		WithPlaceholder(AllColumns(), "N/A"),
 		WithHeader([]string{"N", "V"}),
 	)
 	if err := s.Render([]table.Value{table.Int(1), table.Int(100)}); err != nil {
@@ -1068,7 +1068,7 @@ func TestGolden_StreamNilInNumeric(t *testing.T) {
 func TestGolden_StreamPlaceholder(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
-		WithPlaceholder("N/A"),
+		WithPlaceholder(AllColumns(), "N/A"),
 		WithHeader([]string{"A", "B"}),
 	)
 	if err := s.Render([]table.Value{table.String("x"), table.String("")}); err != nil {
@@ -1086,7 +1086,7 @@ func TestGolden_StreamPlaceholder(t *testing.T) {
 func TestGolden_StreamPlaceholderColspan(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
-		WithPlaceholder("-"),
+		WithPlaceholder(AllColumns(), "-"),
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
 		WithHeader([]string{"A", "B", "C"}),
 	)
@@ -1186,7 +1186,7 @@ func TestGolden_StreamRowspanMissingKinds(t *testing.T) {
 	s := NewStream(&buf,
 		WithHeader([]string{"A", "B"}),
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(1)),
-		WithPlaceholder("X"),
+		WithPlaceholder(AllColumns(), "X"),
 	)
 	if err := s.Render([]table.Value{table.Int(1), table.String("X")}); err != nil {
 		t.Fatal(err)
@@ -1207,7 +1207,7 @@ func TestGolden_StreamRowspanPlaceholder(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
-		WithPlaceholder("N/A"),
+		WithPlaceholder(AllColumns(), "N/A"),
 		WithHeader([]string{"Group", "Value"}),
 	)
 	if err := s.Render([]table.Value{table.String("A"), table.Any(nil)}); err != nil {
@@ -1510,7 +1510,7 @@ func TestGolden_StreamTypedNil(t *testing.T) {
 	var nilError *testutil.PtrError
 	var buf bytes.Buffer
 	s := NewStream(&buf,
-		WithPlaceholder("<nil>"),
+		WithPlaceholder(AllColumns(), "<nil>"),
 		WithHeader([]string{"Stringer", "Error"}),
 	)
 	if err := s.Render([]table.Value{table.Any(nilStringer), table.Any(nilError)}); err != nil {
@@ -1526,7 +1526,7 @@ func TestGolden_StreamValueEqualsPlaceholder(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
 		WithHeader([]string{"A", "B"}),
-		WithPlaceholder("N/A"),
+		WithPlaceholder(AllColumns(), "N/A"),
 	)
 	if err := s.Render([]table.Value{table.String("N/A"), table.String("")}); err != nil {
 		t.Fatal(err)
@@ -1544,7 +1544,7 @@ func TestGolden_StreamValueEqualsPlaceholderColor(t *testing.T) {
 	var buf bytes.Buffer
 	s := NewStream(&buf,
 		WithHeader([]string{"A"}),
-		WithPlaceholder("N/A"),
+		WithPlaceholder(AllColumns(), "N/A"),
 		WithColor(ScopeBody, Columns(0), ColorFgRed),
 	)
 	if err := s.Render([]table.Value{table.String("N/A")}); err != nil {
@@ -1603,7 +1603,7 @@ func TestGolden_TableBandBlank(t *testing.T) {
 		WithFooter(func() [][]string {
 			return [][]string{{"Total", ""}}
 		}),
-		WithPlaceholder("-"),
+		WithPlaceholder(AllColumns(), "-"),
 	)
 	if err := tb.Render([][]table.Value{
 		{table.String("x"), table.Int(1), table.Int(2), table.Int(3)},
@@ -1784,7 +1784,7 @@ func TestGolden_TableColorNil(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
 		WithColor(ScopeBody, Columns(1), NewColor("red", "")),
-		WithPlaceholder("N/A"),
+		WithPlaceholder(AllColumns(), "N/A"),
 		WithHeader([]string{"Key", "Value"}),
 	)
 	if err := tb.Render([][]table.Value{
@@ -1801,7 +1801,7 @@ func TestGolden_TableColorPlaceholder(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
 		WithColor(ScopeBody, Columns(1), ColorFgRed),
-		WithPlaceholder("N/A"),
+		WithPlaceholder(AllColumns(), "N/A"),
 		WithHeader([]string{"A", "B", "C"}),
 	)
 	if err := tb.Render([][]table.Value{
@@ -1995,7 +1995,7 @@ func TestGolden_TableDecoNil(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
 		WithDecoration(ScopeBody, Columns(1), DecorationCode),
-		WithPlaceholder("N/A"),
+		WithPlaceholder(AllColumns(), "N/A"),
 		WithHeader([]string{"Key", "Value"}),
 	)
 	if err := tb.Render([][]table.Value{
@@ -2029,7 +2029,7 @@ func TestGolden_TableDecoShortRow(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
 		WithDecoration(ScopeBody, Columns(1), DecorationCode),
-		WithPlaceholder("-"),
+		WithPlaceholder(AllColumns(), "-"),
 		WithHeader([]string{"Key", "Value"}),
 	)
 	if err := tb.Render([][]table.Value{
@@ -2288,7 +2288,7 @@ func TestGolden_TableLongValue(t *testing.T) {
 func TestGolden_TableNilInNumeric(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
-		WithPlaceholder("N/A"),
+		WithPlaceholder(AllColumns(), "N/A"),
 		WithHeader([]string{"N", "V"}),
 	)
 	if err := tb.Render([][]table.Value{
@@ -2316,7 +2316,7 @@ func TestGolden_TableNoHeaderRagged(t *testing.T) {
 func TestGolden_TablePlaceholder(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
-		WithPlaceholder("N/A"),
+		WithPlaceholder(AllColumns(), "N/A"),
 		WithHeader([]string{"A", "B"}),
 	)
 	if err := tb.Render([][]table.Value{
@@ -2331,7 +2331,7 @@ func TestGolden_TablePlaceholder(t *testing.T) {
 func TestGolden_TablePlaceholderColspan(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
-		WithPlaceholder("-"),
+		WithPlaceholder(AllColumns(), "-"),
 		WithColspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0, 1, 2)),
 		WithHeader([]string{"A", "B", "C"}),
 	)
@@ -2410,7 +2410,7 @@ func TestGolden_TableRowspanMissingKinds(t *testing.T) {
 	tb := NewTable(&buf,
 		WithHeader([]string{"A", "B"}),
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(1)),
-		WithPlaceholder("X"),
+		WithPlaceholder(AllColumns(), "X"),
 	)
 	if err := tb.Render([][]table.Value{
 		{table.Int(1), table.String("X")},
@@ -2426,7 +2426,7 @@ func TestGolden_TableRowspanPlaceholder(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
 		WithRowspan(ScopeHeader|ScopeBody|ScopeFooter, Columns(0)),
-		WithPlaceholder("N/A"),
+		WithPlaceholder(AllColumns(), "N/A"),
 		WithHeader([]string{"Group", "Value"}),
 	)
 	if err := tb.Render([][]table.Value{
@@ -2657,7 +2657,7 @@ func TestGolden_TableTypedNil(t *testing.T) {
 	var nilError *testutil.PtrError
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
-		WithPlaceholder("<nil>"),
+		WithPlaceholder(AllColumns(), "<nil>"),
 		WithHeader([]string{"Stringer", "Error"}),
 	)
 	if err := tb.Render([][]table.Value{
@@ -2672,7 +2672,7 @@ func TestGolden_TableValueEqualsPlaceholder(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
 		WithHeader([]string{"A", "B"}),
-		WithPlaceholder("N/A"),
+		WithPlaceholder(AllColumns(), "N/A"),
 	)
 	if err := tb.Render([][]table.Value{
 		{table.String("N/A"), table.String("")},
@@ -2687,7 +2687,7 @@ func TestGolden_TableValueEqualsPlaceholderColor(t *testing.T) {
 	var buf bytes.Buffer
 	tb := NewTable(&buf,
 		WithHeader([]string{"A"}),
-		WithPlaceholder("N/A"),
+		WithPlaceholder(AllColumns(), "N/A"),
 		WithColor(ScopeBody, Columns(0), ColorFgRed),
 	)
 	if err := tb.Render([][]table.Value{

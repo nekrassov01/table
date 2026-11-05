@@ -54,11 +54,14 @@ func WithCRLF() Option {
 	}
 }
 
-// WithPlaceholder sets the value displayed for a missing or empty body cell.
+// WithPlaceholder sets the value displayed for missing or empty body cells
+// in the selected columns.
 // Empty header and footer labels remain empty.
-func WithPlaceholder(s string) Option {
+func WithPlaceholder(columns ColumnSelector, s string) Option {
 	return func(o *option) {
-		o.placeholder = s
+		o.columns.apply(columns, func(c *columnConfig) {
+			c.placeholder = s
+		})
 	}
 }
 

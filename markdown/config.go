@@ -41,14 +41,12 @@ type configResult struct {
 
 // option holds settings fixed when a Table or Stream is constructed.
 type option struct {
-	columns     columnSet // Input columns and their defaults.
-	placeholder string    // Text for a missing value.
-	header      []string  // The required header row.
+	columns columnSet // Input columns and their defaults.
+	header  []string  // The required header row.
 }
 
 // apply sets defaults and applies opts in order.
 func (o *option) apply(opts ...Option) {
-	o.placeholder = placeholder
 	for _, opt := range opts {
 		opt(o)
 	}
@@ -59,20 +57,28 @@ type columnSet column.Set[columnConfig]
 
 // apply updates every input column selected by selector.
 func (o *columnSet) apply(selector ColumnSelector, fn func(*columnConfig)) {
-	(*column.Set[columnConfig])(o).Apply(selector.selector, nil, fn)
+	(*column.Set[columnConfig])(o).Apply(selector.selector, defaultColumn, fn)
 }
 
 // resolve applies input settings to logical columns.
 func (o *columnSet) resolve(columns []columnConfig, columnCount int) []columnConfig {
-	return (*column.Set[columnConfig])(o).Resolve(columns, columnCount, columnConfig{})
+	return (*column.Set[columnConfig])(o).Resolve(columns, columnCount, defaultColumn())
 }
 
 // columnConfig holds Markdown settings for one logical column.
 type columnConfig struct {
+	placeholder string      // Text for a missing value.
 	transformer transformer // Value transformation and inner markup.
 	align       AlignSide   // Alignment encoded by the delimiter row.
 	rowspan     bool        // Whether equal body values span vertically.
 	colspan     bool        // Whether equal body values span horizontally.
+}
+
+// defaultColumn returns an unconfigured input column.
+func defaultColumn() columnConfig {
+	return columnConfig{
+		placeholder: placeholder,
+	}
 }
 
 // transformer holds body-value transformation and inner markup for a column.

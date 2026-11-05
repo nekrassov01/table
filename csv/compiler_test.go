@@ -470,21 +470,22 @@ func Test_compiler_compileRow(t *testing.T) {
 			fields: fields{
 				input: configResult{
 					option: &option{
-						delimiter:   ',',
-						placeholder: "-",
+						delimiter: ',',
 					},
 					columns: []columnConfig{
 						{
 							transformer: func(table.Value) string {
 								return "new,value"
 							},
+							placeholder: "-",
 						},
 						{
 							transformer: func(table.Value) string {
 								return ""
 							},
+							placeholder: "-",
 						},
-						{},
+						{placeholder: "-"},
 					},
 				},
 				state: compilerState{
