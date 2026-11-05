@@ -1,5 +1,12 @@
 # Changelog
 
+## [v0.2.3](https://github.com/nekrassov01/table/compare/v0.2.2...v0.2.3) - 2026-11-05
+
+- Support per-column placeholders by @nekrassov01 in https://github.com/nekrassov01/table/pull/52
+- Update dependencies by @nekrassov01 in https://github.com/nekrassov01/table/pull/54
+- Update dependencies by @nekrassov01 in https://github.com/nekrassov01/table/pull/56
+- Enhance CI dependency security by @nekrassov01 in https://github.com/nekrassov01/table/pull/57
+
 ## [v0.2.2](https://github.com/nekrassov01/table/compare/v0.2.1...v0.2.2) - 2026-09-30
 
 - Reduce struct padding and refine field layout by @nekrassov01 in https://github.com/nekrassov01/table/pull/45
