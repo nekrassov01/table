@@ -5,8 +5,8 @@ go 1.27.0
 replace github.com/nekrassov01/table => ../
 
 require (
-	github.com/alexeyco/simpletable v1.0.0
-	github.com/jedib0t/go-pretty/v6 v6.8.3
+	github.com/alexeyco/simpletable v1.1.0
+	github.com/jedib0t/go-pretty/v6 v6.9.0
 	github.com/nekrassov01/table v0.0.0
 	github.com/olekukonko/tablewriter v1.1.5
 )
@@ -22,6 +22,7 @@ require (
 	github.com/olekukonko/cat v0.0.0-20250911104152-50322a0618f6 // indirect
 	github.com/olekukonko/errors v1.2.0 // indirect
 	github.com/olekukonko/ll v0.1.6 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/term v0.47.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
