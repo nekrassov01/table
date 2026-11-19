@@ -7,7 +7,7 @@ require (
 	github.com/mattn/go-colorable v0.1.16
 	github.com/mattn/go-isatty v0.0.24
 	github.com/mattn/go-runewidth v0.0.31
-	golang.org/x/term v0.47.0
+	golang.org/x/term v0.48.0
 )
 
-require golang.org/x/sys v0.49.0 // indirect
+require golang.org/x/sys v0.50.0 // indirect
